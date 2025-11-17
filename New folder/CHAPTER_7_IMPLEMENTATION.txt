@@ -1,0 +1,1339 @@
+================================================================================
+                        CHAPTER 7: IMPLEMENTATION
+================================================================================
+
+This chapter discusses the implementation details of the Expert Raah platform.
+The core modules' functionalities are presented in pseudocode form, following
+proper coding standards and algorithm representation conventions.
+
+================================================================================
+7.1 ALGORITHMS
+================================================================================
+
+The following algorithms represent the core functionalities of the Expert Raah
+platform, organized by major modules.
+
+--------------------------------------------------------------------------------
+7.1.1 Authentication & User Management Module
+--------------------------------------------------------------------------------
+
+Algorithm 1: User Registration
+Input: userData {name, email, password, accountType}
+Output: {success: Boolean, user: UserObject, token: String}
+
+1:  BEGIN
+2:      // Validate input data
+3:      IF email is NOT valid format THEN
+4:          RETURN {success: false, error: "Invalid email format"}
+5:      END IF
+6:      
+7:      IF password length < 6 THEN
+8:          RETURN {success: false, error: "Password too short"}
+9:      END IF
+10:     
+11:     IF accountType NOT IN ['buyer', 'consultant'] THEN
+12:         RETURN {success: false, error: "Invalid account type"}
+13:     END IF
+14:     
+15:     // Check if user already exists
+16:     existingUser ← QUERY database WHERE email = userData.email
+17:     IF existingUser EXISTS THEN
+18:         RETURN {success: false, error: "User already exists"}
+19:     END IF
+20:     
+21:     // Hash password
+22:     hashedPassword ← BCRYPT.hash(userData.password, saltRounds=10)
+23:     
+24:     // Create user object
+25:     newUser ← {
+26:         name: userData.name,
+27:         email: userData.email,
+28:         password: hashedPassword,
+29:         accountType: userData.accountType,
+30:         isVerified: false,
+31:         isBanned: false,
+32:         createdAt: CURRENT_TIMESTAMP
+33:     }
+34:     
+35:     // Save to database
+36:     savedUser ← INSERT newUser INTO Users collection
+37:     
+38:     // Generate JWT token
+39:     token ← JWT.sign({
+40:         id: savedUser._id,
+41:         email: savedUser.email,
+42:         accountType: savedUser.accountType
+43:     }, SECRET_KEY, expiresIn: "7d")
+44:     
+45:     // Remove password from response
+46:     DELETE savedUser.password
+47:     
+48:     RETURN {success: true, user: savedUser, token: token}
+49: END
+
+--------------------------------------------------------------------------------
+
+Algorithm 2: User Login
+Input: credentials {email, password}
+Output: {success: Boolean, user: UserObject, token: String}
+
+1:  BEGIN
+2:      // Validate input
+3:      IF email is EMPTY OR password is EMPTY THEN
+4:          RETURN {success: false, error: "Email and password required"}
+5:      END IF
+6:      
+7:      // Find user by email
+8:      user ← QUERY database WHERE email = credentials.email
+9:      IF user NOT EXISTS THEN
+10:         RETURN {success: false, error: "Invalid credentials"}
+11:     END IF
+12:     
+13:     // Check if user is banned
+14:     IF user.isBanned = true THEN
+15:         RETURN {success: false, error: "Account has been banned"}
+16:     END IF
+17:     
+18:     // Verify password
+19:     isPasswordValid ← BCRYPT.compare(credentials.password, user.password)
+20:     IF isPasswordValid = false THEN
+21:         RETURN {success: false, error: "Invalid credentials"}
+22:     END IF
+23:     
+24:     // Update online status
+25:     UPDATE user SET isOnline = true WHERE _id = user._id
+26:     
+27:     // Generate JWT token
+28:     token ← JWT.sign({
+29:         id: user._id,
+30:         email: user.email,
+31:         accountType: user.accountType
+32:     }, SECRET_KEY, expiresIn: "7d")
+33:     
+34:     // Remove password from response
+35:     DELETE user.password
+36:     
+37:     RETURN {success: true, user: user, token: token}
+38: END
+
+--------------------------------------------------------------------------------
+
+Algorithm 3: Token Verification Middleware
+Input: request {headers: {authorization}}
+Output: {authenticated: Boolean, user: UserObject}
+
+1:  BEGIN
+2:      // Extract token from header
+3:      authHeader ← request.headers.authorization
+4:      IF authHeader is EMPTY OR NOT starts with "Bearer " THEN
+5:          RETURN {authenticated: false, error: "No token provided"}
+6:      END IF
+7:      
+8:      token ← authHeader.split("Bearer ")[1]
+9:      
+10:     TRY
+11:         // Verify token
+12:         decoded ← JWT.verify(token, SECRET_KEY)
+13:         
+14:         // Fetch user from database
+15:         user ← QUERY database WHERE _id = decoded.id
+16:         IF user NOT EXISTS THEN
+17:             RETURN {authenticated: false, error: "User not found"}
+18:         END IF
+19:         
+20:         // Check if user is banned
+21:         IF user.isBanned = true THEN
+22:             RETURN {authenticated: false, error: "Account banned"}
+23:         END IF
+24:         
+25:         // Attach user to request
+26:         request.user ← user
+27:         RETURN {authenticated: true, user: user}
+28:         
+29:     CATCH TokenExpiredError
+30:         RETURN {authenticated: false, error: "Token expired"}
+31:     CATCH JsonWebTokenError
+32:         RETURN {authenticated: false, error: "Invalid token"}
+33:     END TRY
+34: END
+
+--------------------------------------------------------------------------------
+7.1.2 Consultant Profile Management Module
+--------------------------------------------------------------------------------
+
+Algorithm 4: Create Consultant Profile
+Input: consultantData {userId, title, bio, specialization[], hourlyRate, 
+                        experience, skills[], documents}
+Output: {success: Boolean, consultant: ConsultantObject}
+
+1:  BEGIN
+2:      // Validate required fields
+3:      IF title is EMPTY THEN
+4:          RETURN {success: false, error: "Title is required"}
+5:      END IF
+6:      
+7:      IF bio is EMPTY THEN
+8:          RETURN {success: false, error: "Bio is required"}
+9:      END IF
+10:     
+11:     IF specialization.length = 0 THEN
+12:         RETURN {success: false, error: "At least one specialization required"}
+13:     END IF
+14:     
+15:     IF hourlyRate ≤ 0 THEN
+16:         RETURN {success: false, error: "Valid hourly rate required"}
+17:     END IF
+18:     
+19:     // Check if profile already exists
+20:     existingProfile ← QUERY Consultants WHERE userId = consultantData.userId
+21:     IF existingProfile EXISTS THEN
+22:         RETURN {success: false, error: "Profile already exists"}
+23:     END IF
+24:     
+25:     // Process uploaded documents (if any)
+26:     processedDocs ← []
+27:     IF consultantData.documents EXISTS THEN
+28:         FOR EACH doc IN consultantData.documents DO
+29:             // Compress and encode document
+30:             compressedDoc ← COMPRESS_IMAGE(doc, maxWidth: 800, quality: 0.7)
+31:             processedDocs.APPEND(compressedDoc)
+32:         END FOR
+33:     END IF
+34:     
+35:     // Create consultant profile
+36:     newConsultant ← {
+37:         userId: consultantData.userId,
+38:         title: consultantData.title,
+39:         bio: consultantData.bio,
+40:         specialization: consultantData.specialization,
+41:         hourlyRate: consultantData.hourlyRate,
+42:         experience: consultantData.experience,
+43:         skills: consultantData.skills,
+44:         idCardFront: processedDocs[0],
+45:         idCardBack: processedDocs[1],
+46:         supportingDocuments: processedDocs.slice(2),
+47:         isVerified: false,
+48:         rating: 0,
+49:         totalProjects: 0,
+50:         totalEarnings: 0,
+51:         availability: 'available',
+52:         createdAt: CURRENT_TIMESTAMP
+53:     }
+54:     
+55:     // Save to database
+56:     savedConsultant ← INSERT newConsultant INTO Consultants collection
+57:     
+58:     // Populate user details
+59:     populatedConsultant ← POPULATE savedConsultant.userId WITH 
+60:                           {name, email, profileImage, isBanned}
+61:     
+62:     RETURN {success: true, consultant: populatedConsultant}
+63: END
+
+--------------------------------------------------------------------------------
+
+Algorithm 5: Get Filtered Consultants
+Input: filters {specialization, availability, minRating, isVerified, 
+                page, limit}
+Output: {consultants: Array, pagination: Object}
+
+1:  BEGIN
+2:      // Initialize filter object
+3:      filterQuery ← {}
+4:      
+5:      // Apply specialization filter
+6:      IF filters.specialization EXISTS THEN
+7:          specializationArray ← filters.specialization.SPLIT(',')
+8:          filterQuery.specialization ← {$in: specializationArray}
+9:      END IF
+10:     
+11:     // Apply availability filter
+12:     IF filters.availability EXISTS THEN
+13:         filterQuery.availability ← filters.availability
+14:     END IF
+15:     
+16:     // Apply rating filter
+17:     IF filters.minRating EXISTS THEN
+18:         filterQuery.rating ← {$gte: filters.minRating}
+19:     END IF
+20:     
+21:     // Apply verification filter
+22:     IF filters.isVerified EXISTS THEN
+23:         filterQuery.isVerified ← filters.isVerified
+24:     END IF
+25:     
+26:     // Set pagination parameters
+27:     page ← filters.page OR 1
+28:     limit ← filters.limit OR 10
+29:     skip ← (page - 1) × limit
+30:     
+31:     // Query database
+32:     consultants ← QUERY Consultants 
+33:                   WHERE filterQuery
+34:                   POPULATE userId WITH {name, email, profileImage, isOnline, isBanned}
+35:                   SORT BY rating DESC, createdAt DESC
+36:                   LIMIT limit
+37:                   SKIP skip
+38:     
+39:     // Get total count
+40:     totalCount ← COUNT Consultants WHERE filterQuery
+41:     
+42:     // Calculate pagination info
+43:     pagination ← {
+44:         page: page,
+45:         limit: limit,
+46:         total: totalCount,
+47:         pages: CEILING(totalCount / limit)
+48:     }
+49:     
+50:     RETURN {consultants: consultants, pagination: pagination}
+51: END
+
+--------------------------------------------------------------------------------
+7.1.3 Job Posting & Management Module
+--------------------------------------------------------------------------------
+
+Algorithm 6: Create Job Posting
+Input: jobData {buyerId, category, title, description, budget, timeline, 
+                location, skills[], attachments[]}
+Output: {success: Boolean, job: JobObject}
+
+1:  BEGIN
+2:      // Validate required fields
+3:      IF category NOT IN ['Education', 'Business', 'Legal'] THEN
+4:          RETURN {success: false, error: "Invalid category"}
+5:      END IF
+6:      
+7:      IF title is EMPTY THEN
+8:          RETURN {success: false, error: "Title is required"}
+9:      END IF
+10:     
+11:     IF description is EMPTY THEN
+12:         RETURN {success: false, error: "Description is required"}
+13:     END IF
+14:     
+15:     IF location NOT IN ['Rawalpindi', 'Islamabad', 'Lahore', 'Karachi'] THEN
+16:         RETURN {success: false, error: "Invalid location"}
+17:     END IF
+18:     
+19:     // Validate budget
+20:     IF jobData.budget.min < 0 OR jobData.budget.max < 0 THEN
+21:         RETURN {success: false, error: "Invalid budget"}
+22:     END IF
+23:     
+24:     IF jobData.budget.max < jobData.budget.min THEN
+25:         RETURN {success: false, error: "Max budget must be >= min budget"}
+26:     END IF
+27:     
+28:     // Process attachments
+29:     processedAttachments ← []
+30:     IF jobData.attachments EXISTS THEN
+31:         FOR EACH file IN jobData.attachments DO
+32:             encodedFile ← ENCODE_BASE64(file)
+33:             processedAttachments.APPEND(encodedFile)
+34:         END FOR
+35:     END IF
+36:     
+37:     // Create job object
+38:     newJob ← {
+39:         buyerId: jobData.buyerId,
+40:         category: jobData.category,
+41:         title: jobData.title,
+42:         description: jobData.description,
+43:         budget: {
+44:             min: jobData.budget.min,
+45:             max: jobData.budget.max
+46:         },
+47:         timeline: jobData.timeline,
+48:         location: jobData.location,
+49:         skills: jobData.skills,
+50:         attachments: processedAttachments,
+51:         status: 'open',
+52:         proposalsCount: 0,
+53:         createdAt: CURRENT_TIMESTAMP
+54:     }
+55:     
+56:     // Save to database
+57:     savedJob ← INSERT newJob INTO Jobs collection
+58:     
+59:     // Populate buyer details
+60:     populatedJob ← POPULATE savedJob.buyerId WITH {name, email}
+61:     
+62:     RETURN {success: true, job: populatedJob}
+63: END
+
+--------------------------------------------------------------------------------
+
+Algorithm 7: Search and Filter Jobs
+Input: filters {category, location, budgetRange, status, skills[], 
+                searchQuery, page, limit}
+Output: {jobs: Array, pagination: Object}
+
+1:  BEGIN
+2:      // Initialize filter object
+3:      filterQuery ← {}
+4:      
+5:      // Apply category filter
+6:      IF filters.category EXISTS THEN
+7:          filterQuery.category ← filters.category
+8:      END IF
+9:      
+10:     // Apply location filter
+11:     IF filters.location EXISTS THEN
+12:         filterQuery.location ← filters.location
+13:     END IF
+14:     
+15:     // Apply status filter
+16:     IF filters.status EXISTS THEN
+17:         filterQuery.status ← filters.status
+18:     ELSE
+19:         filterQuery.status ← 'open'  // Default to open jobs
+20:     END IF
+21:     
+22:     // Apply budget range filter
+23:     IF filters.budgetRange EXISTS THEN
+24:         filterQuery['budget.min'] ← {$gte: filters.budgetRange.min}
+25:         filterQuery['budget.max'] ← {$lte: filters.budgetRange.max}
+26:     END IF
+27:     
+28:     // Apply skills filter
+29:     IF filters.skills.length > 0 THEN
+30:         filterQuery.skills ← {$in: filters.skills}
+31:     END IF
+32:     
+33:     // Apply text search
+34:     IF filters.searchQuery EXISTS THEN
+35:         filterQuery.$or ← [
+36:             {title: {$regex: filters.searchQuery, $options: 'i'}},
+37:             {description: {$regex: filters.searchQuery, $options: 'i'}}
+38:         ]
+39:     END IF
+40:     
+41:     // Set pagination
+42:     page ← filters.page OR 1
+43:     limit ← filters.limit OR 10
+44:     skip ← (page - 1) × limit
+45:     
+46:     // Query database
+47:     jobs ← QUERY Jobs 
+48:            WHERE filterQuery
+49:            POPULATE buyerId WITH {name, email}
+50:            SORT BY createdAt DESC
+51:            LIMIT limit
+52:            SKIP skip
+53:     
+54:     // Get total count
+55:     totalCount ← COUNT Jobs WHERE filterQuery
+56:     
+57:     // Calculate pagination
+58:     pagination ← {
+59:         page: page,
+60:         limit: limit,
+61:         total: totalCount,
+62:         pages: CEILING(totalCount / limit)
+63:     }
+64:     
+65:     RETURN {jobs: jobs, pagination: pagination}
+66: END
+
+--------------------------------------------------------------------------------
+7.1.4 Proposal & Bidding Module
+--------------------------------------------------------------------------------
+
+Algorithm 8: Submit Proposal
+Input: proposalData {jobId, consultantId, bidAmount, deliveryTime, 
+                     coverLetter}
+Output: {success: Boolean, proposal: ProposalObject}
+
+1:  BEGIN
+2:      // Validate consultant profile exists
+3:      consultant ← QUERY Consultants WHERE _id = proposalData.consultantId
+4:      IF consultant NOT EXISTS THEN
+5:          RETURN {success: false, error: "Consultant profile not found"}
+6:      END IF
+7:      
+8:      // Check if consultant is verified
+9:      IF consultant.isVerified = false THEN
+10:         RETURN {success: false, error: "Profile not verified"}
+11:     END IF
+12:     
+13:     // Validate job exists and is open
+14:     job ← QUERY Jobs WHERE _id = proposalData.jobId
+15:     IF job NOT EXISTS THEN
+16:         RETURN {success: false, error: "Job not found"}
+17:     END IF
+18:     
+19:     IF job.status ≠ 'open' THEN
+20:         RETURN {success: false, error: "Job is not accepting proposals"}
+21:     END IF
+22:     
+23:     // Check for duplicate proposal
+24:     existingProposal ← QUERY Proposals 
+25:                        WHERE jobId = proposalData.jobId 
+26:                        AND consultantId = proposalData.consultantId
+27:     IF existingProposal EXISTS THEN
+28:         RETURN {success: false, error: "Proposal already submitted"}
+29:     END IF
+30:     
+31:     // Validate bid amount
+32:     IF proposalData.bidAmount < 0 THEN
+33:         RETURN {success: false, error: "Invalid bid amount"}
+34:     END IF
+35:     
+36:     // Validate cover letter
+37:     IF proposalData.coverLetter is EMPTY THEN
+38:         RETURN {success: false, error: "Cover letter is required"}
+39:     END IF
+40:     
+41:     // Create proposal
+42:     newProposal ← {
+43:         jobId: proposalData.jobId,
+44:         consultantId: proposalData.consultantId,
+45:         bidAmount: proposalData.bidAmount,
+46:         deliveryTime: proposalData.deliveryTime,
+47:         coverLetter: proposalData.coverLetter,
+48:         status: 'pending',
+49:         createdAt: CURRENT_TIMESTAMP
+50:     }
+51:     
+52:     // Save proposal
+53:     savedProposal ← INSERT newProposal INTO Proposals collection
+54:     
+55:     // Increment job proposals count
+56:     UPDATE Jobs 
+57:     SET proposalsCount = proposalsCount + 1 
+58:     WHERE _id = proposalData.jobId
+59:     
+60:     // Populate related data
+61:     populatedProposal ← POPULATE savedProposal WITH
+62:                         jobId: {title, description, budget}
+63:                         consultantId: {
+64:                             userId: {name, email, profileImage},
+65:                             title, experience, rating
+66:                         }
+67:     
+68:     RETURN {success: true, proposal: populatedProposal}
+69: END
+
+--------------------------------------------------------------------------------
+
+Algorithm 9: Accept Proposal and Create Order
+Input: proposalId, buyerId
+Output: {success: Boolean, order: OrderObject}
+
+1:  BEGIN
+2:      // Fetch proposal
+3:      proposal ← QUERY Proposals 
+4:                 WHERE _id = proposalId
+5:                 POPULATE jobId, consultantId
+6:      
+7:      IF proposal NOT EXISTS THEN
+8:          RETURN {success: false, error: "Proposal not found"}
+9:      END IF
+10:     
+11:     // Verify buyer owns the job
+12:     IF proposal.jobId.buyerId ≠ buyerId THEN
+13:         RETURN {success: false, error: "Unauthorized"}
+14:     END IF
+15:     
+16:     // Check if proposal is pending
+17:     IF proposal.status ≠ 'pending' THEN
+18:         RETURN {success: false, error: "Proposal already processed"}
+19:     END IF
+20:     
+21:     // Update proposal status
+22:     UPDATE Proposals 
+23:     SET status = 'accepted' 
+24:     WHERE _id = proposalId
+25:     
+26:     // Update job status
+27:     UPDATE Jobs 
+28:     SET status = 'in_progress', 
+29:         hiredConsultantId = proposal.consultantId._id
+30:     WHERE _id = proposal.jobId._id
+31:     
+32:     // Reject other proposals for this job
+33:     UPDATE Proposals 
+34:     SET status = 'rejected' 
+35:     WHERE jobId = proposal.jobId._id 
+36:     AND _id ≠ proposalId 
+37:     AND status = 'pending'
+38:     
+39:     // Create order
+40:     newOrder ← {
+41:         jobId: proposal.jobId._id,
+42:         buyerId: buyerId,
+43:         consultantId: proposal.consultantId._id,
+44:         proposalId: proposalId,
+45:         totalAmount: proposal.bidAmount,
+46:         status: 'in_progress',
+47:         progress: 0,
+48:         milestones: [],
+49:         amountPaid: 0,
+50:         amountPending: proposal.bidAmount,
+51:         startDate: CURRENT_TIMESTAMP
+52:     }
+53:     
+54:     // Save order
+55:     savedOrder ← INSERT newOrder INTO Orders collection
+56:     
+57:     // Populate order details
+58:     populatedOrder ← POPULATE savedOrder WITH
+59:                      jobId: {title, category},
+60:                      buyerId: {name, email},
+61:                      consultantId: {
+62:                          userId: {name, email},
+63:                          title
+64:                      }
+65:     
+66:     RETURN {success: true, order: populatedOrder}
+67: END
+
+--------------------------------------------------------------------------------
+
+Algorithm 10: Get Proposals for Buyer
+Input: buyerId
+Output: {proposals: Array}
+
+1:  BEGIN
+2:      // Find all jobs posted by buyer
+3:      buyerJobs ← QUERY Jobs WHERE buyerId = buyerId SELECT _id
+4:      jobIds ← EXTRACT _id FROM buyerJobs
+5:      
+6:      // Find all proposals for these jobs
+7:      proposals ← QUERY Proposals 
+8:                  WHERE jobId IN jobIds
+9:                  POPULATE jobId WITH {title, description, category, budget, status}
+10:                 POPULATE consultantId WITH {
+11:                     userId: {name, email, profileImage},
+12:                     title, experience, rating, hourlyRate
+13:                 }
+14:                 SORT BY createdAt DESC
+15:     
+16:     RETURN {proposals: proposals}
+17: END
+
+--------------------------------------------------------------------------------
+7.1.5 Admin Management Module
+--------------------------------------------------------------------------------
+
+Algorithm 11: Verify Consultant Profile
+Input: consultantId, adminId
+Output: {success: Boolean, consultant: ConsultantObject}
+
+1:  BEGIN
+2:      // Verify admin has permission
+3:      admin ← QUERY Users WHERE _id = adminId
+4:      IF 'admin' NOT IN admin.roles THEN
+5:          RETURN {success: false, error: "Unauthorized"}
+6:      END IF
+7:      
+8:      // Find consultant profile
+9:      consultant ← QUERY Consultants WHERE _id = consultantId
+10:     IF consultant NOT EXISTS THEN
+11:         RETURN {success: false, error: "Consultant not found"}
+12:     END IF
+13:     
+14:     // Update consultant verification status
+15:     UPDATE Consultants 
+16:     SET isVerified = true 
+17:     WHERE _id = consultantId
+18:     
+19:     // Update user verification status
+20:     UPDATE Users 
+21:     SET isVerified = true 
+22:     WHERE _id = consultant.userId
+23:     
+24:     // Fetch updated consultant
+25:     updatedConsultant ← QUERY Consultants 
+26:                         WHERE _id = consultantId
+27:                         POPULATE userId WITH {name, email}
+28:     
+29:     // Send notification email to consultant
+30:     SEND_EMAIL({
+31:         to: updatedConsultant.userId.email,
+32:         subject: "Profile Verified",
+33:         body: "Your consultant profile has been verified"
+34:     })
+35:     
+36:     RETURN {success: true, consultant: updatedConsultant}
+37: END
+
+--------------------------------------------------------------------------------
+
+Algorithm 12: Ban/Unban User
+Input: userId, adminId, action {ban, unban}
+Output: {success: Boolean, user: UserObject}
+
+1:  BEGIN
+2:      // Verify admin has permission
+3:      admin ← QUERY Users WHERE _id = adminId
+4:      IF 'admin' NOT IN admin.roles THEN
+5:          RETURN {success: false, error: "Unauthorized"}
+6:      END IF
+7:      
+8:      // Find user
+9:      user ← QUERY Users WHERE _id = userId
+10:     IF user NOT EXISTS THEN
+11:         RETURN {success: false, error: "User not found"}
+12:     END IF
+13:     
+14:     // Prevent banning admin users
+15:     IF 'admin' IN user.roles THEN
+16:         RETURN {success: false, error: "Cannot ban admin users"}
+17:     END IF
+18:     
+19:     // Update ban status based on action
+20:     IF action = 'ban' THEN
+21:         UPDATE Users 
+22:         SET isBanned = true, isOnline = false 
+23:         WHERE _id = userId
+24:         
+25:         // Cancel all active orders if consultant
+26:         IF user.accountType = 'consultant' THEN
+27:             consultant ← QUERY Consultants WHERE userId = userId
+28:             IF consultant EXISTS THEN
+29:                 UPDATE Orders 
+30:                 SET status = 'cancelled' 
+31:                 WHERE consultantId = consultant._id 
+32:                 AND status = 'in_progress'
+33:             END IF
+34:         END IF
+35:         
+36:         // Cancel all active jobs if buyer
+37:         IF user.accountType = 'buyer' THEN
+38:             UPDATE Jobs 
+39:             SET status = 'cancelled' 
+40:             WHERE buyerId = userId 
+41:             AND status IN ['open', 'in_progress']
+42:         END IF
+43:         
+44:     ELSE IF action = 'unban' THEN
+45:         UPDATE Users 
+46:         SET isBanned = false 
+47:         WHERE _id = userId
+48:     END IF
+49:     
+50:     // Fetch updated user
+51:     updatedUser ← QUERY Users WHERE _id = userId
+52:     DELETE updatedUser.password
+53:     
+54:     RETURN {success: true, user: updatedUser}
+55: END
+
+--------------------------------------------------------------------------------
+
+Algorithm 13: Get Platform Statistics
+Input: adminId
+Output: {stats: Object}
+
+1:  BEGIN
+2:      // Verify admin permission
+3:      admin ← QUERY Users WHERE _id = adminId
+4:      IF 'admin' NOT IN admin.roles THEN
+5:          RETURN {success: false, error: "Unauthorized"}
+6:      END IF
+7:      
+8:      // Count total users
+9:      totalUsers ← COUNT Users
+10:     
+11:     // Count consultants and buyers
+12:     totalConsultants ← COUNT Users WHERE accountType = 'consultant'
+13:     totalBuyers ← COUNT Users WHERE accountType = 'buyer'
+14:     
+15:     // Count jobs
+16:     totalJobs ← COUNT Jobs
+17:     openJobs ← COUNT Jobs WHERE status = 'open'
+18:     completedJobs ← COUNT Jobs WHERE status = 'completed'
+19:     
+20:     // Count orders
+21:     totalOrders ← COUNT Orders
+22:     activeOrders ← COUNT Orders WHERE status = 'in_progress'
+23:     
+24:     // Count pending verifications
+25:     pendingConsultants ← COUNT Consultants WHERE isVerified = false
+26:     
+27:     // Calculate total revenue (sum of completed orders)
+28:     revenueResult ← AGGREGATE Orders [
+29:         {$match: {status: 'completed'}},
+30:         {$group: {
+31:             _id: null,
+32:             total: {$sum: '$totalAmount'}
+33:         }}
+34:     ]
+35:     totalRevenue ← revenueResult[0].total OR 0
+36:     
+37:     // Calculate average order value
+38:     IF totalOrders > 0 THEN
+39:         avgOrderValue ← totalRevenue / totalOrders
+40:     ELSE
+41:         avgOrderValue ← 0
+42:     END IF
+43:     
+44:     // Get recent activities
+45:     recentJobs ← QUERY Jobs 
+46:                  SORT BY createdAt DESC 
+47:                  LIMIT 5
+48:     
+49:     recentOrders ← QUERY Orders 
+50:                    SORT BY createdAt DESC 
+51:                    LIMIT 5
+52:     
+53:     // Compile statistics
+54:     stats ← {
+55:         totalUsers: totalUsers,
+56:         totalConsultants: totalConsultants,
+57:         totalBuyers: totalBuyers,
+58:         totalJobs: totalJobs,
+59:         openJobs: openJobs,
+60:         completedJobs: completedJobs,
+61:         totalOrders: totalOrders,
+62:         activeOrders: activeOrders,
+63:         pendingConsultants: pendingConsultants,
+64:         totalRevenue: totalRevenue,
+65:         avgOrderValue: avgOrderValue,
+66:         recentJobs: recentJobs,
+67:         recentOrders: recentOrders
+68:     }
+69:     
+70:     RETURN {success: true, stats: stats}
+71: END
+
+--------------------------------------------------------------------------------
+7.1.6 Image Processing & Optimization Module
+--------------------------------------------------------------------------------
+
+Algorithm 14: Compress and Encode Image
+Input: imageFile, maxWidth, quality
+Output: compressedBase64String
+
+1:  BEGIN
+2:      // Validate image file
+3:      IF imageFile.size > 5MB THEN
+4:          RETURN {error: "Image size must be less than 5MB"}
+5:      END IF
+6:      
+7:      IF imageFile.type NOT IN ['image/jpeg', 'image/png', 'image/jpg'] THEN
+8:          RETURN {error: "Invalid image format"}
+9:      END IF
+10:     
+11:     // Read image file
+12:     imageData ← READ_FILE_AS_DATA_URL(imageFile)
+13:     
+14:     // Create image object
+15:     img ← NEW Image()
+16:     img.src ← imageData
+17:     
+18:     // Wait for image to load
+19:     WAIT FOR img.onload
+20:     
+21:     // Calculate new dimensions
+22:     originalWidth ← img.width
+23:     originalHeight ← img.height
+24:     
+25:     IF originalWidth > maxWidth THEN
+26:         newWidth ← maxWidth
+27:         newHeight ← (originalHeight × maxWidth) / originalWidth
+28:     ELSE
+29:         newWidth ← originalWidth
+30:         newHeight ← originalHeight
+31:     END IF
+32:     
+33:     // Create canvas
+34:     canvas ← CREATE_CANVAS()
+35:     canvas.width ← newWidth
+36:     canvas.height ← newHeight
+37:     
+38:     // Get canvas context
+39:     ctx ← canvas.getContext('2d')
+40:     
+41:     // Draw resized image on canvas
+42:     ctx.drawImage(img, 0, 0, newWidth, newHeight)
+43:     
+44:     // Convert to compressed base64
+45:     compressedBase64 ← canvas.toDataURL('image/jpeg', quality)
+46:     
+47:     RETURN compressedBase64
+48: END
+
+--------------------------------------------------------------------------------
+7.1.7 Search & Recommendation Module
+--------------------------------------------------------------------------------
+
+Algorithm 15: Recommend Consultants for Job
+Input: jobId
+Output: {consultants: Array}
+
+1:  BEGIN
+2:      // Fetch job details
+3:      job ← QUERY Jobs WHERE _id = jobId
+4:      IF job NOT EXISTS THEN
+5:          RETURN {error: "Job not found"}
+6:      END IF
+7:      
+8:      // Initialize scoring system
+9:      consultantScores ← []
+10:     
+11:     // Get all verified consultants
+12:     consultants ← QUERY Consultants 
+13:                   WHERE isVerified = true 
+14:                   AND availability ≠ 'unavailable'
+15:                   POPULATE userId
+16:     
+17:     // Score each consultant
+18:     FOR EACH consultant IN consultants DO
+19:         score ← 0
+20:         
+21:         // Check specialization match
+22:         FOR EACH spec IN consultant.specialization DO
+23:             IF spec IN job.category OR spec IN job.skills THEN
+24:                 score ← score + 30
+25:             END IF
+26:         END FOR
+27:         
+28:         // Check skills match
+29:         matchingSkills ← INTERSECTION(consultant.skills, job.skills)
+30:         score ← score + (matchingSkills.length × 10)
+31:         
+32:         // Add rating bonus
+33:         score ← score + (consultant.rating × 5)
+34:         
+35:         // Add experience bonus
+36:         experienceYears ← EXTRACT_YEARS(consultant.experience)
+37:         score ← score + (experienceYears × 2)
+38:         
+39:         // Check budget compatibility
+40:         estimatedCost ← consultant.hourlyRate × ESTIMATE_HOURS(job.timeline)
+41:         IF estimatedCost ≥ job.budget.min AND estimatedCost ≤ job.budget.max THEN
+42:             score ← score + 20
+43:         END IF
+44:         
+45:         // Check location match
+46:         IF consultant.userId.location = job.location THEN
+47:             score ← score + 10
+48:         END IF
+49:         
+50:         // Add to scores array
+51:         consultantScores.APPEND({
+52:             consultant: consultant,
+53:             score: score
+54:         })
+55:     END FOR
+56:     
+57:     // Sort by score descending
+58:     SORT consultantScores BY score DESC
+59:     
+60:     // Get top 10 recommendations
+61:     recommendations ← consultantScores.slice(0, 10)
+62:     
+63:     // Extract consultant objects
+64:     recommendedConsultants ← EXTRACT consultant FROM recommendations
+65:     
+66:     RETURN {consultants: recommendedConsultants}
+67: END
+
+--------------------------------------------------------------------------------
+7.1.8 Payment Processing Module (Conceptual)
+--------------------------------------------------------------------------------
+
+Algorithm 16: Process Payment
+Input: paymentData {orderId, buyerId, amount, paymentMethod, cardDetails}
+Output: {success: Boolean, transaction: TransactionObject}
+
+1:  BEGIN
+2:      // Fetch order
+3:      order ← QUERY Orders WHERE _id = paymentData.orderId
+4:      IF order NOT EXISTS THEN
+5:          RETURN {success: false, error: "Order not found"}
+6:      END IF
+7:      
+8:      // Verify buyer
+9:      IF order.buyerId ≠ paymentData.buyerId THEN
+10:         RETURN {success: false, error: "Unauthorized"}
+11:     END IF
+12:     
+13:     // Validate payment amount
+14:     IF paymentData.amount ≠ order.amountPending THEN
+15:         RETURN {success: false, error: "Invalid payment amount"}
+16:     END IF
+17:     
+18:     // Validate payment method
+19:     IF paymentData.paymentMethod NOT IN ['card', 'wallet', 'bank'] THEN
+20:         RETURN {success: false, error: "Invalid payment method"}
+21:     END IF
+22:     
+23:     TRY
+24:         // Process payment based on method
+25:         IF paymentData.paymentMethod = 'card' THEN
+26:             // Validate card details
+27:             IF NOT VALIDATE_CARD(paymentData.cardDetails) THEN
+28:                 RETURN {success: false, error: "Invalid card details"}
+29:             END IF
+30:             
+31:             // Process card payment
+32:             paymentResult ← PROCESS_CARD_PAYMENT({
+33:                 amount: paymentData.amount,
+34:                 cardNumber: paymentData.cardDetails.number,
+35:                 expiryDate: paymentData.cardDetails.expiry,
+36:                 cvv: paymentData.cardDetails.cvv
+37:             })
+38:             
+39:         ELSE IF paymentData.paymentMethod = 'wallet' THEN
+40:             // Process wallet payment
+41:             paymentResult ← PROCESS_WALLET_PAYMENT({
+42:                 amount: paymentData.amount,
+43:                 walletId: paymentData.walletId
+44:             })
+45:             
+46:         ELSE IF paymentData.paymentMethod = 'bank' THEN
+47:             // Process bank transfer
+48:             paymentResult ← PROCESS_BANK_TRANSFER({
+49:                 amount: paymentData.amount,
+50:                 accountNumber: paymentData.accountNumber
+51:             })
+52:         END IF
+53:         
+54:         // Check if payment successful
+55:         IF paymentResult.status ≠ 'success' THEN
+56:             RETURN {success: false, error: paymentResult.message}
+57:         END IF
+58:         
+59:         // Create transaction record
+60:         transaction ← {
+61:             orderId: paymentData.orderId,
+62:             buyerId: paymentData.buyerId,
+63:             amount: paymentData.amount,
+64:             paymentMethod: paymentData.paymentMethod,
+65:             transactionId: paymentResult.transactionId,
+66:             status: 'completed',
+67:             createdAt: CURRENT_TIMESTAMP
+68:         }
+69:         
+70:         savedTransaction ← INSERT transaction INTO Transactions collection
+71:         
+72:         // Update order payment status
+73:         UPDATE Orders 
+74:         SET amountPaid = amountPaid + paymentData.amount,
+75:             amountPending = amountPending - paymentData.amount
+76:         WHERE _id = paymentData.orderId
+77:         
+78:         // Update consultant earnings
+79:         consultant ← QUERY Consultants WHERE _id = order.consultantId
+80:         UPDATE Consultants 
+81:         SET totalEarnings = totalEarnings + paymentData.amount
+82:         WHERE _id = order.consultantId
+83:         
+84:         // Send confirmation emails
+85:         SEND_EMAIL({
+86:             to: order.buyerId.email,
+87:             subject: "Payment Successful",
+88:             body: "Your payment of Rs " + paymentData.amount + " has been processed"
+89:         })
+90:         
+91:         SEND_EMAIL({
+92:             to: consultant.userId.email,
+93:             subject: "Payment Received",
+94:             body: "You have received a payment of Rs " + paymentData.amount
+95:         })
+96:         
+97:         RETURN {success: true, transaction: savedTransaction}
+98:         
+99:     CATCH PaymentError AS e
+100:        RETURN {success: false, error: e.message}
+101:    END TRY
+102: END
+
+--------------------------------------------------------------------------------
+7.1.9 Notification System Module
+--------------------------------------------------------------------------------
+
+Algorithm 17: Send Real-time Notification
+Input: notificationData {userId, type, title, message, relatedId}
+Output: {success: Boolean}
+
+1:  BEGIN
+2:      // Validate user exists
+3:      user ← QUERY Users WHERE _id = notificationData.userId
+4:      IF user NOT EXISTS THEN
+5:          RETURN {success: false, error: "User not found"}
+6:      END IF
+7:      
+8:      // Create notification object
+9:      notification ← {
+10:         userId: notificationData.userId,
+11:         type: notificationData.type,
+12:         title: notificationData.title,
+13:         message: notificationData.message,
+14:         relatedId: notificationData.relatedId,
+15:         isRead: false,
+16:         createdAt: CURRENT_TIMESTAMP
+17:     }
+18:     
+19:     // Save to database
+20:     savedNotification ← INSERT notification INTO Notifications collection
+21:     
+22:     // Send real-time notification via WebSocket
+23:     IF user.isOnline = true THEN
+24:         WEBSOCKET.emit(user._id, {
+25:             event: 'new_notification',
+26:             data: savedNotification
+27:         })
+28:     END IF
+29:     
+30:     // Send email notification based on type
+31:     IF notificationData.type IN ['proposal_accepted', 'payment_received', 
+32:                                   'order_completed'] THEN
+33:         SEND_EMAIL({
+34:             to: user.email,
+35:             subject: notificationData.title,
+36:             body: notificationData.message
+37:         })
+38:     END IF
+39:     
+40:     // Send push notification if enabled
+41:     IF user.pushNotificationsEnabled = true THEN
+42:         SEND_PUSH_NOTIFICATION({
+43:             userId: user._id,
+44:             title: notificationData.title,
+45:             body: notificationData.message
+46:         })
+47:     END IF
+48:     
+49:     RETURN {success: true, notification: savedNotification}
+50: END
+
+================================================================================
+7.2 DATA STRUCTURES
+================================================================================
+
+The following data structures are used throughout the Expert Raah platform:
+
+--------------------------------------------------------------------------------
+7.2.1 User Data Structure
+--------------------------------------------------------------------------------
+
+Structure User:
+    _id: ObjectId                    // Unique identifier
+    name: String                     // User's full name
+    email: String                    // Email address (unique)
+    password: String                 // Hashed password
+    accountType: Enum['buyer', 'consultant']  // Account type
+    phone: String                    // Phone number (optional)
+    profileImage: String             // Base64 encoded image
+    isVerified: Boolean              // Verification status
+    isOnline: Boolean                // Online status
+    isBanned: Boolean                // Ban status
+    roles: Array<String>             // User roles ['user', 'admin']
+    createdAt: DateTime              // Registration timestamp
+    updatedAt: DateTime              // Last update timestamp
+End Structure
+
+--------------------------------------------------------------------------------
+7.2.2 Consultant Profile Data Structure
+--------------------------------------------------------------------------------
+
+Structure ConsultantProfile:
+    _id: ObjectId                    // Unique identifier
+    userId: ObjectId                 // Reference to User
+    title: String                    // Professional title
+    bio: String                      // Professional biography
+    specialization: Array<String>    // Areas of expertise
+    hourlyRate: Number               // Hourly rate in PKR
+    availability: Enum['available', 'limited', 'unavailable']
+    experience: String               // Years of experience
+    skills: Array<String>            // List of skills
+    idCardFront: String              // Base64 encoded ID front
+    idCardBack: String               // Base64 encoded ID back
+    supportingDocuments: Array<String>  // Additional documents
+    isVerified: Boolean              // Admin verification status
+    rating: Number                   // Average rating (0-5)
+    totalProjects: Number            // Completed projects count
+    totalEarnings: Number            // Total earnings in PKR
+    createdAt: DateTime              // Profile creation timestamp
+    updatedAt: DateTime              // Last update timestamp
+End Structure
+
+--------------------------------------------------------------------------------
+7.2.3 Job Posting Data Structure
+--------------------------------------------------------------------------------
+
+Structure JobPosting:
+    _id: ObjectId                    // Unique identifier
+    buyerId: ObjectId                // Reference to User (buyer)
+    category: Enum['Education', 'Business', 'Legal']
+    title: String                    // Job title
+    description: String              // Detailed description
+    budget: {
+        min: Number,                 // Minimum budget in PKR
+        max: Number                  // Maximum budget in PKR
+    }
+    timeline: String                 // Expected timeline
+    location: Enum['Rawalpindi', 'Islamabad', 'Lahore', 'Karachi']
+    skills: Array<String>            // Required skills
+    attachments: Array<String>       // Base64 encoded files
+    status: Enum['open', 'in_progress', 'completed', 'cancelled']
+    proposalsCount: Number           // Number of proposals received
+    hiredConsultantId: ObjectId      // Reference to Consultant (optional)
+    createdAt: DateTime              // Job posting timestamp
+    updatedAt: DateTime              // Last update timestamp
+End Structure
+
+--------------------------------------------------------------------------------
+7.2.4 Proposal Data Structure
+--------------------------------------------------------------------------------
+
+Structure Proposal:
+    _id: ObjectId                    // Unique identifier
+    jobId: ObjectId                  // Reference to Job
+    consultantId: ObjectId           // Reference to Consultant
+    bidAmount: Number                // Bid amount in PKR
+    deliveryTime: String             // Estimated delivery time
+    coverLetter: String              // Proposal cover letter
+    status: Enum['pending', 'accepted', 'rejected']
+    createdAt: DateTime              // Proposal submission timestamp
+    updatedAt: DateTime              // Last update timestamp
+End Structure
+
+--------------------------------------------------------------------------------
+7.2.5 Order Data Structure
+--------------------------------------------------------------------------------
+
+Structure Order:
+    _id: ObjectId                    // Unique identifier
+    jobId: ObjectId                  // Reference to Job
+    buyerId: ObjectId                // Reference to User (buyer)
+    consultantId: ObjectId           // Reference to Consultant
+    proposalId: ObjectId             // Reference to Proposal
+    totalAmount: Number              // Total order amount in PKR
+    status: Enum['in_progress', 'completed', 'cancelled']
+    progress: Number                 // Progress percentage (0-100)
+    milestones: Array<Milestone>     // Project milestones
+    amountPaid: Number               // Amount paid so far
+    amountPending: Number            // Remaining amount
+    startDate: DateTime              // Order start date
+    completionDate: DateTime         // Order completion date (optional)
+    createdAt: DateTime              // Order creation timestamp
+    updatedAt: DateTime              // Last update timestamp
+End Structure
+
+Structure Milestone:
+    description: String              // Milestone description
+    amount: Number                   // Milestone amount in PKR
+    status: Enum['pending', 'completed', 'paid']
+    completedAt: DateTime            // Completion timestamp (optional)
+    paidAt: DateTime                 // Payment timestamp (optional)
+End Structure
+
+================================================================================
+7.3 COMPLEXITY ANALYSIS
+================================================================================
+
+The following table presents the time and space complexity of major algorithms:
+
++------------------+------------------+------------------+----------------------+
+| Algorithm        | Time Complexity  | Space Complexity | Notes                |
++------------------+------------------+------------------+----------------------+
+| User Login       | O(1)             | O(1)             | Database indexed     |
+|                  |                  |                  | on email             |
++------------------+------------------+------------------+----------------------+
+| Token Verify     | O(1)             | O(1)             | JWT verification     |
++------------------+------------------+------------------+----------------------+
+| Create Profile   | O(n)             | O(n)             | n = number of        |
+|                  |                  |                  | documents            |
++------------------+------------------+------------------+----------------------+
+| Filter           | O(n log n)       | O(n)             | n = total            |
+| Consultants      |                  |                  | consultants          |
++------------------+------------------+------------------+----------------------+
+| Search Jobs      | O(n log n)       | O(n)             | n = total jobs       |
++------------------+------------------+------------------+----------------------+
+| Submit Proposal  | O(1)             | O(1)             | Database operations  |
++------------------+------------------+------------------+----------------------+
+| Accept Proposal  | O(m)             | O(1)             | m = proposals for    |
+|                  |                  |                  | the job              |
++------------------+------------------+------------------+----------------------+
+| Get Proposals    | O(n log n)       | O(n)             | n = buyer's jobs     |
++------------------+------------------+------------------+----------------------+
+| Recommend        | O(n × m)         | O(n)             | n = consultants,     |
+| Consultants      |                  |                  | m = skills           |
++------------------+------------------+------------------+----------------------+
+| Image Compress   | O(w × h)         | O(w × h)         | w = width,           |
+|                  |                  |                  | h = height           |
++------------------+------------------+------------------+----------------------+
+| Platform Stats   | O(n)             | O(1)             | n = aggregated       |
+|                  |                  |                  | records              |
++------------------+------------------+------------------+----------------------+
+
+================================================================================
+7.4 ERROR HANDLING & VALIDATION
+================================================================================
+
+The platform implements comprehensive error handling and validation:
+
+1. Input Validation:
+   - All user inputs are validated on both client and server side
+   - Email format validation using regex patterns
+   - Password strength requirements (minimum 6 characters)
+   - File size and type validation for uploads
+   - Budget range validation (min ≤ max)
+
+2. Authentication & Authorization:
+   - JWT token validation on protected routes
+   - Role-based access control for admin functions
+   - Session expiry handling (7-day token validity)
+   - Automatic logout on token expiration
+
+3. Database Operations:
+   - Try-catch blocks for all database queries
+   - Transaction rollback on failures
+   - Unique constraint validation
+   - Foreign key integrity checks
+
+4. API Error Responses:
+   - Standardized error response format
+   - Appropriate HTTP status codes
+   - Descriptive error messages
+   - Error logging for debugging
+
+5. Client-Side Error Handling:
+   - User-friendly error messages
+   - Loading states during async operations
+   - Retry mechanisms for failed requests
+   - Graceful degradation on errors
+
+================================================================================
+7.5 SECURITY MEASURES
+================================================================================
+
+The following security measures are implemented:
+
+1. Password Security:
+   - Bcrypt hashing with salt rounds = 10
+   - Passwords never stored in plain text
+   - Password excluded from API responses
+
+2. Authentication:
+   - JWT-based stateless authentication
+   - Secure token storage in localStorage
+   - Token expiration after 7 days
+   - Automatic token refresh mechanism
+
+3. Authorization:
+   - Role-based access control (RBAC)
+   - Admin-only routes protected
+   - User ownership verification for resources
+
+4. Data Protection:
+   - HTTPS encryption for data in transit
+   - MongoDB encryption at rest
+   - Sensitive data excluded from logs
+   - Input sanitization to prevent injection attacks
+
+5. Rate Limiting:
+   - API rate limiting to prevent abuse
+   - Login attempt throttling
+   - CORS policy enforcement
+
+================================================================================
+END OF CHAPTER 7
+================================================================================
+

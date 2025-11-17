@@ -1,0 +1,279 @@
+.hero {
+  position: relative;
+  background: #003b42;
+  color: #f1f7f8;
+  min-height: 75vh;
+  width: 100vw;
+  max-width: 100%;
+  padding: 100px 7vw 80px;
+  overflow: visible;
+  font-family: 'Reddit Sans', 'Segoe UI', system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  margin: 0;
+  margin-left: 0;
+  margin-right: 0;
+  margin-bottom: 0;
+  border: none;
+  box-sizing: border-box;
+}
+
+.pattern {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.15;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr minmax(400px, 550px);
+  gap: clamp(40px, 6vw, 100px);
+  align-items: flex-start;
+  margin-top: 40px;
+}
+
+/* Copy column */
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 640px;
+}
+
+/* tagline */
+.tagline {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  letter-spacing: 6px;
+  font-size: 18px;
+  text-transform: uppercase;
+  color: rgba(237, 247, 249, 0.68);
+  margin-top: 8px;
+  font-weight: 400;
+}
+
+/* big decorative heading on left */
+.heading {
+  margin: 0;
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: clamp(64px, 10vw, 110px);
+  font-weight: 400;
+  letter-spacing: 6px;
+  line-height: 0.92;
+  color: #e8f6f7;
+}
+
+/* split the two lines */
+.headingLine {
+  display: block;
+}
+
+/* description paragraph */
+.description {
+  line-height: 1.85;
+  color: rgba(231, 245, 248, 0.85);
+  font-size: 17px;
+  max-width: 560px;
+}
+
+/* CTA with subtle lines top/bottom */
+.cta {
+  align-self: flex-start;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #e1f4f6;
+  text-decoration: none;
+  margin-top: 8px;
+}
+
+.cta::before,
+.cta::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: -44px;
+  height: 1px;
+  background: rgba(225, 244, 246, 0.6);
+}
+
+.cta::before { top: 0; }
+.cta::after { bottom: 0; }
+
+.ctaArrow { font-size: 18px; transform: translateY(-1px); }
+
+/* Visual column */
+.visual {
+  position: relative;
+  justify-self: end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  transform: translateY(-30px);
+  z-index: 2;
+}
+
+/* image card */
+.imageWrapper {
+  position: relative;
+  border-radius: 28px;
+  overflow: hidden;
+  border: none;
+  box-shadow: none;
+  width: min(550px, 100%);
+  height: auto;
+  max-height: 750px;
+  background: transparent;
+}
+
+.imageWrapper img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: transparent;
+  opacity: 0.95;
+}
+
+/* Social card - unified bottom card */
+.socialCard {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  color: #333333;
+  padding: 28px 7vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  clip-path: polygon(
+    0 0,
+    calc(50% - 180px) 0,
+    calc(50% - 120px) 70px,
+    calc(50% + 120px) 70px,
+    calc(50% + 180px) 0,
+    100% 0,
+    100% 100%,
+    0 100%
+  );
+}
+
+.socialLeft {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.socialLinks {
+  display: flex;
+  gap: 10px;
+}
+
+/* social circular buttons */
+.socialButton {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  border: none;
+  transition: transform 0.2s ease, background 0.2s ease;
+  color: #1a5c6a;
+  text-decoration: none;
+}
+
+.socialButton:hover,
+.socialButton:focus-visible {
+  transform: translateY(-2px);
+  background: rgba(26, 92, 106, 0.08);
+}
+
+/* icon size */
+.socialIcon {
+  width: 19px;
+  height: 19px;
+  vertical-align: middle;
+}
+
+/* social text */
+.socialText {
+  margin: 0;
+  font-size: 12.5px;
+  color: #5a5a5a;
+  font-family: 'Reddit Sans', sans-serif;
+  letter-spacing: 0.2px;
+  font-weight: 400;
+}
+
+/* Stats on the right side of social card */
+.socialStats {
+  text-align: right;
+  padding-right: 20px;
+}
+
+.socialStatValue {
+  font-size: 40px;
+  font-weight: 700;
+  color: #1a8592;
+  font-family: 'Reddit Sans', sans-serif;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.socialStatLabel {
+  font-size: 11.5px;
+  color: #5a5a5a;
+  font-family: 'Reddit Sans', sans-serif;
+  margin-top: 5px;
+  letter-spacing: 0.1px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+/* responsive */
+@media (max-width: 980px) {
+  .inner {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .visual {
+    justify-self: center;
+    margin-top: 18px;
+    align-items: center;
+    transform: translateY(0);
+  }
+
+  .socialCard {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+    padding: 24px 5vw;
+  }
+
+  .socialLeft {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .socialStats {
+    text-align: center;
+  }
+}

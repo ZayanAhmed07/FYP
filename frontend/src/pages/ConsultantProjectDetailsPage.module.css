@@ -1,0 +1,233 @@
+.pageContainer {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 32px 40px;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 960px;
+  margin: 0 auto 24px auto;
+}
+
+.title {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d5a5f;
+  margin: 0;
+}
+
+.backButton {
+  padding: 8px 16px;
+  background: #ffffff;
+  color: #2d5a5f;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.backButton:hover {
+  background: #f5f7fa;
+  border-color: #2d5a5f;
+}
+
+.content {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0e6ed;
+}
+
+.cardHeader {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f3f7;
+}
+
+.categoryBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.jobTitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #333333;
+  margin: 0 0 12px 0;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 13px;
+  color: #999999;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statusBadge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #e3f2fd;
+  color: #1565c0;
+  font-weight: 600;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333333;
+  margin: 0 0 8px 0;
+}
+
+.description {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #5a6c7d;
+  margin: 0;
+}
+
+.sectionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.highlightValue {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d5a5f;
+  margin: 0;
+}
+
+.skillsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skillBadge {
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: #f5f7fa;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 13px;
+  color: #5a6c7d;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.primaryButton {
+  padding: 12px 24px;
+  background: #2d5a5f;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: #234548;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 90, 95, 0.3);
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  padding: 12px 24px;
+  background: #ffffff;
+  color: #2d5a5f;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.secondaryButton:hover {
+  background: #f5f7fa;
+  border-color: #2d5a5f;
+}
+
+.errorText {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  color: #dc3545;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 24px 16px;
+  }
+
+  .card {
+    padding: 24px 20px;
+  }
+
+  .sectionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+
+

@@ -1,0 +1,1326 @@
+================================================================================
+                        EXPERT RAAH - DATA DESIGN DOCUMENT
+================================================================================
+
+4. DATA DESIGN
+================================================================================
+
+4.1 OVERVIEW
+--------------------------------------------------------------------------------
+The Expert Raah system transforms the information domain into a structured data
+architecture using MongoDB (NoSQL database) for backend storage and localStorage
+for frontend session management. The system employs a modular, service-oriented
+architecture with clear separation between data models, business logic, and 
+presentation layers.
+
+The data architecture follows these key principles:
+- Document-based storage using MongoDB with Mongoose ODM
+- RESTful API design for data communication
+- JWT-based authentication and authorization
+- Base64 encoding for image storage
+- Real-time data synchronization between frontend and backend
+
+
+4.2 DATA STORAGE ARCHITECTURE
+--------------------------------------------------------------------------------
+
+PRIMARY DATABASE:
+  - Type: MongoDB (NoSQL Document Database)
+  - Location: localhost:27017
+  - Database Name: ExpertRaah
+  - Connection: Mongoose ODM (Object Document Mapper)
+  - Collections: 5 main collections (Users, Consultants, Jobs, Proposals, Orders)
+
+SECONDARY STORAGE:
+  - Browser localStorage for client-side session management
+  - Stores: JWT tokens, user profile data, session state
+  - Keys: 'expert_raah_token', 'expert_raah_user'
+
+FILE STORAGE:
+  - Images stored as Base64 encoded strings in MongoDB
+  - Profile images, ID cards, supporting documents
+  - Maximum payload size: 50MB
+
+
+4.3 DATA FLOW AND PROCESSING
+--------------------------------------------------------------------------------
+
+USER AUTHENTICATION FLOW:
+  1. User submits credentials (email, password) via frontend
+  2. Frontend sends POST request to /api/auth/login or /api/auth/register
+  3. Backend validates credentials using bcrypt password hashing
+  4. Backend generates JWT token with user ID and roles
+  5. Token and user data returned to frontend
+  6. Frontend stores token in localStorage
+  7. Token included in Authorization header for subsequent requests
+
+DATA TRANSFORMATION PIPELINE:
+  Frontend (React) → HTTP Client (Axios) → Backend API (Express) → 
+  Service Layer → Data Model (Mongoose) → MongoDB → 
+  Response → Service Layer → Controller → API Response → Frontend
+
+IMAGE PROCESSING:
+  1. User selects image file
+  2. Frontend validates file size (max 5MB)
+  3. Client-side compression (resize to 800px width, 70% JPEG quality)
+  4. Convert to Base64 string
+  5. Send to backend in JSON payload
+  6. Store Base64 string in MongoDB
+  7. Retrieve and display using data URI
+
+
+4.4 MAJOR DATA ENTITIES
+--------------------------------------------------------------------------------
+
+1. USER ENTITY
+   - Primary entity for all system users (buyers and consultants)
+   - Handles authentication, authorization, and profile management
+   - Stores account type, verification status, and ban status
+
+2. CONSULTANT ENTITY
+   - Extended profile for users with accountType='consultant'
+   - Stores professional information, rates, and verification documents
+   - Linked to User entity via userId reference
+
+3. JOB ENTITY
+   - Represents job postings created by buyers
+   - Contains project details, budget, timeline, and requirements
+   - Tracks status and proposal count
+
+4. PROPOSAL ENTITY
+   - Represents bids submitted by consultants for jobs
+   - Contains bid amount, delivery time, and cover letter
+   - Unique constraint: one proposal per consultant per job
+
+5. ORDER ENTITY
+   - Created when a buyer accepts a proposal
+   - Manages project execution, milestones, and payments
+   - Tracks progress, amounts paid/pending, and completion status
+
+
+4.5 DATA RELATIONSHIPS
+--------------------------------------------------------------------------------
+
+USER (1) ←→ (1) CONSULTANT
+  - One-to-one relationship via userId reference
+  - User must have accountType='consultant'
+
+USER (1) ←→ (Many) JOBS
+  - One buyer can create multiple jobs
+  - Relationship via buyerId reference
+
+CONSULTANT (1) ←→ (Many) PROPOSALS
+  - One consultant can submit multiple proposals
+  - Relationship via consultantId reference
+
+JOB (1) ←→ (Many) PROPOSALS
+  - One job can receive multiple proposals
+  - Relationship via jobId reference
+
+PROPOSAL (1) ←→ (1) ORDER
+  - Accepting a proposal creates one order
+  - Relationship via proposalId reference
+
+ORDER (Many) ←→ (1) JOB
+  - Multiple orders can reference the same job (if reopened)
+  - Relationship via jobId reference
+
+ORDER (Many) ←→ (1) USER (Buyer)
+  - Buyer can have multiple orders
+  - Relationship via buyerId reference
+
+ORDER (Many) ←→ (1) CONSULTANT
+  - Consultant can have multiple orders
+  - Relationship via consultantId reference
+
+
+4.6 DATA SECURITY AND VALIDATION
+--------------------------------------------------------------------------------
+
+PASSWORD SECURITY:
+  - Passwords hashed using bcrypt before storage
+  - Passwords excluded from JSON responses via schema transform
+  - Minimum password length: 6 characters
+
+EMAIL VALIDATION:
+  - Email uniqueness enforced at database level
+  - Email format validation using Joi schema
+  - Lowercase conversion and trimming applied
+
+AUTHENTICATION:
+  - JWT tokens with configurable expiration (default: 7 days)
+  - Token verification middleware on protected routes
+  - Automatic token refresh on frontend
+
+AUTHORIZATION:
+  - Role-based access control (user, admin)
+  - Account type-based access (buyer, consultant)
+  - User ban status checked before operations
+
+DATA VALIDATION:
+  - Backend validation using Celebrate (Joi wrapper)
+  - Frontend validation for user experience
+  - Type safety using TypeScript interfaces
+
+
+================================================================================
+4.7 DATA DICTIONARY
+================================================================================
+
+ENTITIES AND ATTRIBUTES (Alphabetically Sorted)
+--------------------------------------------------------------------------------
+
+CONSULTANT
+  Description: Extended profile for consultant users containing professional 
+               information, rates, verification documents, and statistics.
+  
+  Attributes:
+    - availability (String, enum: ['available', 'limited', 'unavailable'])
+        Description: Current availability status of the consultant
+        Default: 'available'
+        Required: Yes
+    
+    - bio (String)
+        Description: Professional biography and introduction
+        Required: Yes
+    
+    - createdAt (Date)
+        Description: Timestamp when consultant profile was created
+        Auto-generated: Yes
+    
+    - experience (String)
+        Description: Years of experience or experience description
+        Required: Yes
+    
+    - hourlyRate (Number)
+        Description: Hourly rate in Pakistani Rupees (PKR)
+        Minimum: 0
+        Required: Yes
+    
+    - idCardBack (String, Base64)
+        Description: Base64 encoded image of ID card back side
+        Required: No
+    
+    - idCardFront (String, Base64)
+        Description: Base64 encoded image of ID card front side
+        Required: No
+    
+    - isVerified (Boolean)
+        Description: Whether consultant has been verified by admin
+        Default: false
+    
+    - rating (Number)
+        Description: Average rating from completed projects
+        Range: 0-5
+        Default: 0
+    
+    - skills (Array of Strings)
+        Description: List of professional skills
+        Default: []
+    
+    - specialization (Array of Strings)
+        Description: Areas of specialization (Education, Business, Legal)
+        Required: Yes
+    
+    - supportingDocuments (Array of Strings, Base64)
+        Description: Additional verification documents
+        Default: []
+    
+    - title (String)
+        Description: Professional title or designation
+        Required: Yes
+    
+    - totalEarnings (Number)
+        Description: Total earnings from completed projects
+        Default: 0
+    
+    - totalProjects (Number)
+        Description: Number of completed projects
+        Default: 0
+    
+    - updatedAt (Date)
+        Description: Timestamp of last update
+        Auto-generated: Yes
+    
+    - userId (ObjectId, Reference to User)
+        Description: Reference to associated User document
+        Unique: Yes
+        Required: Yes
+
+  Methods:
+    None (Data model only)
+
+  Indexes:
+    - userId (unique)
+
+--------------------------------------------------------------------------------
+
+JOB
+  Description: Job posting created by buyers seeking consultant services.
+  
+  Attributes:
+    - attachments (Array of Strings)
+        Description: URLs or Base64 encoded attachments
+        Default: []
+    
+    - budget (Object)
+        Description: Budget range for the project
+        Required: Yes
+        Sub-fields:
+          - min (Number): Minimum budget in PKR, Required, Minimum: 0
+          - max (Number): Maximum budget in PKR, Required, Minimum: 0
+    
+    - buyerId (ObjectId, Reference to User)
+        Description: Reference to buyer who created the job
+        Required: Yes
+    
+    - category (String)
+        Description: Job category (Education, Business, Legal)
+        Required: Yes
+    
+    - createdAt (Date)
+        Description: Timestamp when job was posted
+        Auto-generated: Yes
+    
+    - description (String)
+        Description: Detailed job description and requirements
+        Required: Yes
+    
+    - hiredConsultantId (ObjectId, Reference to Consultant)
+        Description: Reference to hired consultant (if accepted)
+        Required: No
+    
+    - location (String)
+        Description: Job location (Rawalpindi, Islamabad, Lahore, Karachi)
+        Required: Yes
+    
+    - proposalsCount (Number)
+        Description: Number of proposals received
+        Default: 0
+    
+    - skills (Array of Strings)
+        Description: Required skills for the job
+        Default: []
+    
+    - status (String, enum: ['open', 'in_progress', 'completed', 'cancelled'])
+        Description: Current status of the job
+        Default: 'open'
+    
+    - timeline (String)
+        Description: Expected project timeline
+        Required: Yes
+    
+    - title (String)
+        Description: Job title
+        Required: Yes
+    
+    - updatedAt (Date)
+        Description: Timestamp of last update
+        Auto-generated: Yes
+
+  Methods:
+    None (Data model only)
+
+  Indexes:
+    - buyerId
+    - status
+    - category
+
+--------------------------------------------------------------------------------
+
+MILESTONE (Sub-document of Order)
+  Description: Individual milestone within an order tracking progress and payment.
+  
+  Attributes:
+    - amount (Number)
+        Description: Milestone payment amount in PKR
+        Minimum: 0
+        Required: Yes
+    
+    - completedAt (Date)
+        Description: Timestamp when milestone was completed
+        Required: No
+    
+    - description (String)
+        Description: Milestone description
+        Required: Yes
+    
+    - paidAt (Date)
+        Description: Timestamp when milestone was paid
+        Required: No
+    
+    - status (String, enum: ['pending', 'completed', 'paid'])
+        Description: Current milestone status
+        Default: 'pending'
+
+  Methods:
+    None (Embedded document)
+
+--------------------------------------------------------------------------------
+
+ORDER
+  Description: Active project order created when buyer accepts a proposal.
+  
+  Attributes:
+    - amountPaid (Number)
+        Description: Total amount paid to consultant so far
+        Default: 0
+    
+    - amountPending (Number)
+        Description: Amount still pending payment
+        Required: Yes
+    
+    - buyerId (ObjectId, Reference to User)
+        Description: Reference to buyer
+        Required: Yes
+    
+    - completionDate (Date)
+        Description: Actual completion date
+        Required: No
+    
+    - consultantId (ObjectId, Reference to Consultant)
+        Description: Reference to hired consultant
+        Required: Yes
+    
+    - createdAt (Date)
+        Description: Timestamp when order was created
+        Auto-generated: Yes
+    
+    - jobId (ObjectId, Reference to Job)
+        Description: Reference to associated job
+        Required: Yes
+    
+    - milestones (Array of Milestone objects)
+        Description: Project milestones with payment tracking
+        Default: []
+    
+    - progress (Number)
+        Description: Project completion percentage
+        Range: 0-100
+        Default: 0
+    
+    - proposalId (ObjectId, Reference to Proposal)
+        Description: Reference to accepted proposal
+        Required: Yes
+    
+    - startDate (Date)
+        Description: Project start date
+        Default: Current date
+    
+    - status (String, enum: ['in_progress', 'completed', 'cancelled'])
+        Description: Current order status
+        Default: 'in_progress'
+    
+    - totalAmount (Number)
+        Description: Total project amount (bid amount)
+        Minimum: 0
+        Required: Yes
+    
+    - updatedAt (Date)
+        Description: Timestamp of last update
+        Auto-generated: Yes
+
+  Methods:
+    None (Data model only)
+
+  Indexes:
+    - buyerId
+    - consultantId
+    - jobId
+    - status
+
+--------------------------------------------------------------------------------
+
+PROPOSAL
+  Description: Bid submitted by consultant for a job posting.
+  
+  Attributes:
+    - bidAmount (Number)
+        Description: Proposed amount in PKR
+        Minimum: 0
+        Required: Yes
+    
+    - consultantId (ObjectId, Reference to Consultant)
+        Description: Reference to consultant submitting proposal
+        Required: Yes
+    
+    - coverLetter (String)
+        Description: Proposal cover letter explaining approach
+        Required: Yes
+    
+    - createdAt (Date)
+        Description: Timestamp when proposal was submitted
+        Auto-generated: Yes
+    
+    - deliveryTime (String)
+        Description: Proposed delivery timeline
+        Required: Yes
+    
+    - jobId (ObjectId, Reference to Job)
+        Description: Reference to job being bid on
+        Required: Yes
+    
+    - status (String, enum: ['pending', 'accepted', 'rejected'])
+        Description: Current proposal status
+        Default: 'pending'
+    
+    - updatedAt (Date)
+        Description: Timestamp of last update
+        Auto-generated: Yes
+
+  Methods:
+    None (Data model only)
+
+  Indexes:
+    - jobId
+    - consultantId
+    - Compound unique index: (jobId, consultantId)
+
+--------------------------------------------------------------------------------
+
+USER
+  Description: Core user entity for authentication and profile management.
+  
+  Attributes:
+    - accountType (String, enum: ['buyer', 'consultant'])
+        Description: Type of user account
+        Required: Yes
+    
+    - createdAt (Date)
+        Description: Timestamp when user registered
+        Auto-generated: Yes
+    
+    - email (String)
+        Description: User email address (unique, lowercase)
+        Unique: Yes
+        Required: Yes
+    
+    - isBanned (Boolean)
+        Description: Whether user is banned by admin
+        Default: false
+    
+    - isOnline (Boolean)
+        Description: Current online status
+        Default: false
+    
+    - isVerified (Boolean)
+        Description: Whether user account is verified
+        Default: false
+    
+    - name (String)
+        Description: User full name
+        Required: Yes
+    
+    - password (String, Hashed)
+        Description: Bcrypt hashed password
+        Required: Yes
+        Note: Excluded from JSON responses
+    
+    - phone (String)
+        Description: Contact phone number
+        Required: No
+    
+    - profileImage (String, Base64)
+        Description: Base64 encoded profile picture
+        Required: No
+    
+    - roles (Array of Strings)
+        Description: User roles for authorization
+        Default: ['user']
+    
+    - updatedAt (Date)
+        Description: Timestamp of last update
+        Auto-generated: Yes
+
+  Methods:
+    - isEmailTaken(email: String, excludeUserId?: String): Promise<Boolean>
+        Description: Static method to check if email is already registered
+        Parameters:
+          - email: Email address to check
+          - excludeUserId: Optional user ID to exclude from check
+        Returns: Boolean indicating if email is taken
+
+  Indexes:
+    - email (unique)
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+BACKEND SERVICES AND FUNCTIONS
+================================================================================
+
+ADMIN SERVICE
+  Description: Handles administrative operations for user and consultant management.
+  
+  Functions:
+    - banUser(userId: String): Promise<User>
+        Description: Ban a user from the platform
+        Parameters:
+          - userId: ID of user to ban
+        Returns: Updated user document
+    
+    - declineConsultant(consultantId: String): Promise<Consultant>
+        Description: Decline consultant verification
+        Parameters:
+          - consultantId: ID of consultant to decline
+        Returns: Updated consultant document
+    
+    - deleteUser(userId: String): Promise<void>
+        Description: Permanently delete a user
+        Parameters:
+          - userId: ID of user to delete
+        Returns: Void
+    
+    - getAllUsers(): Promise<Array<User>>
+        Description: Retrieve all users in the system
+        Returns: Array of user documents
+    
+    - getPendingConsultants(): Promise<Array<Consultant>>
+        Description: Get all consultants awaiting verification
+        Returns: Array of unverified consultant documents
+    
+    - getStats(): Promise<Object>
+        Description: Get platform statistics
+        Returns: Object with user, consultant, job, and order counts
+    
+    - unbanUser(userId: String): Promise<User>
+        Description: Remove ban from a user
+        Parameters:
+          - userId: ID of user to unban
+        Returns: Updated user document
+    
+    - verifyConsultant(consultantId: String): Promise<Consultant>
+        Description: Verify and approve a consultant
+        Parameters:
+          - consultantId: ID of consultant to verify
+        Returns: Updated consultant document
+
+--------------------------------------------------------------------------------
+
+AUTH SERVICE
+  Description: Handles user authentication and registration.
+  
+  Functions:
+    - login(email: String, password: String): Promise<AuthResponse>
+        Description: Authenticate user and generate JWT token
+        Parameters:
+          - email: User email address
+          - password: User password (plain text)
+        Returns: Object containing token and user data
+        Throws: ApiError(401) if credentials invalid
+    
+    - register(payload: RegisterPayload): Promise<AuthResponse>
+        Description: Register new user account
+        Parameters:
+          - payload: Object with name, email, password, accountType
+        Returns: Object containing token and user data
+        Throws: ApiError(409) if email already taken
+
+  Types:
+    - AuthResponse: { token: String, user: UserData }
+    - RegisterPayload: { name: String, email: String, password: String, 
+                        accountType: 'buyer' | 'consultant' }
+
+--------------------------------------------------------------------------------
+
+CONSULTANT SERVICE
+  Description: Manages consultant profiles and verification.
+  
+  Functions:
+    - createConsultant(payload: ConsultantPayload): Promise<Consultant>
+        Description: Create new consultant profile
+        Parameters:
+          - payload: Consultant data including userId, title, bio, etc.
+        Returns: Created consultant document
+    
+    - deleteConsultant(id: String): Promise<void>
+        Description: Delete consultant profile
+        Parameters:
+          - id: Consultant ID
+        Returns: Void
+    
+    - getConsultantById(id: String): Promise<Consultant>
+        Description: Retrieve consultant by ID
+        Parameters:
+          - id: Consultant ID
+        Returns: Consultant document
+    
+    - getConsultantByUserId(userId: String): Promise<Consultant>
+        Description: Retrieve consultant by user ID
+        Parameters:
+          - userId: User ID
+        Returns: Consultant document
+    
+    - listConsultants(): Promise<Array<Consultant>>
+        Description: Get all consultants
+        Returns: Array of consultant documents
+    
+    - updateConsultant(id: String, updates: Partial<Consultant>): Promise<Consultant>
+        Description: Update consultant profile
+        Parameters:
+          - id: Consultant ID
+          - updates: Partial consultant data to update
+        Returns: Updated consultant document
+
+--------------------------------------------------------------------------------
+
+JOB SERVICE
+  Description: Manages job postings and lifecycle.
+  
+  Functions:
+    - createJob(payload: JobPayload): Promise<Job>
+        Description: Create new job posting
+        Parameters:
+          - payload: Job data including buyerId, category, title, etc.
+        Returns: Created job document
+    
+    - deleteJob(id: String): Promise<void>
+        Description: Delete job posting
+        Parameters:
+          - id: Job ID
+        Returns: Void
+    
+    - getJobById(id: String): Promise<Job>
+        Description: Retrieve job by ID
+        Parameters:
+          - id: Job ID
+        Returns: Job document
+    
+    - getJobsByBuyer(buyerId: String): Promise<Array<Job>>
+        Description: Get all jobs posted by a buyer
+        Parameters:
+          - buyerId: Buyer user ID
+        Returns: Array of job documents
+    
+    - listJobs(filters?: Object): Promise<Array<Job>>
+        Description: Get all jobs with optional filters
+        Parameters:
+          - filters: Optional query filters (status, category, etc.)
+        Returns: Array of job documents
+    
+    - updateJob(id: String, updates: Partial<Job>): Promise<Job>
+        Description: Update job posting
+        Parameters:
+          - id: Job ID
+          - updates: Partial job data to update
+        Returns: Updated job document
+
+--------------------------------------------------------------------------------
+
+ORDER SERVICE
+  Description: Manages active project orders and milestones.
+  
+  Functions:
+    - createOrder(payload: OrderPayload): Promise<Order>
+        Description: Create new order from accepted proposal
+        Parameters:
+          - payload: Order data including jobId, buyerId, consultantId, etc.
+        Returns: Created order document
+    
+    - deleteOrder(id: String): Promise<void>
+        Description: Delete order
+        Parameters:
+          - id: Order ID
+        Returns: Void
+    
+    - getOrderById(id: String): Promise<Order>
+        Description: Retrieve order by ID
+        Parameters:
+          - id: Order ID
+        Returns: Order document with populated references
+    
+    - getOrdersByBuyer(buyerId: String): Promise<Array<Order>>
+        Description: Get all orders for a buyer
+        Parameters:
+          - buyerId: Buyer user ID
+        Returns: Array of order documents
+    
+    - getOrdersByConsultant(consultantId: String): Promise<Array<Order>>
+        Description: Get all orders for a consultant
+        Parameters:
+          - consultantId: Consultant ID
+        Returns: Array of order documents
+    
+    - listOrders(): Promise<Array<Order>>
+        Description: Get all orders
+        Returns: Array of order documents
+    
+    - updateOrder(id: String, updates: Partial<Order>): Promise<Order>
+        Description: Update order details
+        Parameters:
+          - id: Order ID
+          - updates: Partial order data to update
+        Returns: Updated order document
+    
+    - updateMilestone(orderId: String, milestoneId: String, 
+                     updates: Partial<Milestone>): Promise<Order>
+        Description: Update specific milestone in order
+        Parameters:
+          - orderId: Order ID
+          - milestoneId: Milestone ID
+          - updates: Partial milestone data to update
+        Returns: Updated order document
+
+--------------------------------------------------------------------------------
+
+PROPOSAL SERVICE
+  Description: Manages consultant proposals for jobs.
+  
+  Functions:
+    - acceptProposal(id: String): Promise<{ proposal: Proposal, order: Order }>
+        Description: Accept proposal and create order
+        Parameters:
+          - id: Proposal ID
+        Returns: Object with updated proposal and new order
+    
+    - createProposal(payload: ProposalPayload): Promise<Proposal>
+        Description: Submit new proposal for job
+        Parameters:
+          - payload: Proposal data including jobId, consultantId, etc.
+        Returns: Created proposal document
+        Throws: Error if consultant already submitted proposal for this job
+    
+    - deleteProposal(id: String): Promise<void>
+        Description: Delete proposal
+        Parameters:
+          - id: Proposal ID
+        Returns: Void
+    
+    - getProposalById(id: String): Promise<Proposal>
+        Description: Retrieve proposal by ID
+        Parameters:
+          - id: Proposal ID
+        Returns: Proposal document with populated references
+    
+    - getProposalsByConsultant(consultantId: String): Promise<Array<Proposal>>
+        Description: Get all proposals by consultant
+        Parameters:
+          - consultantId: Consultant ID
+        Returns: Array of proposal documents
+    
+    - getProposalsByJob(jobId: String): Promise<Array<Proposal>>
+        Description: Get all proposals for a job
+        Parameters:
+          - jobId: Job ID
+        Returns: Array of proposal documents
+    
+    - listProposals(): Promise<Array<Proposal>>
+        Description: Get all proposals
+        Returns: Array of proposal documents
+    
+    - rejectProposal(id: String): Promise<Proposal>
+        Description: Reject proposal
+        Parameters:
+          - id: Proposal ID
+        Returns: Updated proposal document
+    
+    - updateProposal(id: String, updates: Partial<Proposal>): Promise<Proposal>
+        Description: Update proposal details
+        Parameters:
+          - id: Proposal ID
+          - updates: Partial proposal data to update
+        Returns: Updated proposal document
+
+--------------------------------------------------------------------------------
+
+TOKEN SERVICE
+  Description: Handles JWT token generation and verification.
+  
+  Functions:
+    - generateToken(payload: TokenPayload): String
+        Description: Generate JWT token for authenticated user
+        Parameters:
+          - payload: Object with user id and roles
+        Returns: Signed JWT token string
+  
+  Types:
+    - TokenPayload: { id: String, roles: Array<String> }
+
+--------------------------------------------------------------------------------
+
+USER SERVICE
+  Description: Manages user accounts and profiles.
+  
+  Functions:
+    - createUser(payload: UserPayload): Promise<User>
+        Description: Create new user account
+        Parameters:
+          - payload: User data including name, email, password, roles
+        Returns: Created user document
+        Throws: ApiError(409) if email already taken
+    
+    - getUserByEmail(email: String): Promise<User>
+        Description: Find user by email address
+        Parameters:
+          - email: Email address
+        Returns: User document or null
+    
+    - getUserById(id: String): Promise<User>
+        Description: Find user by ID
+        Parameters:
+          - id: User ID
+        Returns: User document (password excluded)
+    
+    - listUsers(): Promise<Array<User>>
+        Description: Get all users
+        Returns: Array of user documents (passwords excluded)
+    
+    - updateUser(id: String, updates: Partial<User>): Promise<User>
+        Description: Update user profile
+        Parameters:
+          - id: User ID
+          - updates: Partial user data (accountType, name, phone, profileImage)
+        Returns: Updated user document
+        Throws: ApiError(404) if user not found
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+FRONTEND SERVICES AND FUNCTIONS
+================================================================================
+
+AUTH SERVICE (Frontend)
+  Description: Client-side authentication service for API communication.
+  
+  Functions:
+    - getCurrentUser(): User | null
+        Description: Retrieve current user from localStorage
+        Returns: User object or null if not authenticated
+    
+    - getProfile(): Promise<User>
+        Description: Fetch current user profile from API
+        Returns: User object
+    
+    - isAuthenticated(): Boolean
+        Description: Check if user has valid token
+        Returns: Boolean indicating authentication status
+    
+    - login(payload: LoginPayload): Promise<AuthResponse>
+        Description: Authenticate user
+        Parameters:
+          - payload: { email: String, password: String }
+        Returns: AuthResponse with token and user data
+        Side Effects: Stores token and user in localStorage
+    
+    - logout(): void
+        Description: Clear authentication data
+        Side Effects: Removes token and user from localStorage
+    
+    - parseError(error: unknown): String
+        Description: Parse API error into user-friendly message
+        Parameters:
+          - error: Error object from API
+        Returns: Error message string
+    
+    - register(payload: RegisterPayload): Promise<AuthResponse>
+        Description: Register new user account
+        Parameters:
+          - payload: { name, email, password, accountType }
+        Returns: AuthResponse with token and user data
+        Side Effects: Stores token and user in localStorage
+
+--------------------------------------------------------------------------------
+
+HTTP CLIENT
+  Description: Axios-based HTTP client for API communication.
+  
+  Configuration:
+    - Base URL: http://localhost:5000/api
+    - Timeout: 10000ms
+    - Default Headers: { 'Content-Type': 'application/json' }
+  
+  Interceptors:
+    - Request Interceptor: Adds JWT token to Authorization header
+    - Response Interceptor: Handles 401 errors by redirecting to login
+
+--------------------------------------------------------------------------------
+
+STORAGE SERVICE
+  Description: Browser localStorage wrapper with error handling.
+  
+  Functions:
+    - clearToken(key: String): void
+        Description: Remove item from localStorage
+        Parameters:
+          - key: Storage key
+    
+    - getToken(key: String): String | null
+        Description: Retrieve item from localStorage
+        Parameters:
+          - key: Storage key
+        Returns: Stored value or null
+    
+    - setToken(key: String, value: String): void
+        Description: Store item in localStorage
+        Parameters:
+          - key: Storage key
+          - value: Value to store
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+UTILITY FUNCTIONS
+================================================================================
+
+PASSWORD UTILITIES
+  Description: Password hashing and comparison using bcrypt.
+  
+  Functions:
+    - hashPassword(password: String): Promise<String>
+        Description: Hash password using bcrypt
+        Parameters:
+          - password: Plain text password
+        Returns: Hashed password string
+    
+    - comparePassword(password: String, hashedPassword: String): Promise<Boolean>
+        Description: Compare plain password with hashed password
+        Parameters:
+          - password: Plain text password
+          - hashedPassword: Bcrypt hashed password
+        Returns: Boolean indicating match
+
+--------------------------------------------------------------------------------
+
+API ERROR
+  Description: Custom error class for API errors.
+  
+  Constructor:
+    - ApiError(statusCode: Number, message: String)
+        Parameters:
+          - statusCode: HTTP status code
+          - message: Error message
+  
+  Properties:
+    - statusCode (Number): HTTP status code
+    - message (String): Error message
+    - isOperational (Boolean): Always true for operational errors
+
+--------------------------------------------------------------------------------
+
+API RESPONSE
+  Description: Standardized API response formatter.
+  
+  Functions:
+    - success(statusCode: Number, message: String, data?: any): Object
+        Description: Format success response
+        Parameters:
+          - statusCode: HTTP status code
+          - message: Success message
+          - data: Optional response data
+        Returns: { success: true, statusCode, message, data }
+    
+    - error(statusCode: Number, message: String, errors?: any): Object
+        Description: Format error response
+        Parameters:
+          - statusCode: HTTP status code
+          - message: Error message
+          - errors: Optional error details
+        Returns: { success: false, statusCode, message, errors }
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+API ENDPOINTS
+================================================================================
+
+AUTHENTICATION ENDPOINTS
+  - POST /api/auth/login
+      Description: Authenticate user
+      Request Body: { email: String, password: String }
+      Response: { token: String, user: Object }
+  
+  - POST /api/auth/register
+      Description: Register new user
+      Request Body: { name, email, password, accountType }
+      Response: { token: String, user: Object }
+
+USER ENDPOINTS
+  - GET /api/users/me
+      Description: Get current user profile
+      Auth: Required
+      Response: User object
+  
+  - PATCH /api/users/me
+      Description: Update current user profile
+      Auth: Required
+      Request Body: { name?, phone?, profileImage?, accountType? }
+      Response: Updated user object
+  
+  - GET /api/users
+      Description: Get all users
+      Auth: Required
+      Response: Array of user objects
+
+CONSULTANT ENDPOINTS
+  - POST /api/consultants
+      Description: Create consultant profile
+      Auth: Required
+      Request Body: Consultant data
+      Response: Created consultant object
+  
+  - GET /api/consultants
+      Description: Get all consultants
+      Response: Array of consultant objects
+  
+  - GET /api/consultants/:id
+      Description: Get consultant by ID
+      Response: Consultant object
+  
+  - PATCH /api/consultants/:id
+      Description: Update consultant profile
+      Auth: Required
+      Request Body: Partial consultant data
+      Response: Updated consultant object
+  
+  - DELETE /api/consultants/:id
+      Description: Delete consultant profile
+      Auth: Required
+      Response: Success message
+
+JOB ENDPOINTS
+  - POST /api/jobs
+      Description: Create job posting
+      Auth: Required
+      Request Body: Job data
+      Response: Created job object
+  
+  - GET /api/jobs
+      Description: Get all jobs
+      Response: Array of job objects
+  
+  - GET /api/jobs/buyer/:buyerId
+      Description: Get jobs by buyer
+      Auth: Required
+      Response: Array of job objects
+  
+  - GET /api/jobs/:id
+      Description: Get job by ID
+      Response: Job object
+  
+  - PUT /api/jobs/:id
+      Description: Update job posting
+      Auth: Required
+      Request Body: Partial job data
+      Response: Updated job object
+  
+  - DELETE /api/jobs/:id
+      Description: Delete job posting
+      Auth: Required
+      Response: Success message
+
+PROPOSAL ENDPOINTS
+  - POST /api/proposals
+      Description: Submit proposal
+      Auth: Required
+      Request Body: Proposal data
+      Response: Created proposal object
+  
+  - GET /api/proposals
+      Description: Get all proposals
+      Auth: Required
+      Response: Array of proposal objects
+  
+  - GET /api/proposals/job/:jobId
+      Description: Get proposals for job
+      Auth: Required
+      Response: Array of proposal objects
+  
+  - GET /api/proposals/consultant/:consultantId
+      Description: Get proposals by consultant
+      Auth: Required
+      Response: Array of proposal objects
+  
+  - GET /api/proposals/:id
+      Description: Get proposal by ID
+      Auth: Required
+      Response: Proposal object
+  
+  - PATCH /api/proposals/:id
+      Description: Update proposal
+      Auth: Required
+      Request Body: Partial proposal data
+      Response: Updated proposal object
+  
+  - POST /api/proposals/:id/accept
+      Description: Accept proposal and create order
+      Auth: Required
+      Response: { proposal: Object, order: Object }
+  
+  - POST /api/proposals/:id/reject
+      Description: Reject proposal
+      Auth: Required
+      Response: Updated proposal object
+  
+  - DELETE /api/proposals/:id
+      Description: Delete proposal
+      Auth: Required
+      Response: Success message
+
+ORDER ENDPOINTS
+  - POST /api/orders
+      Description: Create order
+      Auth: Required
+      Request Body: Order data
+      Response: Created order object
+  
+  - GET /api/orders
+      Description: Get all orders
+      Auth: Required
+      Response: Array of order objects
+  
+  - GET /api/orders/buyer/:buyerId
+      Description: Get orders by buyer
+      Auth: Required
+      Response: Array of order objects
+  
+  - GET /api/orders/consultant/:consultantId
+      Description: Get orders by consultant
+      Auth: Required
+      Response: Array of order objects
+  
+  - GET /api/orders/:id
+      Description: Get order by ID
+      Auth: Required
+      Response: Order object with populated references
+  
+  - PATCH /api/orders/:id
+      Description: Update order
+      Auth: Required
+      Request Body: Partial order data
+      Response: Updated order object
+  
+  - PATCH /api/orders/:id/milestones/:milestoneId
+      Description: Update milestone
+      Auth: Required
+      Request Body: Partial milestone data
+      Response: Updated order object
+  
+  - DELETE /api/orders/:id
+      Description: Delete order
+      Auth: Required
+      Response: Success message
+
+ADMIN ENDPOINTS
+  - GET /api/admin/users
+      Description: Get all users (admin only)
+      Auth: Required (Admin)
+      Response: Array of user objects
+  
+  - GET /api/admin/consultants/pending
+      Description: Get pending consultant verifications
+      Auth: Required (Admin)
+      Response: Array of unverified consultant objects
+  
+  - POST /api/admin/consultants/:id/verify
+      Description: Verify consultant
+      Auth: Required (Admin)
+      Response: Updated consultant object
+  
+  - POST /api/admin/consultants/:id/decline
+      Description: Decline consultant verification
+      Auth: Required (Admin)
+      Response: Updated consultant object
+  
+  - POST /api/admin/users/:id/ban
+      Description: Ban user
+      Auth: Required (Admin)
+      Response: Updated user object
+  
+  - POST /api/admin/users/:id/unban
+      Description: Unban user
+      Auth: Required (Admin)
+      Response: Updated user object
+  
+  - DELETE /api/admin/users/:id
+      Description: Delete user
+      Auth: Required (Admin)
+      Response: Success message
+  
+  - GET /api/admin/stats
+      Description: Get platform statistics
+      Auth: Required (Admin)
+      Response: Statistics object
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+DATA VALIDATION RULES
+================================================================================
+
+USER VALIDATION
+  - name: Required, String, Min 1 character
+  - email: Required, Valid email format, Unique
+  - password: Required, Min 6 characters
+  - accountType: Required, Enum ['buyer', 'consultant']
+  - phone: Optional, String
+  - profileImage: Optional, Base64 string
+
+CONSULTANT VALIDATION
+  - userId: Required, Valid ObjectId
+  - title: Required, String
+  - bio: Required, String
+  - specialization: Required, Array of strings
+  - hourlyRate: Required, Number, Min 0
+  - availability: Optional, Enum ['available', 'limited', 'unavailable']
+  - experience: Required, String
+  - skills: Optional, Array of strings
+
+JOB VALIDATION
+  - buyerId: Required, Valid ObjectId
+  - category: Required, String
+  - title: Required, String
+  - description: Required, String
+  - budget.min: Required, Number, Min 0
+  - budget.max: Required, Number, Min 0
+  - timeline: Required, String
+  - location: Required, String
+  - skills: Optional, Array of strings
+  - status: Optional, Enum ['open', 'in_progress', 'completed', 'cancelled']
+
+PROPOSAL VALIDATION
+  - jobId: Required, Valid ObjectId
+  - consultantId: Required, Valid ObjectId
+  - bidAmount: Required, Number, Min 0
+  - deliveryTime: Required, String
+  - coverLetter: Required, String, Min 10 characters
+  - status: Optional, Enum ['pending', 'accepted', 'rejected']
+
+ORDER VALIDATION
+  - jobId: Required, Valid ObjectId
+  - buyerId: Required, Valid ObjectId
+  - consultantId: Required, Valid ObjectId
+  - proposalId: Required, Valid ObjectId
+  - totalAmount: Required, Number, Min 0
+  - amountPending: Required, Number, Min 0
+  - progress: Optional, Number, Min 0, Max 100
+  - status: Optional, Enum ['in_progress', 'completed', 'cancelled']
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+ENVIRONMENT VARIABLES
+================================================================================
+
+BACKEND (.env)
+  - MONGODB_URI: MongoDB connection string
+  - JWT_SECRET: Secret key for JWT signing
+  - JWT_EXPIRES_IN: Token expiration time (default: 7d)
+  - PORT: Server port (default: 5000)
+  - NODE_ENV: Environment (development/production)
+
+FRONTEND (.env)
+  - VITE_API_BASE_URL: Backend API URL (default: http://localhost:5000/api)
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+END OF DATA DESIGN DOCUMENT
+================================================================================
+

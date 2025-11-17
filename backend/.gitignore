@@ -1,0 +1,57 @@
+# Node dependencies
+node_modules/
+bower_components/
+
+# Node build / output
+dist/
+build/
+coverage/
+.out/
+.cache/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# Environment files (secrets)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python build / packaging
+build/
+dist/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+
+# Virtual environments
+.env/
+.venv/
+venv/
+ENV/
+env/
+
+# Test / type-check caches
+.pytest_cache/
+.mypy_cache/
+.pyre/
+.pytype/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,501 @@
+.container {
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding: 40px 20px;
+}
+
+.wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.backButton {
+  background: #ffffff;
+  color: #003b42;
+  border: 1px solid #e0e6ed;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backButton:hover {
+  background: #f0f3f7;
+  border-color: #003b42;
+}
+
+.title {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #003b42;
+  margin: 0;
+}
+
+.mainContent {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 40px;
+}
+
+/* Sidebar */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.profileCard {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e0e6ed;
+}
+
+.profileImageContainer {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profileImage {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #003b42;
+  box-shadow: 0 4px 12px rgba(0, 59, 66, 0.15);
+}
+
+.defaultIcon {
+  width: 100%;
+  height: 100%;
+  color: #003b42;
+  opacity: 0.3;
+}
+
+.uploadLabel {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #003b42;
+  color: #ffffff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 59, 66, 0.2);
+  border: 2px solid #ffffff;
+}
+
+.uploadLabel:hover {
+  transform: scale(1.1);
+}
+
+.cameraIcon {
+  font-size: 14px;
+}
+
+.userName {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #003b42;
+  margin: 16px 0 4px 0;
+}
+
+.userEmail {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 13px;
+  color: #5a6c7d;
+  margin: 0;
+}
+
+/* Main Content */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e0e6ed;
+}
+
+.cardTitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #003b42;
+  margin: 0 0 24px 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f3f7;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.formGroup:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  color: #333333;
+  transition: all 0.3s ease;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.input::placeholder {
+  color: #999999;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #003b42;
+  box-shadow: 0 0 0 3px rgba(0, 59, 66, 0.08);
+}
+
+.input::placeholder {
+  color: #999999;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.successMessage {
+  background: #d4edda;
+  color: #155724;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #b1dfbb;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: slideIn 0.3s ease;
+}
+
+.successMessage::before {
+  content: '✓';
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.errorMessage {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #f1b0b7;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: slideIn 0.3s ease;
+}
+
+.errorMessage::before {
+  content: '✕';
+  font-size: 16px;
+  font-weight: bold;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #f0f3f7;
+}
+
+.saveButton {
+  padding: 12px 28px;
+  background: #003b42;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: #002b31;
+  box-shadow: 0 4px 12px rgba(0, 59, 66, 0.2);
+}
+
+.saveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  padding: 12px 28px;
+  background: #ffffff;
+  color: #003b42;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancelButton:hover {
+  background: #f0f3f7;
+  border-color: #003b42;
+}
+
+/* Consultant-specific styles */
+.infoCard {
+  background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%);
+  border: 2px solid #003b42;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.infoTitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #003b42;
+  margin: 0 0 8px 0;
+}
+
+.infoText {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  color: #2d5a5f;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.cardSubtitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  color: #5a6c7d;
+  margin: -8px 0 24px 0;
+}
+
+.textarea {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  color: #333333;
+  background: #ffffff;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  resize: vertical;
+  min-height: 120px;
+  box-sizing: border-box;
+  line-height: 1.6;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #003b42;
+  box-shadow: 0 0 0 3px rgba(0, 59, 66, 0.1);
+  background: #ffffff;
+}
+
+.textarea::placeholder {
+  color: #999999;
+}
+
+.hint {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 12px;
+  color: #999999;
+  margin-top: 6px;
+  display: block;
+}
+
+.tagInput {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tagInput .input {
+  flex: 1;
+}
+
+.addButton {
+  padding: 12px 24px;
+  background: #003b42;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.addButton:hover {
+  background: #002b31;
+  transform: translateY(-1px);
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f5f7fa;
+  border: 1px solid #e0e6ed;
+  border-radius: 20px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 13px;
+  color: #333333;
+}
+
+.tagRemove {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.tagRemove:hover {
+  background: #ffe5e5;
+}
+
+.saveAllSection {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e0e6ed;
+  position: sticky;
+  bottom: 20px;
+  z-index: 50;
+}
+
+.saveAllSection .actions {
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 16px;
+  }
+
+  .mainContent {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .card,
+  .profileCard {
+    padding: 24px;
+  }
+
+  .cardTitle {
+    font-size: 16px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .saveButton,
+  .cancelButton {
+    width: 100%;
+  }
+}

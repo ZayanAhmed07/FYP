@@ -1,0 +1,375 @@
+.pageContainer {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.leftPanel {
+  flex: 1;
+  background: linear-gradient(135deg, #014751 0%, #003540 100%);
+  position: relative;
+  padding: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.leftPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 35px,
+    rgba(255, 255, 255, 0.03) 35px,
+    rgba(255, 255, 255, 0.03) 70px
+  );
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 500px;
+  color: #ffffff;
+}
+
+.title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 64px;
+  font-weight: 400;
+  line-height: 1.1;
+  margin: 0 0 24px 0;
+  color: #ffffff;
+}
+
+.subtitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 40px 0;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.backButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(-4px);
+}
+
+.backArrow {
+  font-size: 24px;
+  color: #ffffff;
+}
+
+.rightPanel {
+  flex: 1;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.formCard {
+  background: rgba(180, 230, 230, 0.35);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 48px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.welcomeTitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 36px;
+  font-weight: 600;
+  color: #333333;
+  margin: 0 0 8px 0;
+  text-align: center;
+}
+
+.welcomeSubtitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  color: #666666;
+  margin: 0 0 32px 0;
+  text-align: center;
+}
+
+.tabContainer {
+  display: flex;
+  gap: 0;
+  margin-bottom: 32px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: #666666;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tabActive {
+  background: #2d5a5f;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(45, 90, 95, 0.3);
+}
+
+.socialButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.socialButton {
+  width: 100%;
+  padding: 14px 20px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: #333333;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.socialButton:hover {
+  background: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.socialIcon {
+  font-size: 20px;
+  color: #333333;
+}
+
+.socialButton span {
+  flex: 1;
+  text-align: left;
+}
+
+.separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 8px 0;
+  position: relative;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.separator span {
+  padding: 0 16px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 13px;
+  color: #666666;
+  font-weight: 500;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.input {
+  width: 100%;
+  padding: 16px 20px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 15px;
+  color: #333333;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  background: #ffffff;
+  border-color: #003b42;
+  box-shadow: 0 0 0 3px rgba(0, 59, 66, 0.1);
+}
+
+.input::placeholder {
+  color: #999999;
+}
+
+.passwordContainer {
+  position: relative;
+}
+
+.togglePassword {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #666666;
+  transition: color 0.3s ease;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.togglePassword:hover {
+  color: #333333;
+}
+
+.continueButton {
+  width: 100%;
+  padding: 16px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #003b42;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+}
+
+.continueButton:hover:not(:disabled) {
+  background: #002b31;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 59, 66, 0.3);
+}
+
+.continueButton:disabled {
+  background: #999999;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.backToOptionsButton {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  color: #003b42;
+  border: 2px solid #003b42;
+  border-radius: 12px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+}
+
+.backToOptionsButton:hover:not(:disabled) {
+  background: #f5f7fa;
+}
+
+.backToOptionsButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  background: #ffe0e0;
+  color: #c82333;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  margin-bottom: 16px;
+  border: 1px solid #ffcccc;
+  text-align: center;
+}
+
+.loginLink,
+.signupLink {
+  text-align: center;
+  margin-top: 24px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  color: #666666;
+}
+
+.loginLinkButton {
+  color: #003b42;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.loginLinkButton:hover {
+  color: #002b31;
+  text-decoration: underline;
+}
+
+@media (max-width: 968px) {
+  .pageContainer {
+    flex-direction: column;
+  }
+
+  .leftPanel {
+    padding: 40px;
+    min-height: 40vh;
+  }
+
+  .title {
+    font-size: 48px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .rightPanel {
+    padding: 20px;
+  }
+
+  .formCard {
+    padding: 32px 24px;
+  }
+}
+

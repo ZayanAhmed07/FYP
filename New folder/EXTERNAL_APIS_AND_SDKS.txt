@@ -1,0 +1,613 @@
+================================================================================
+                    7.2 EXTERNAL APIs/SDKs DOCUMENTATION
+                            Expert Raah Platform
+================================================================================
+
+Table 1: Details of APIs/SDKs used in the project
+
+================================================================================
+1. REACT (v19.2.0)
+================================================================================
+Description:
+A JavaScript library for building user interfaces with component-based 
+architecture and virtual DOM for efficient rendering.
+
+Purpose of Usage:
+- Building interactive and dynamic user interfaces
+- Component-based architecture for reusable UI elements
+- State management and lifecycle handling
+- Single Page Application (SPA) development
+
+API Endpoints/Functions/Classes Used:
+- useState() - State management in functional components
+  Used in: All dashboard pages, MessagingPage, ProfilePage, SignupPage
+  Files: BuyerDashboardPage.tsx, ConsultantDashboardPage.tsx, MessagingPage.tsx,
+         ProfilePage.tsx, SignupPage.tsx, AccountTypePage.tsx
+  
+- useEffect() - Side effects and lifecycle management
+  Used in: BuyerDashboardPage, ConsultantDashboardPage, MessagingPage
+  Files: All major page components for data fetching and subscriptions
+  
+- useRef() - DOM element references and mutable values
+  Used in: MessagingPage (messagesEndRef, inputRef)
+  Files: MessagingPage.tsx
+  
+- useNavigate() - Programmatic navigation
+  Used in: All pages for routing and redirects
+  Files: All page components
+  
+- useParams() - URL parameter extraction
+  Used in: MessagingPage, SubmitProposalPage, PostJobPage
+  Files: MessagingPage.tsx, SubmitProposalPage.tsx, PostJobPage.tsx
+  
+- useLocation() - Current location and state access
+  Used in: MessagingPage, MainLayout, Header
+  Files: MessagingPage.tsx, MainLayout.tsx, Header.tsx
+
+================================================================================
+2. REACT ROUTER DOM (v6.30.1)
+================================================================================
+Description:
+Declarative routing library for React applications enabling navigation 
+between different views/pages without full page reloads.
+
+Purpose of Usage:
+- Client-side routing and navigation
+- Protected routes for authenticated users
+- Dynamic route parameters
+- Navigation state management
+
+API Endpoints/Functions/Classes Used:
+- BrowserRouter - Root router component
+  Used in: main.tsx
+  
+- Routes, Route - Route definition and matching
+  Used in: App.tsx for all application routes
+  
+- Link, NavLink - Navigation components
+  Used in: Header.tsx, MainLayout.tsx, Dashboard components
+  
+- Navigate - Redirect component
+  Used in: ProtectedRoute.tsx, authentication flows
+  
+- useNavigate() - Programmatic navigation hook
+  Used in: All pages for navigation logic
+  
+- useParams() - URL parameter extraction hook
+  Used in: MessagingPage (/messages/:userId), PostJobPage (/post-job/:jobId),
+           SubmitProposalPage (/submit-proposal/:jobId)
+  
+- useLocation() - Location object access
+  Used in: Header (active route), MessagingPage (state passing)
+
+================================================================================
+3. REACT ICONS (v5.5.0)
+================================================================================
+Description:
+Popular icon library providing thousands of icons from multiple icon sets 
+(Font Awesome, Material Design, etc.) as React components.
+
+Purpose of Usage:
+- Consistent iconography across the application
+- Scalable vector icons
+- Easy integration with React components
+- Visual enhancement of UI elements
+
+API Endpoints/Functions/Classes Used:
+- FaPlus, FaStar, FaMapMarkerAlt, FaUserCircle - Font Awesome icons
+  Used in: BuyerDashboardPage.tsx, ConsultantDashboardPage.tsx
+  
+- FaEnvelope, FaPaperPlane, FaPhone, FaVideo - Communication icons
+  Used in: MessagingPage.tsx, BuyerDashboardPage.tsx
+  
+- FaSearch, FaEllipsisV - UI utility icons
+  Used in: MessagingPage.tsx, Dashboard pages
+  
+- FaCamera, FaEdit, FaShare, FaHeart - Action icons
+  Used in: ProfilePage.tsx, Dashboard components
+  
+- FaCheckCircle, FaTimesCircle, FaBan - Status icons
+  Used in: AdminDashboardPage.tsx, PaymentPage.tsx
+  
+- FaFileAlt, FaEye, FaEyeSlash - Document and visibility icons
+  Used in: VerifyIdentityPage.tsx, SignupPage.tsx
+  
+- FaClock, FaGoogle, FaApple, FaFacebookF, FaXTwitter - Additional icons
+  Used in: Various components
+
+================================================================================
+4. AXIOS (v1.13.2)
+================================================================================
+Description:
+Promise-based HTTP client for making API requests from browser and Node.js 
+with support for interceptors, automatic JSON transformation, and request/
+response handling.
+
+Purpose of Usage:
+- HTTP requests to backend API
+- Request/response interceptors for authentication
+- Error handling and retry logic
+- Automatic JSON data transformation
+
+API Endpoints/Functions/Classes Used:
+- axios.create() - HTTP client instance creation
+  Used in: httpClient.ts
+  
+- axios.get() - GET requests
+  Used in: Fetching users, jobs, proposals, consultants, messages
+  Endpoints: /users/me, /jobs, /consultants, /proposals, /messages/conversations,
+             /messages/:userId, /jobs/buyer/:buyerId, /proposals/buyer/:buyerId
+  Files: BuyerDashboardPage.tsx, ConsultantDashboardPage.tsx, MessagingPage.tsx,
+         ProfilePage.tsx, PostJobPage.tsx, AdminDashboardPage.tsx
+  
+- axios.post() - POST requests
+  Used in: Creating jobs, proposals, messages, user registration
+  Endpoints: /auth/register, /auth/login, /jobs, /proposals, /messages, /consultants
+  Files: SignupPage.tsx, PostJobPage.tsx, SubmitProposalPage.tsx, MessagingPage.tsx,
+         ProfilePage.tsx
+  
+- axios.put() - PUT requests
+  Used in: Updating jobs
+  Endpoints: /jobs/:id
+  Files: PostJobPage.tsx
+  
+- axios.patch() - PATCH requests
+  Used in: Partial updates (proposals, messages read status, user profile)
+  Endpoints: /proposals/:id/accept, /proposals/:id/reject, /messages/:userId/read,
+             /users/me, /admin/consultants/:id/verify, /admin/users/:id/ban
+  Files: BuyerDashboardPage.tsx, MessagingPage.tsx, ProfilePage.tsx,
+         AdminDashboardPage.tsx, AccountTypePage.tsx
+  
+- axios.delete() - DELETE requests
+  Used in: Deleting jobs
+  Endpoints: /jobs/:id
+  Files: BuyerDashboardPage.tsx
+  
+- interceptors.request.use() - Request interceptor
+  Used in: httpClient.ts for adding JWT tokens
+  
+- interceptors.response.use() - Response interceptor
+  Used in: httpClient.ts for error handling
+
+================================================================================
+5. REACT TOASTIFY (v11.0.5)
+================================================================================
+Description:
+React notification library providing customizable toast notifications with 
+various positions, animations, and styling options.
+
+Purpose of Usage:
+- User feedback notifications
+- Success/error messages
+- Non-intrusive alerts
+- Action confirmations
+
+API Endpoints/Functions/Classes Used:
+- toast.success() - Success notifications
+  Used in: ContactSection.tsx, SubscribeSection.tsx
+  
+- toast.error() - Error notifications
+  Used in: ContactSection.tsx, SubscribeSection.tsx
+  
+- ToastContainer - Toast container component
+  Used in: main.tsx
+
+================================================================================
+6. TANSTACK REACT QUERY (v5.90.8)
+================================================================================
+Description:
+Powerful data synchronization library for React providing caching, background 
+updates, and automatic refetching of server state.
+
+Purpose of Usage:
+- Server state management
+- Data caching and synchronization
+- Background data fetching
+- Optimistic updates
+
+API Endpoints/Functions/Classes Used:
+- QueryClient - Query client instance
+  Used in: main.tsx
+  
+- QueryClientProvider - Provider component
+  Used in: main.tsx, AuthContext.tsx
+
+================================================================================
+7. VITE (v7.2.2)
+================================================================================
+Description:
+Next-generation frontend build tool providing fast development server with 
+Hot Module Replacement (HMR) and optimized production builds.
+
+Purpose of Usage:
+- Frontend development server
+- Fast Hot Module Replacement
+- Production build optimization
+- Asset bundling and optimization
+
+API Endpoints/Functions/Classes Used:
+- defineConfig() - Vite configuration
+  Used in: vite.config.ts
+  
+- react() - React plugin
+  Used in: vite.config.ts for React support
+  
+- vite dev - Development server command
+  Used in: package.json scripts
+  
+- vite build - Production build command
+  Used in: package.json scripts
+
+================================================================================
+8. TYPESCRIPT (v5.9.3)
+================================================================================
+Description:
+Typed superset of JavaScript that compiles to plain JavaScript, providing 
+static type checking and enhanced IDE support.
+
+Purpose of Usage:
+- Type safety and error prevention
+- Enhanced IDE support and autocomplete
+- Better code documentation
+- Improved maintainability
+
+API Endpoints/Functions/Classes Used:
+- interface - Type definitions
+  Used in: All TypeScript files for type definitions
+  Files: All .ts and .tsx files
+  
+- type - Type aliases
+  Used in: express.d.ts, global.d.ts
+  
+- enum - Enumeration types
+  Used in: Model definitions for status fields
+
+================================================================================
+9. EXPRESS.JS (v5.1.0)
+================================================================================
+Description:
+Fast, unopinionated, minimalist web framework for Node.js providing robust 
+routing, middleware support, and HTTP utility methods.
+
+Purpose of Usage:
+- Backend REST API server
+- Routing and middleware management
+- Request/response handling
+- Static file serving
+
+API Endpoints/Functions/Classes Used:
+- express() - Application instance creation
+  Used in: app.ts
+  
+- app.use() - Middleware registration
+  Used in: app.ts for cors, helmet, morgan, body-parser
+  
+- app.get(), app.post(), app.put(), app.patch(), app.delete()
+  Used in: All route files for endpoint definitions
+  
+- Router() - Modular route handlers
+  Used in: All module route files (auth.routes.ts, user.routes.ts, job.routes.ts,
+           consultant.routes.ts, proposal.routes.ts, order.routes.ts,
+           admin.routes.ts, messaging.routes.ts)
+  
+- express.json() - JSON body parser middleware
+  Used in: app.ts with 50mb limit for image uploads
+  
+- express.urlencoded() - URL-encoded body parser
+  Used in: app.ts with extended option
+  
+- Request, Response, NextFunction - Type definitions
+  Used in: All controllers and middleware
+
+================================================================================
+10. MONGOOSE (v8.19.3)
+================================================================================
+Description:
+MongoDB object modeling tool designed to work in an asynchronous environment, 
+providing schema-based solution for modeling application data.
+
+Purpose of Usage:
+- MongoDB database interaction
+- Schema definition and validation
+- Data modeling and relationships
+- Query building and execution
+
+API Endpoints/Functions/Classes Used:
+- mongoose.connect() - Database connection
+  Used in: database.ts
+  
+- Schema() - Schema definition
+  Used in: user.model.ts, job.model.ts, consultant.model.ts, proposal.model.ts,
+           order.model.ts, message.model.ts, conversation.model.ts
+  
+- model() - Model creation
+  Used in: All model files for creating Mongoose models
+  
+- Model.find() - Query documents
+  Used in: All service files for fetching data
+  
+- Model.findById() - Find by ID
+  Used in: All service files for single document retrieval
+  
+- Model.findOne() - Find single document
+  Used in: auth.service.ts, consultant.service.ts, messaging.service.ts
+  
+- Model.create() - Create new document
+  Used in: All service files for data creation
+  
+- Model.findByIdAndUpdate() - Update by ID
+  Used in: All service files for updates
+  
+- Model.findByIdAndDelete() - Delete by ID
+  Used in: All service files for deletions
+  
+- populate() - Reference population
+  Used in: job.service.ts, proposal.service.ts, messaging.service.ts
+  
+- Schema.Types.ObjectId - ObjectId type
+  Used in: All models for references
+
+================================================================================
+11. JSONWEBTOKEN (v9.0.2)
+================================================================================
+Description:
+Implementation of JSON Web Tokens for secure authentication and authorization 
+between parties as a JSON object.
+
+Purpose of Usage:
+- User authentication
+- Secure token generation
+- Token verification and validation
+- Stateless session management
+
+API Endpoints/Functions/Classes Used:
+- jwt.sign() - Token generation
+  Used in: token.service.ts for creating access and refresh tokens
+  Functions: generateAccessToken(), generateRefreshToken()
+  
+- jwt.verify() - Token verification
+  Used in: token.service.ts, authMiddleware.ts
+  Function: verifyToken()
+
+================================================================================
+12. BCRYPTJS (v3.0.3)
+================================================================================
+Description:
+Library for hashing and comparing passwords using the bcrypt algorithm, 
+providing secure password storage.
+
+Purpose of Usage:
+- Password hashing before storage
+- Password comparison during authentication
+- Secure password management
+- Protection against rainbow table attacks
+
+API Endpoints/Functions/Classes Used:
+- bcrypt.hash() - Password hashing
+  Used in: password.ts
+  Function: hashPassword()
+  
+- bcrypt.compare() - Password comparison
+  Used in: password.ts
+  Function: comparePassword()
+  
+- bcrypt.genSalt() - Salt generation
+  Used in: password.ts with 10 rounds
+
+================================================================================
+13. CORS (v2.8.5)
+================================================================================
+Description:
+Express middleware for enabling Cross-Origin Resource Sharing (CORS) with 
+various options for configuring allowed origins, methods, and headers.
+
+Purpose of Usage:
+- Enable cross-origin requests from frontend
+- Configure allowed origins and methods
+- Handle preflight requests
+- Security configuration for API access
+
+API Endpoints/Functions/Classes Used:
+- cors() - CORS middleware
+  Used in: app.ts
+  Configuration: { origin: '*', credentials: true }
+
+================================================================================
+14. HELMET (v8.1.0)
+================================================================================
+Description:
+Express middleware that helps secure Express apps by setting various HTTP 
+headers to protect against common web vulnerabilities.
+
+Purpose of Usage:
+- Security headers configuration
+- Protection against XSS attacks
+- Clickjacking prevention
+- Content Security Policy enforcement
+
+API Endpoints/Functions/Classes Used:
+- helmet() - Security middleware
+  Used in: app.ts with default configuration
+
+================================================================================
+15. MORGAN (v1.10.1)
+================================================================================
+Description:
+HTTP request logger middleware for Node.js, providing detailed logging of 
+incoming requests and responses.
+
+Purpose of Usage:
+- HTTP request logging
+- Development debugging
+- Performance monitoring
+- Access log generation
+
+API Endpoints/Functions/Classes Used:
+- morgan() - Logging middleware
+  Used in: app.ts
+  Format: ':method :url :status :res[content-length] - :response-time ms'
+
+================================================================================
+16. DOTENV (v17.2.3)
+================================================================================
+Description:
+Module that loads environment variables from a .env file into process.env, 
+enabling configuration management.
+
+Purpose of Usage:
+- Environment variable management
+- Configuration separation
+- Sensitive data protection
+- Environment-specific settings
+
+API Endpoints/Functions/Classes Used:
+- dotenv.config() - Load environment variables
+  Used in: env.ts
+  
+- process.env - Access environment variables
+  Used in: env.ts, database.ts, all configuration files
+
+================================================================================
+17. JOI (v18.0.1)
+================================================================================
+Description:
+Powerful schema description language and data validator for JavaScript, 
+providing object schema validation.
+
+Purpose of Usage:
+- Request data validation
+- Schema definition
+- Input sanitization
+- Error message generation
+
+API Endpoints/Functions/Classes Used:
+- Joi.object() - Schema definition
+  Used in: auth.validation.ts
+  
+- Joi.string(), Joi.number(), Joi.array() - Type validators
+  Used in: All validation schemas
+  
+- Joi.valid() - Enum validation
+  Used in: auth.validation.ts (accountType)
+  
+- Joi.required() - Required field validation
+  Used in: All validation schemas
+  
+- Joi.min(), Joi.max() - Range validation
+  Used in: auth.validation.ts (password length)
+
+================================================================================
+18. CELEBRATE (v15.0.3)
+================================================================================
+Description:
+Express middleware for Joi validation, providing easy integration of Joi 
+schemas with Express routes.
+
+Purpose of Usage:
+- Request validation middleware
+- Integration of Joi with Express
+- Automatic error responses
+- Schema-based validation
+
+API Endpoints/Functions/Classes Used:
+- celebrate() - Validation middleware
+  Used in: auth.routes.ts for request validation
+  
+- Segments.BODY - Body validation
+  Used in: Route validation for request body
+  
+- errors() - Error handler middleware
+  Used in: app.ts for validation error handling
+
+================================================================================
+19. WINSTON (v3.18.3)
+================================================================================
+Description:
+Versatile logging library for Node.js supporting multiple transports, 
+log levels, and formatting options.
+
+Purpose of Usage:
+- Application logging
+- Error tracking
+- Debug information
+- Log file management
+
+API Endpoints/Functions/Classes Used:
+- winston.createLogger() - Logger instance creation
+  Used in: logger.ts
+  
+- winston.format.combine() - Format combination
+  Used in: logger.ts for timestamp and JSON formatting
+  
+- winston.transports.Console() - Console transport
+  Used in: logger.ts for development logging
+  
+- winston.transports.File() - File transport
+  Used in: logger.ts for error and combined logs
+  
+- logger.info(), logger.error(), logger.warn()
+  Used in: Throughout backend for logging
+
+================================================================================
+20. GOOGLE FONTS API
+================================================================================
+Description:
+Free web font service by Google providing optimized font delivery and 
+hosting for web applications.
+
+Purpose of Usage:
+- Custom typography
+- Font loading and optimization
+- Consistent font rendering
+- Web font hosting
+
+API Endpoints/Functions/Classes Used:
+- @import url('https://fonts.googleapis.com/css2?family=Reddit+Sans:...')
+  Used in: global.css for Reddit Sans font family
+
+================================================================================
+21. PRAVATAR.CC (External API) - Mock Data Only
+================================================================================
+Description:
+Free avatar placeholder service providing random avatar images for 
+development and testing purposes.
+
+Purpose of Usage:
+- Placeholder profile images in mock data
+- Development testing
+- UI mockups for orders and payments
+
+API Endpoints/Functions/Classes Used:
+- https://i.pravatar.cc/150?img={id}
+  Used in: Mock data in BuyerDashboardPage.tsx, ConsultantDashboardPage.tsx,
+           PaymentPage.tsx (mockOrders, mockProposals)
+  Note: Only used in static mock data, not in actual API calls
+
+================================================================================
+
+SUMMARY OF API USAGE BY MODULE:
+
+Frontend Modules:
+- Authentication: React, React Router, Axios, React Toastify, TanStack Query
+- Dashboards: React, React Icons, Axios, React Router
+- Messaging: React, React Icons, Axios, React Router
+- Profile Management: React, Axios, React Icons
+- UI Components: React, React Icons, CSS Modules
+
+Backend Modules:
+- Authentication: Express, Mongoose, JWT, Bcrypt
+- API Routes: Express, Celebrate, Joi
+- Database: Mongoose, MongoDB
+- Logging: Winston, Morgan
+- Security: Helmet, CORS, JWT, Bcrypt
+
+Development Tools:
+- Frontend Build: Vite, TypeScript
+- Backend Runtime: Node.js, TypeScript
+- Package Management: npm
+
+Total APIs/SDKs: 21
+
+================================================================================
+                            END OF DOCUMENT
+================================================================================
