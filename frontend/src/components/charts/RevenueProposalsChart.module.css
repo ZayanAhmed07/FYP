@@ -1,0 +1,305 @@
+.chartContainer {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f3f7;
+  transition: box-shadow 0.3s ease;
+}
+
+.chartContainer:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.chartHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f5f7fa;
+}
+
+.chartTitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.metricToggle {
+  display: flex;
+  gap: 12px;
+  background: #f5f7fa;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.metricButton {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.metricButton:hover {
+  background: #eff2f5;
+  color: #014751;
+}
+
+.metricButton.active {
+  background: #014751;
+  color: #ffffff;
+}
+
+.chartContent {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.chartArea {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.yAxisLabel {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.barsContainer {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 250px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f9fafb 0%, #f5f7fa 100%);
+  border-radius: 10px;
+  border: 1px solid #f0f3f7;
+  position: relative;
+}
+
+.barsContainer::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e0e6ed;
+}
+
+.barWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+}
+
+.barColumn {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+}
+
+.bar {
+  width: 100%;
+  max-width: 36px;
+  background: linear-gradient(135deg, #014751 0%, #2d5a5f 100%);
+  border-radius: 6px 6px 0 0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(1, 71, 81, 0.1);
+  min-height: 8px;
+}
+
+.bar:hover,
+.barHovered {
+  background: linear-gradient(135deg, #00838f 0%, #00695c 100%);
+  box-shadow: 0 8px 16px rgba(1, 71, 81, 0.2);
+  transform: translateY(-4px);
+}
+
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  margin-bottom: 8px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1a1a1a;
+}
+
+.monthLabel {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666666;
+  text-align: center;
+  min-width: 36px;
+}
+
+.statsPanel {
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.statCard {
+  background: linear-gradient(135deg, #f9fafb 0%, #f5f7fa 100%);
+  border: 1px solid #f0f3f7;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+}
+
+.statCard:hover {
+  background: linear-gradient(135deg, #f5f7fa 0%, #eff2f5 100%);
+  border-color: #e0e6ed;
+  transform: translateX(4px);
+}
+
+.statIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.statContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #999999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statValueLarge {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #014751;
+}
+
+.statSubtext {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 10px;
+  color: #999999;
+  line-height: 1.3;
+}
+
+.chartFooter {
+  padding-top: 16px;
+  border-top: 1px solid #f5f7fa;
+  text-align: center;
+}
+
+.footerText {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 12px;
+  color: #999999;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .chartContent {
+    grid-template-columns: 1fr;
+  }
+
+  .statsPanel {
+    grid-template-rows: auto;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .statCard {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .chartContainer {
+    padding: 20px;
+  }
+
+  .chartHeader {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .metricToggle {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .metricButton {
+    flex: 1;
+  }
+
+  .barsContainer {
+    height: 180px;
+    gap: 8px;
+  }
+
+  .bar {
+    max-width: 28px;
+  }
+
+  .statsPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .chartContent {
+    grid-template-columns: 1fr;
+  }
+}

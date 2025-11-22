@@ -1,90 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaStar, FaMapMarkerAlt, FaUserCircle, FaEnvelope } from 'react-icons/fa';
+import { FaPlus, FaStar, FaMapMarkerAlt, FaUserCircle, FaEnvelope, FaBriefcase, FaClock, FaDollarSign, FaCheckCircle, FaTimesCircle, FaFileAlt, FaAward, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
+import { orderService } from '../services/orderService';
+import reviewService from '../services/reviewService';
+import { useSocket } from '../hooks/useSocket';
+import { useNotification } from '../context/NotificationContext';
 import styles from './BuyerDashboardPage.module.css';
 
-// No mock data - fetching real consultants from database
 
-// Mock proposals data
-
-// Mock orders data - Active projects
-const mockOrders = [
-  {
-    id: 1,
-    orderId: 'ORD-2025-001',
-    jobTitle: 'Business Technology Solution for E-Commerce',
-    category: 'Business',
-    consultant: {
-      name: 'Usman Malik',
-      avatar: 'https://i.pravatar.cc/150?img=14',
-      rating: 4.8,
-      title: 'Business Technology Consultant'
-    },
-    totalAmount: 'Rs 200,000',
-    paidAmount: 'Rs 100,000',
-    pendingAmount: 'Rs 100,000',
-    progress: 60,
-    status: 'in_progress',
-    startDate: '2025-11-01',
-    expectedDelivery: '2025-11-15',
-    milestones: [
-      { id: 1, title: 'Project Setup & Design', status: 'completed', payment: 'Rs 50,000', paid: true },
-      { id: 2, title: 'Frontend Development', status: 'completed', payment: 'Rs 50,000', paid: true },
-      { id: 3, title: 'Backend & Database', status: 'in_progress', payment: 'Rs 50,000', paid: false },
-      { id: 4, title: 'Testing & Deployment', status: 'pending', payment: 'Rs 50,000', paid: false }
-    ]
-  },
-  {
-    id: 2,
-    orderId: 'ORD-2025-002',
-    jobTitle: 'Legal Advisory for Company Registration',
-    category: 'Legal',
-    consultant: {
-      name: 'Ahmed Hassan',
-      avatar: 'https://i.pravatar.cc/150?img=12',
-      rating: 4.9,
-      title: 'Legal Consultant'
-    },
-    totalAmount: 'Rs 120,000',
-    paidAmount: 'Rs 60,000',
-    pendingAmount: 'Rs 60,000',
-    progress: 50,
-    status: 'in_progress',
-    startDate: '2025-11-05',
-    expectedDelivery: '2025-11-20',
-    milestones: [
-      { id: 1, title: 'Document Review & Compliance', status: 'completed', payment: 'Rs 40,000', paid: true },
-      { id: 2, title: 'SECP Registration Process', status: 'in_progress', payment: 'Rs 40,000', paid: false },
-      { id: 3, title: 'Legal Documentation & Finalization', status: 'pending', payment: 'Rs 40,000', paid: false }
-    ]
-  },
-  {
-    id: 3,
-    orderId: 'ORD-2025-003',
-    jobTitle: 'Education & Training Program Development',
-    category: 'Education',
-    consultant: {
-      name: 'Dr. Ali Raza',
-      avatar: 'https://i.pravatar.cc/150?img=13',
-      rating: 4.7,
-      title: 'Education Consultant'
-    },
-    totalAmount: 'Rs 90,000',
-    paidAmount: 'Rs 30,000',
-    pendingAmount: 'Rs 60,000',
-    progress: 35,
-    status: 'in_progress',
-    startDate: '2025-11-08',
-    expectedDelivery: '2025-11-22',
-    milestones: [
-      { id: 1, title: 'Curriculum Assessment & Analysis', status: 'completed', payment: 'Rs 30,000', paid: true },
-      { id: 2, title: 'Training Materials Development', status: 'in_progress', payment: 'Rs 30,000', paid: false },
-      { id: 3, title: 'Implementation & Evaluation', status: 'pending', payment: 'Rs 30,000', paid: false }
-    ]
-  }
-];
+// No mock data - fetching real data from backend
 
 interface JobFromApi {
   _id: string;
@@ -118,6 +44,8 @@ interface ProposalFromApi {
     _id: string;
     title: string;
     rating: number;
+    averageRating?: number;
+    totalReviews?: number;
     experience: string;
     userId: {
       _id: string;
@@ -135,6 +63,7 @@ interface ProposalFromApi {
 
 const BuyerDashboardPage = () => {
   const navigate = useNavigate();
+  const { showNotification, showConfirm } = useNotification();
   const [activeTab, setActiveTab] = useState<'browse' | 'myJobs' | 'proposals' | 'orders' | 'stats'>('browse');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -147,6 +76,24 @@ const BuyerDashboardPage = () => {
   const [proposalsError, setProposalsError] = useState('');
   const [consultants, setConsultants] = useState<any[]>([]);
   const [consultantsLoading, setConsultantsLoading] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [filters, setFilters] = useState({
+    city: '',
+    specialization: '',
+  });
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState('');
+  const [showConfirmCompletionModal, setShowConfirmCompletionModal] = useState(false);
+  const [selectedOrderForConfirmation, setSelectedOrderForConfirmation] = useState<any>(null);
+  const [confirmationLoading, setConfirmationLoading] = useState(false);
+  
+  // Review modal state
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewOrderData, setReviewOrderData] = useState<any>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
 
   useEffect(() => {
     // Get current user from localStorage
@@ -202,9 +149,70 @@ const BuyerDashboardPage = () => {
     }
   };
 
+  const fetchUnreadMessageCount = async () => {
+    try {
+      const user = authService.getCurrentUser();
+      if (!user?.id) return;
+      
+      const response = await httpClient.get('/messages/conversations');
+      const conversations = response.data?.data || [];
+      
+      let totalUnread = 0;
+      conversations.forEach((conv: any) => {
+        const unread = conv.unreadCount?.[user.id] || 0;
+        totalUnread += unread;
+      });
+      
+      setUnreadMessageCount(totalUnread);
+    } catch (error) {
+      console.error('Failed to fetch unread message count', error);
+    }
+  };
+
+  // Socket connection for real-time notifications
+  const { connect, disconnect } = useSocket({
+    onNewMessageNotification: (data) => {
+      const { senderName } = data;
+      // Show browser notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('New Message', {
+          body: `You have a new message from ${senderName}`,
+          icon: '/src/assets/logo.png',
+        });
+      }
+      // Refresh unread count
+      fetchUnreadMessageCount();
+    },
+    onMessageReceive: () => {
+      // Increment unread count when new message arrives
+      setUnreadMessageCount(prev => prev + 1);
+    },
+    onUnreadCountUpdate: () => {
+      // Update unread count in real-time
+      fetchUnreadMessageCount();
+    },
+  });
+
   useEffect(() => {
     fetchMyJobs();
     fetchConsultants();
+    fetchOrders();
+    fetchUnreadMessageCount();
+    
+    // Connect to socket
+    connect();
+    
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    
+    // Poll for new messages every 10 seconds
+    const interval = setInterval(fetchUnreadMessageCount, 10000);
+    return () => {
+      clearInterval(interval);
+      disconnect();
+    };
   }, []);
 
   const fetchConsultants = async () => {
@@ -220,9 +228,12 @@ const BuyerDashboardPage = () => {
         name: c.userId?.name || 'Unknown',
         title: c.title,
         category: c.specialization?.[0] || 'General',
-        rating: c.rating || 0,
-        location: 'Pakistan', // Can be added to consultant model later
+        rating: c.averageRating || c.rating || 0,
+        totalReviews: c.totalReviews || 0,
+        location: c.city || 'Pakistan',
+        city: c.city || '',
         specialization: Array.isArray(c.specialization) ? c.specialization.join(', ') : c.specialization,
+        specializationArray: Array.isArray(c.specialization) ? c.specialization : [c.specialization],
         bio: c.bio || '',
         hourlyRate: `Rs ${c.hourlyRate?.toLocaleString()}/hr`,
         availability: c.availability === 'available' ? 'Available' : 
@@ -237,6 +248,108 @@ const BuyerDashboardPage = () => {
     } finally {
       setConsultantsLoading(false);
     }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const user = authService.getCurrentUser();
+      if (!user?.id) {
+        setOrdersLoading(false);
+        setOrders([]);
+        return;
+      }
+
+      setOrdersLoading(true);
+      setOrdersError('');
+
+      setOrdersLoading(true);
+      setOrdersError('');
+      
+      const ordersData = await orderService.getOrdersByBuyer(user.id);
+      setOrders(ordersData);
+    } catch (error) {
+      console.error('Failed to fetch orders', error);
+      setOrdersError('Failed to load orders. Please try again later.');
+      setOrders([]);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  const handleConfirmCompletion = (order: any) => {
+    setSelectedOrderForConfirmation(order);
+    setShowConfirmCompletionModal(true);
+  };
+
+  const confirmOrderCompletion = async () => {
+    if (!selectedOrderForConfirmation) return;
+
+    try {
+      setConfirmationLoading(true);
+      await orderService.confirmCompletion(selectedOrderForConfirmation._id);
+      
+      // Refresh orders
+      await fetchOrders();
+      
+      setShowConfirmCompletionModal(false);
+      
+      // Show review modal after successful completion
+      setReviewOrderData(selectedOrderForConfirmation);
+      setSelectedOrderForConfirmation(null);
+      setShowReviewModal(true);
+      setReviewRating(5);
+      setReviewComment('');
+    } catch (error: any) {
+      console.error('Failed to confirm completion', error);
+      showNotification(error.response?.data?.message || 'Failed to confirm completion. Please try again.', 'error');
+    } finally {
+      setConfirmationLoading(false);
+    }
+  };
+
+  const submitReview = async () => {
+    if (!reviewOrderData) return;
+
+    if (!reviewComment.trim()) {
+      showNotification('Please provide a review comment', 'error');
+      return;
+    }
+
+    try {
+      setReviewLoading(true);
+      const consultantId = reviewOrderData.consultantId?._id || reviewOrderData.consultantId;
+      const jobId = reviewOrderData.jobId?._id || reviewOrderData.jobId;
+      
+      if (!consultantId || !jobId) {
+        showNotification('Unable to submit review: Missing consultant or job information', 'error');
+        return;
+      }
+
+      await reviewService.createReview({
+        jobId,
+        consultantId,
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+      });
+
+      setShowReviewModal(false);
+      setReviewOrderData(null);
+      setReviewRating(5);
+      setReviewComment('');
+      showNotification('Review submitted successfully! Thank you for your feedback.', 'success');
+    } catch (error: any) {
+      console.error('Failed to submit review', error);
+      showNotification(error.response?.data?.message || 'Failed to submit review. Please try again.', 'error');
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  const skipReview = () => {
+    setShowReviewModal(false);
+    setReviewOrderData(null);
+    setReviewRating(5);
+    setReviewComment('');
   };
 
   const fetchProposals = async () => {
@@ -275,16 +388,19 @@ const BuyerDashboardPage = () => {
   };
 
   const handleDeleteJob = async (jobId: string) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this job?');
-    if (!confirmDelete) return;
-
-    try {
-      await httpClient.delete(`/jobs/${jobId}`);
-      await fetchMyJobs();
-    } catch (error) {
-      console.error('Failed to delete job', error);
-      alert('Failed to delete job. Please try again.');
-    }
+    showConfirm(
+      'Are you sure you want to delete this job?',
+      async () => {
+        try {
+          await httpClient.delete(`/jobs/${jobId}`);
+          await fetchMyJobs();
+          showNotification('Job deleted successfully', 'success');
+        } catch (error) {
+          console.error('Failed to delete job', error);
+          showNotification('Failed to delete job. Please try again.', 'error');
+        }
+      }
+    );
   };
 
   const handleLogout = () => {
@@ -293,36 +409,38 @@ const BuyerDashboardPage = () => {
   };
 
   const handleAcceptProposal = async (proposalId: string, bidAmount: number) => {
-    const confirmAccept = window.confirm(
-      `Are you sure you want to accept this proposal for Rs ${bidAmount.toLocaleString()}? This will create an order and you will be redirected to payment.`
+    showConfirm(
+      `Are you sure you want to accept this proposal for Rs ${bidAmount.toLocaleString()}? This will create an order and you will be redirected to payment.`,
+      async () => {
+        try {
+          await httpClient.patch(`/proposals/${proposalId}/accept`);
+          // Navigate to payment page with bid amount
+          navigate('/payment', { state: { amount: bidAmount, proposalId } });
+          // Refresh proposals list
+          await fetchProposals();
+        } catch (error) {
+          console.error('Failed to accept proposal', error);
+          showNotification('Failed to accept proposal. Please try again.', 'error');
+        }
+      }
     );
-    if (!confirmAccept) return;
-
-    try {
-      await httpClient.patch(`/proposals/${proposalId}/accept`);
-      // Navigate to payment page with bid amount
-      navigate('/payment', { state: { amount: bidAmount, proposalId } });
-      // Refresh proposals list
-      await fetchProposals();
-    } catch (error) {
-      console.error('Failed to accept proposal', error);
-      alert('Failed to accept proposal. Please try again.');
-    }
   };
 
   const handleRejectProposal = async (proposalId: string) => {
-    const confirmReject = window.confirm('Are you sure you want to decline this proposal?');
-    if (!confirmReject) return;
-
-    try {
-      await httpClient.patch(`/proposals/${proposalId}/reject`);
-      alert('Proposal declined successfully.');
-      // Refresh proposals list
-      await fetchProposals();
-    } catch (error) {
-      console.error('Failed to reject proposal', error);
-      alert('Failed to decline proposal. Please try again.');
-    }
+    showConfirm(
+      'Are you sure you want to decline this proposal?',
+      async () => {
+        try {
+          await httpClient.patch(`/proposals/${proposalId}/reject`);
+          showNotification('Proposal declined successfully.', 'success');
+          // Refresh proposals list
+          await fetchProposals();
+        } catch (error) {
+          console.error('Failed to reject proposal', error);
+          showNotification('Failed to decline proposal. Please try again.', 'error');
+        }
+      }
+    );
   };
 
   return (
@@ -367,9 +485,11 @@ const BuyerDashboardPage = () => {
         </nav>
 
         <div className={styles.headerActions}>
-          <button className={styles.notificationButton}>
+          <button className={styles.notificationButton} onClick={() => navigate('/messages')}>
             🔔
-            <span className={styles.notificationBadge}>3</span>
+            {unreadMessageCount > 0 && (
+              <span className={styles.notificationBadge}>{unreadMessageCount}</span>
+            )}
           </button>
           <div className={styles.userProfileContainer}>
             <div 
@@ -446,59 +566,113 @@ const BuyerDashboardPage = () => {
               <h2 className={styles.ordersTitle}>Active Orders</h2>
               <p className={styles.ordersSubtitle}>Track your ongoing projects</p>
 
+              {ordersLoading && <p className={styles.myJobsInfoText}>Loading orders...</p>}
+              {ordersError && <p className={styles.myJobsErrorText}>{ordersError}</p>}
+
+              {!ordersLoading && !ordersError && orders.length === 0 && (
+                <div className={styles.myJobsEmpty}>
+                  <p className={styles.myJobsEmptyText}>No active orders yet.</p>
+                  <p className={styles.myJobsEmptySubtext}>Accept a proposal to start your first order.</p>
+                </div>
+              )}
+
               <div className={styles.ordersList}>
-                {mockOrders.map((order) => (
-                  <div key={order.id} className={styles.orderCard}>
+                {!ordersLoading && !ordersError && orders.map((order) => (
+                  <div key={order._id} className={styles.orderCard}>
                     <div className={styles.orderHeader}>
                       <div className={styles.orderTitleSection}>
-                        <h3 className={styles.orderJobTitle}>{order.jobTitle}</h3>
-                        <span className={styles.orderIdBadge}>{order.orderId}</span>
+                        <h3 className={styles.orderJobTitle}>{order.jobId?.title || 'Untitled Job'}</h3>
+                        <span className={styles.orderIdBadge}>
+                          {order._id.slice(-8).toUpperCase()}
+                        </span>
                       </div>
                       <span className={`${styles.orderStatus} ${styles[order.status]}`}>
-                        {order.status === 'in_progress' ? 'In Progress' : order.status}
+                        {order.status === 'in_progress' ? 'In Progress' : 
+                         order.status === 'completed' ? 'Completed' : 
+                         order.status === 'cancelled' ? 'Cancelled' : order.status}
                       </span>
                     </div>
 
                     <div className={styles.orderConsultant}>
                       <img 
-                        src={order.consultant.avatar} 
-                        alt={order.consultant.name} 
+                        src={order.consultantId?.userId?.profileImage || 'https://i.pravatar.cc/150?img=1'} 
+                        alt={order.consultantId?.userId?.name || 'Consultant'} 
                         className={styles.orderConsultantAvatar} 
                       />
                       <div className={styles.orderConsultantInfo}>
-                        <h4 className={styles.orderConsultantName}>{order.consultant.name}</h4>
-                        <p className={styles.orderConsultantTitle}>{order.consultant.title}</p>
+                        <h4 className={styles.orderConsultantName}>
+                          {order.consultantId?.userId?.name || 'Unknown Consultant'}
+                        </h4>
+                        <p className={styles.orderConsultantTitle}>
+                          {order.consultantId?.title || 'Consultant'}
+                        </p>
                       </div>
                     </div>
 
                     <div className={styles.orderDetails}>
                       <div className={styles.orderDetailItem}>
-                        <span className={styles.detailLabel}>Amount</span>
-                        <span className={styles.detailValue}>{order.totalAmount}</span>
+                        <span className={styles.detailLabel}>Total Amount</span>
+                        <span className={styles.detailValue}>
+                          Rs {order.totalAmount?.toLocaleString()}
+                        </span>
                       </div>
                       <div className={styles.orderDetailItem}>
-                        <span className={styles.detailLabel}>Started</span>
-                        <span className={styles.detailValue}>{order.startDate}</span>
+                        <span className={styles.detailLabel}>Paid</span>
+                        <span className={styles.detailValue}>
+                          Rs {order.amountPaid?.toLocaleString() || 0}
+                        </span>
                       </div>
                       <div className={styles.orderDetailItem}>
-                        <span className={styles.detailLabel}>Delivery</span>
-                        <span className={styles.detailValue}>{order.expectedDelivery}</span>
+                        <span className={styles.detailLabel}>Pending</span>
+                        <span className={styles.detailValue}>
+                          Rs {order.amountPending?.toLocaleString() || 0}
+                        </span>
                       </div>
                       <div className={styles.orderDetailItem}>
                         <span className={styles.detailLabel}>Progress</span>
-                        <span className={styles.detailValue}>{order.progress}%</span>
+                        <span className={styles.detailValue}>{order.progress || 0}%</span>
                       </div>
                     </div>
 
                     <div className={styles.orderProgressBar}>
                       <div 
                         className={styles.orderProgressFill} 
-                        style={{ width: `${order.progress}%` }}
+                        style={{ width: `${order.progress || 0}%` }}
                       ></div>
                     </div>
 
+                    {order.completionRequestedAt && order.status === 'in_progress' && (
+                      <div className={styles.completionAlert}>
+                        <strong>🔔 Completion Request</strong>
+                        <p>The consultant has requested to mark this order as complete. Please review and confirm.</p>
+                      </div>
+                    )}
+
                     <div className={styles.orderActions}>
-                      <button className={styles.viewDetailsButton}>View Details</button>
+                      <button 
+                        className={styles.viewProfileButton}
+                        onClick={() => order.consultantId?._id && 
+                          navigate(`/consultant/${order.consultantId._id}`)
+                        }
+                      >
+                        View Profile
+                      </button>
+                      <button 
+                        className={styles.messageConsultantButton}
+                        onClick={() => order.consultantId?.userId?._id && 
+                          navigate(`/messages/${order.consultantId.userId._id}`)
+                        }
+                      >
+                        <FaEnvelope /> Message
+                      </button>
+                      {order.completionRequestedAt && order.status === 'in_progress' && (
+                        <button 
+                          className={styles.confirmCompletionButton}
+                          onClick={() => handleConfirmCompletion(order)}
+                        >
+                          Confirm Completion
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -533,24 +707,29 @@ const BuyerDashboardPage = () => {
                     const consultantName = proposal.consultantId?.userId?.name || 'Unknown Consultant';
                     const consultantTitle = proposal.consultantId?.title || 'Consultant';
                     const consultantImage = proposal.consultantId?.userId?.profileImage;
-                    const consultantRating = proposal.consultantId?.rating || 0;
+                    const consultantRating = proposal.consultantId?.averageRating || proposal.consultantId?.rating || 0;
+                    const consultantTotalReviews = proposal.consultantId?.totalReviews || 0;
                     const consultantExperience = proposal.consultantId?.experience || 'N/A';
 
                     return (
                       <div key={proposal._id} className={styles.proposalCard}>
                         <div className={styles.proposalHeader}>
                           <div className={styles.jobTitleSection}>
-                            <button
-                              type="button"
-                              className={styles.proposalJobTitleButton}
-                              onClick={() =>
-                                setExpandedProposalId(
-                                  expandedProposalId === proposal._id ? null : proposal._id,
-                                )
-                              }
-                            >
-                              For: {jobTitle}
-                            </button>
+                            <div className={styles.jobTitleWrapper}>
+                              <FaBriefcase className={styles.jobIcon} />
+                              <button
+                                type="button"
+                                className={styles.proposalJobTitleButton}
+                                onClick={() =>
+                                  setExpandedProposalId(
+                                    expandedProposalId === proposal._id ? null : proposal._id,
+                                  )
+                                }
+                              >
+                                {jobTitle}
+                                {expandedProposalId === proposal._id ? <FaChevronUp className={styles.chevronIcon} /> : <FaChevronDown className={styles.chevronIcon} />}
+                              </button>
+                            </div>
                             <span className={`${styles.categoryBadge} ${styles[jobCategory.toLowerCase()]}`}>
                               {jobCategory}
                             </span>
@@ -590,10 +769,16 @@ const BuyerDashboardPage = () => {
                                   <span className={styles.ratingValue}>
                                     {consultantRating.toFixed(1)}
                                   </span>
+                                  <span className={styles.reviewCount}>
+                                    ({consultantTotalReviews} {consultantTotalReviews === 1 ? 'review' : 'reviews'})
+                                  </span>
                                 </div>
-                                <span className={styles.experience}>
-                                  {consultantExperience}
-                                </span>
+                                <div className={styles.experienceWrapper}>
+                                  <FaAward className={styles.experienceIcon} />
+                                  <span className={styles.experience}>
+                                    {consultantExperience}
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -601,17 +786,28 @@ const BuyerDashboardPage = () => {
                           <div className={styles.proposalDetails}>
                             <div className={styles.proposalBid}>
                               <div className={styles.bidItem}>
-                                <span className={styles.bidLabel}>Bid Amount:</span>
+                                <div className={styles.bidIconLabel}>
+                                  <FaDollarSign className={styles.bidIcon} />
+                                  <span className={styles.bidLabel}>Bid Amount</span>
+                                </div>
                                 <span className={styles.bidValue}>
                                   Rs {proposal.bidAmount.toLocaleString()}
                                 </span>
                               </div>
                               <div className={styles.bidItem}>
-                                <span className={styles.bidLabel}>Delivery Time:</span>
+                                <div className={styles.bidIconLabel}>
+                                  <FaClock className={styles.bidIcon} />
+                                  <span className={styles.bidLabel}>Delivery Time</span>
+                                </div>
                                 <span className={styles.bidValue}>{proposal.deliveryTime}</span>
                               </div>
                               <div className={styles.bidItem}>
-                                <span className={styles.bidLabel}>Status:</span>
+                                <div className={styles.bidIconLabel}>
+                                  {proposal.status === 'accepted' ? <FaCheckCircle className={styles.bidIcon} /> : 
+                                   proposal.status === 'rejected' ? <FaTimesCircle className={styles.bidIcon} /> : 
+                                   <FaFileAlt className={styles.bidIcon} />}
+                                  <span className={styles.bidLabel}>Status</span>
+                                </div>
                                 <span className={`${styles.bidValue} ${styles[`status_${proposal.status}`]}`}>
                                   {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
                                 </span>
@@ -634,39 +830,54 @@ const BuyerDashboardPage = () => {
                             )}
 
                             <div className={styles.coverLetter}>
-                              <h5 className={styles.coverLetterTitle}>Cover Letter</h5>
+                              <div className={styles.sectionTitleWrapper}>
+                                <FaFileAlt className={styles.sectionIcon} />
+                                <h5 className={styles.coverLetterTitle}>Cover Letter</h5>
+                              </div>
                               <p className={styles.coverLetterText}>{proposal.coverLetter}</p>
                             </div>
 
-                            {proposal.status === 'pending' && (
-                              <div className={styles.proposalActions}>
-                                <button 
-                                  className={styles.acceptButton}
-                                  onClick={() => handleAcceptProposal(proposal._id, proposal.bidAmount)}
-                                >
-                                  Accept & Pay
-                                </button>
-                                <button 
-                                  className={styles.rejectButton}
-                                  onClick={() => handleRejectProposal(proposal._id)}
-                                >
-                                  Decline
-                                </button>
-                              </div>
-                            )}
+                            <div className={styles.proposalActions}>
+                              <button 
+                                className={styles.viewProfileButton}
+                                onClick={() => proposal.consultantId?._id && 
+                                  navigate(`/consultant/${proposal.consultantId._id}`)
+                                }
+                              >
+                                View Profile
+                              </button>
+                              {proposal.status === 'pending' && (
+                                <>
+                                  <button 
+                                    className={styles.acceptButton}
+                                    onClick={() => handleAcceptProposal(proposal._id, proposal.bidAmount)}
+                                  >
+                                    Accept & Pay
+                                  </button>
+                                  <button 
+                                    className={styles.rejectButton}
+                                    onClick={() => handleRejectProposal(proposal._id)}
+                                  >
+                                    Decline
+                                  </button>
+                                </>
+                              )}
+                            </div>
 
                             {proposal.status === 'accepted' && (
                               <div className={styles.proposalStatusMessage}>
+                                <FaCheckCircle className={styles.statusIcon} />
                                 <span className={styles.acceptedMessage}>
-                                  ✓ Proposal Accepted - Order Created
+                                  Proposal Accepted - Order Created
                                 </span>
                               </div>
                             )}
 
                             {proposal.status === 'rejected' && (
                               <div className={styles.proposalStatusMessage}>
+                                <FaTimesCircle className={styles.statusIcon} />
                                 <span className={styles.rejectedMessage}>
-                                  ✗ Proposal Declined
+                                  Proposal Declined
                                 </span>
                               </div>
                             )}
@@ -754,27 +965,22 @@ const BuyerDashboardPage = () => {
             
             <div className={styles.filterGroup}>
               <h4 className={styles.filterTitle}>Consultancy Type</h4>
-              <label className={styles.checkbox}>
-                <input type="checkbox" />
-                <span>Education</span>
-              </label>
-              <label className={styles.checkbox}>
-                <input type="checkbox" />
-                <span>Legal</span>
-              </label>
-              <label className={styles.checkbox}>
-                <input type="checkbox" />
-                <span>Business</span>
-              </label>
+              <select className={styles.select} value={filters.specialization} onChange={(e) => setFilters({ ...filters, specialization: e.target.value })}>
+                <option value="">All Types</option>
+                <option value="LEGAL">Legal</option>
+                <option value="EDUCATION">Education</option>
+                <option value="BUSINESS">Business</option>
+              </select>
             </div>
 
             <div className={styles.filterGroup}>
               <h4 className={styles.filterTitle}>Location</h4>
-              <select className={styles.select}>
-                <option>Select Location</option>
-                <option>London, United Kingdom</option>
-                <option>New York, USA</option>
-                <option>Dubai, UAE</option>
+              <select className={styles.select} value={filters.city} onChange={(e) => setFilters({ ...filters, city: e.target.value })}>
+                <option value="">All Cities</option>
+                <option value="Rawalpindi">Rawalpindi</option>
+                <option value="Islamabad">Islamabad</option>
+                <option value="Lahore">Lahore</option>
+                <option value="Karachi">Karachi</option>
               </select>
             </div>
           </div>
@@ -801,44 +1007,74 @@ const BuyerDashboardPage = () => {
                 <p>No consultants available at the moment.</p>
               </div>
             ) : (
-              consultants.map((consultant) => (
+              consultants
+                .filter(consultant => {
+                  // Filter by city
+                  if (filters.city && consultant.city !== filters.city) {
+                    return false;
+                  }
+                  // Filter by specialization
+                  if (filters.specialization && !consultant.specializationArray?.includes(filters.specialization)) {
+                    return false;
+                  }
+                  return true;
+                })
+                .map((consultant) => (
                 <div key={consultant.id} className={styles.projectCard}>
-                  <div className={styles.projectHeader}>
-                    {consultant.avatar ? (
-                      <img src={consultant.avatar} alt={consultant.name} className={styles.consultantAvatar} />
-                    ) : (
-                      <FaUserCircle className={styles.consultantAvatar} style={{ fontSize: '60px', color: '#ccc' }} />
-                    )}
-                    <div className={styles.consultantInfo}>
-                      <div className={styles.consultantNameRow}>
-                        <h3 className={styles.consultantName}>{consultant.name}</h3>
+                  {/* Card Header with Avatar and Basic Info */}
+                  <div className={styles.consultantCardHeader}>
+                    <div className={styles.avatarSection}>
+                      {consultant.avatar ? (
+                        <img src={consultant.avatar} alt={consultant.name} className={styles.consultantAvatarLarge} />
+                      ) : (
+                        <FaUserCircle className={styles.consultantAvatarDefault} style={{ fontSize: '70px', color: '#ccc' }} />
+                      )}
+                      {consultant.isOnline && <div className={styles.onlineIndicator}></div>}
+                    </div>
+                    
+                    <div className={styles.headerInfoSection}>
+                      <div className={styles.nameAndBadge}>
+                        <h3 className={styles.consultantNameLarge}>{consultant.name}</h3>
                         <span className={`${styles.categoryBadge} ${styles[consultant.category.toLowerCase()]}`}>
                           {consultant.category}
                         </span>
                       </div>
-                      <p className={styles.consultantTitle}>{consultant.title}</p>
-                      <div className={styles.rating}>
-                        {[...Array(5)].map((_, i) => (
-                          <FaStar key={i} className={i < Math.floor(consultant.rating) ? styles.starFilled : styles.starEmpty} />
-                        ))}
-                        <span className={styles.ratingValue}>({consultant.rating.toFixed(1)})</span>
+                      <p className={styles.consultantTitleLarge}>{consultant.title}</p>
+                      
+                      {/* Location Display */}
+                      <div className={styles.locationSection}>
+                        <FaMapMarkerAlt className={styles.locationIconSmall} />
+                        <span className={styles.locationText}>{consultant.location}</span>
                       </div>
-                    </div>
-                    <div className={styles.projectLocation}>
-                      <FaMapMarkerAlt className={styles.locationIcon} />
-                      <span>{consultant.location}</span>
+                      
+                      {/* Rating Display */}
+                      <div className={styles.ratingSection}>
+                        <div className={styles.ratingStars}>
+                          {[...Array(5)].map((_, i) => (
+                            <FaStar key={i} className={i < Math.floor(consultant.rating) ? styles.starFilled : styles.starEmpty} />
+                          ))}
+                        </div>
+                        <span className={styles.ratingValueLarge}>{consultant.rating.toFixed(1)}/5</span>
+                        <span className={styles.reviewCount}>({consultant.totalReviews || 0} {consultant.totalReviews === 1 ? 'review' : 'reviews'})</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className={styles.consultantSpecialization}>
+                  {/* Specialization Section */}
+                  <div className={styles.consultantSpecializationEnhanced}>
                     <strong>Specialization:</strong> {consultant.specialization}
                   </div>
 
+                  {/* Bio/Description */}
                   <p className={styles.projectDescription}>{consultant.bio}</p>
 
+                  {/* Footer with Rate and Actions */}
                   <div className={styles.projectFooter}>
-                    <div className={styles.consultantRate}>
-                      <strong>{consultant.hourlyRate}</strong>
+                    <div className={styles.rateAndAvailability}>
+                      <div className={styles.rateDisplay}>
+                        <FaDollarSign className={styles.rateIcon} />
+                        <span className={styles.rateValue}>{consultant.hourlyRate}</span>
+                      </div>
                       <span className={styles.availability}>{consultant.availability}</span>
                     </div>
                     <div className={styles.projectActions}>
@@ -866,7 +1102,12 @@ const BuyerDashboardPage = () => {
                       >
                         <FaEnvelope /> Message
                       </button>
-                      <button className={styles.viewProfileButton}>View Profile</button>
+                      <button 
+                        className={styles.viewProfileButton}
+                        onClick={() => consultant.id && navigate(`/consultant/${consultant.id}`)}
+                      >
+                        View Profile
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -878,32 +1119,132 @@ const BuyerDashboardPage = () => {
         )}
 
         {/* Right Sidebar - Messages */}
-        <aside className={styles.rightSidebar}>
-          <div className={styles.messagesSection}>
-            <div className={styles.messagesSectionHeader}>
-              <h3 className={styles.messagesTitle}>Messages</h3>
-              <button 
-                className={styles.viewAllMessagesButton}
-                onClick={() => navigate('/messages')}
+        {activeTab !== 'proposals' && activeTab !== 'orders' && (
+          <aside className={styles.rightSidebar}>
+            <div className={styles.messagesSection}>
+              <div className={styles.messagesSectionHeader}>
+                <h3 className={styles.messagesTitle}>Messages</h3>
+              </div>
+              <p className={styles.messagesDescription}>
+                Your conversations with consultants now live in the dedicated Messaging Center.
+              </p>
+              <button
+                className={styles.openMessagesButton}
+                onClick={() =>
+                  navigate('/messages', {
+                    state: currentUser
+                      ? {
+                          user: {
+                            _id: currentUser.id,
+                            name: currentUser.name,
+                            profileImage: currentUser.profileImage,
+                            accountType: currentUser.accountType,
+                          },
+                        }
+                      : undefined,
+                  })
+                }
               >
-                View All
+                Open Messaging Center
+              </button>
+              <p className={styles.messagesHint}>Connect with consultants, discuss project details, and manage all communications in one place.</p>
+            </div>
+          </aside>
+        )}
+      </div>
+
+      {/* Confirm Completion Modal */}
+      {showConfirmCompletionModal && (
+        <div className={styles.modalOverlay} onClick={() => !confirmationLoading && setShowConfirmCompletionModal(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Confirm Order Completion</h3>
+            <p className={styles.modalMessage}>
+              The consultant has requested to mark this order as complete.
+            </p>
+            <div className={styles.modalOrderInfo}>
+              <strong>{selectedOrderForConfirmation?.jobId?.title}</strong>
+              <p>By confirming, you acknowledge that the work has been completed satisfactorily.</p>
+            </div>
+            <div className={styles.modalActions}>
+              <button 
+                className={styles.modalCancelButton}
+                onClick={() => setShowConfirmCompletionModal(false)}
+                disabled={confirmationLoading}
+              >
+                Not Yet
+              </button>
+              <button 
+                className={styles.modalConfirmButton}
+                onClick={confirmOrderCompletion}
+                disabled={confirmationLoading}
+              >
+                {confirmationLoading ? 'Confirming...' : 'Yes, Mark as Complete'}
               </button>
             </div>
-            <p className={styles.messagesDescription}>
-              Quick access to your recent conversations with consultants.
-            </p>
-            <button
-              className={styles.openMessagesButton}
-              onClick={() => navigate('/messages')}
-            >
-              Open Messaging Center
-            </button>
-            <p className={styles.messagesHint}>
-              Connect with consultants, discuss project details, and manage all communications in one place.
-            </p>
           </div>
-        </aside>
-      </div>
+        </div>
+      )}
+
+      {/* Review Modal */}
+      {showReviewModal && (
+        <div className={styles.modalOverlay} onClick={() => !reviewLoading && skipReview()}>
+          <div className={styles.reviewModalContent} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Rate Your Experience</h3>
+            <p className={styles.modalMessage}>
+              How was your experience with this consultant?
+            </p>
+            <div className={styles.modalOrderInfo}>
+              <strong>{reviewOrderData?.jobId?.title || 'Project'}</strong>
+              <p>Consultant: {reviewOrderData?.consultantId?.userId?.name || 'Unknown'}</p>
+            </div>
+
+            {/* Star Rating */}
+            <div className={styles.reviewRating}>
+              <label>Rating:</label>
+              <div className={styles.stars}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <FaStar
+                    key={star}
+                    className={star <= reviewRating ? styles.starFilled : styles.starEmpty}
+                    onClick={() => setReviewRating(star)}
+                    style={{ cursor: 'pointer', fontSize: '28px' }}
+                  />
+                ))}
+              </div>
+              <span style={{ display: 'inline-block', marginLeft: '16px', fontSize: '16px', fontWeight: '600', color: '#014751' }}>{reviewRating}/5</span>
+            </div>
+
+            {/* Comment */}
+            <div className={styles.reviewComment}>
+              <label>Your Review:</label>
+              <textarea
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                placeholder="Share your experience working with this consultant..."
+                rows={5}
+                disabled={reviewLoading}
+              />
+            </div>
+
+            <div className={styles.modalActions}>
+              <button 
+                className={styles.modalCancelButton}
+                onClick={skipReview}
+                disabled={reviewLoading}
+              >
+                Skip for Now
+              </button>
+              <button 
+                className={styles.modalConfirmButton}
+                onClick={submitReview}
+                disabled={reviewLoading || !reviewComment.trim()}
+              >
+                {reviewLoading ? 'Submitting...' : 'Submit Review'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

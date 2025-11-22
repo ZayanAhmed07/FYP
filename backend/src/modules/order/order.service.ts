@@ -185,6 +185,97 @@ export const payMilestone = async (id: string, milestoneId: string) => {
 };
 
 /**
+ * 📋 Request Completion - Consultant requests order completion
+ * Similar to Upwork/Upcounsel workflow
+ */
+export const requestCompletion = async (id: string, userId: string) => {
+  const order = await Order.findById(id)
+    .populate({ path: 'consultantId', populate: { path: 'userId' } })
+    .populate({ path: 'buyerId' });
+  
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  if (order.status !== 'in_progress') {
+    throw new ApiError(400, 'Order is not in progress');
+  }
+
+  // Check if user is the consultant
+  const consultantUserId = (order.consultantId as any).userId._id.toString();
+  if (consultantUserId !== userId) {
+    throw new ApiError(403, 'Only consultant can request completion');
+  }
+
+  if (order.completionRequestedAt && order.completionRequestedBy === 'consultant') {
+    throw new ApiError(400, 'Completion already requested');
+  }
+
+  order.completionRequestedAt = new Date();
+  order.completionRequestedBy = 'consultant';
+  await order.save();
+
+  return order.populate([
+    { path: 'jobId', select: 'title category' },
+    { path: 'buyerId', select: 'name email profileImage' },
+    { path: 'consultantId', populate: { path: 'userId', select: 'name email profileImage' } },
+  ]);
+};
+
+/**
+ * ✅ Confirm Completion - Buyer confirms completion request
+ * 🎯 Releases all remaining pending payment to consultant's account
+ */
+export const confirmCompletion = async (id: string, userId: string) => {
+  const order = await Order.findById(id)
+    .populate({ path: 'consultantId', populate: { path: 'userId' } })
+    .populate({ path: 'buyerId' });
+  
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  // Check if user is the buyer
+  if (order.buyerId._id.toString() !== userId) {
+    throw new ApiError(403, 'Only buyer can confirm completion');
+  }
+
+  if (!order.completionRequestedAt) {
+    throw new ApiError(400, 'No completion request found');
+  }
+
+  // Mark as completed
+  order.status = 'completed';
+  order.completionDate = new Date();
+  order.progress = 100;
+  
+  // 💰 RELEASE ALL REMAINING PENDING PAYMENT TO CONSULTANT
+  // When both sides confirm completion, release any remaining amountPending
+  const pendingPayment = order.amountPending;
+  order.amountPaid += pendingPayment;
+  order.amountPending = 0;
+  await order.save();
+
+  // Update job status
+  await Job.findByIdAndUpdate(order.jobId, { status: 'completed' });
+
+  // Update consultant stats and release payment to earnings
+  // 💵 Add pending payment to consultant's total earnings
+  await Consultant.findByIdAndUpdate(order.consultantId, {
+    $inc: { 
+      totalProjects: 1,
+      totalEarnings: pendingPayment  // Release the pending amount to earnings
+    },
+  });
+
+  return order.populate([
+    { path: 'jobId', select: 'title category' },
+    { path: 'buyerId', select: 'name email profileImage' },
+    { path: 'consultantId', populate: { path: 'userId', select: 'name email profileImage' } },
+  ]);
+};
+
+/**
  * 🏁 Complete Order
  * Finalizes the project and updates all related entities
  * 
@@ -245,5 +336,97 @@ export const deleteOrder = async (id: string) => {
   }
   return order;
 };
+
+/**
+ * Process Payment
+ * Handles payment for orders through different payment methods
+ * - EasyPaisa: Mobile wallet payment
+ * - JazzCash: Mobile wallet payment  
+ * - Card: Debit/Credit card payment
+ */
+interface PaymentDetails {
+  mobileNumber?: string;
+  cardNumber?: string;
+  expiryDate?: string;
+  cvv?: string;
+  cardHolderName?: string;
+}
+
+interface PaymentData {
+  orderId: string;
+  proposalId: string;
+  amount: number;
+  paymentMethod: 'easypaisa' | 'jazzcash' | 'card';
+  paymentDetails: PaymentDetails;
+}
+
+export const processPayment = async (paymentData: PaymentData) => {
+  const { orderId, proposalId, amount, paymentMethod, paymentDetails } = paymentData;
+
+  // Verify order exists
+  const order = await Order.findById(orderId);
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  // Generate OTP (in real implementation, send via SMS)
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  // Store payment session temporarily (in production, use Redis)
+  const paymentSession = {
+    id: `PAY_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    orderId,
+    proposalId,
+    amount,
+    paymentMethod,
+    otp,
+    expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+    status: 'pending',
+    createdAt: new Date()
+  };
+
+  // In development, log OTP to console
+  console.log(`[Payment] OTP for ${paymentMethod}: ${otp}`);
+  console.log(`[Payment] Session ID: ${paymentSession.id}`);
+  console.log(`[Payment] Mobile/Card: ${paymentDetails.mobileNumber || paymentDetails.cardNumber}`);
+
+  // Return payment session ID for OTP verification
+  return {
+    paymentSessionId: paymentSession.id,
+    message: `OTP sent to ${paymentMethod === 'card' ? 'your registered mobile' : paymentDetails.mobileNumber}`,
+    expiresAt: paymentSession.expiresAt,
+    // In development, return OTP (remove in production)
+    developmentOtp: otp
+  };
+};
+
+/**
+ * Verify Payment OTP
+ * Verifies OTP and completes the payment transaction
+ */
+export const verifyPaymentOtp = async (paymentSessionId: string, otp: string) => {
+  // In production, retrieve from Redis/cache
+  // For development, we'll simulate OTP verification
+  
+  // Extract order info from session ID (in production, get from cache)
+  const isValidOtp = otp.length === 6 && /^\d{6}$/.test(otp);
+  
+  if (!isValidOtp) {
+    throw new ApiError(400, 'Invalid OTP format');
+  }
+
+  // Simulate successful verification (in production, compare with stored OTP)
+  const paymentSuccess = {
+    transactionId: `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    status: 'completed',
+    paidAt: new Date()
+  };
+
+  console.log(`[Payment] Payment verified successfully`);
+  console.log(`[Payment] Transaction ID: ${paymentSuccess.transactionId}`);
+
+  return paymentSuccess;
+};
+
 
 

@@ -55,6 +55,18 @@ export const payMilestone = catchAsync(async (req: Request, res: Response) => {
   res.status(200).json({ success: true, data: order });
 });
 
+export const requestCompletion = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const order = await orderService.requestCompletion(req.params.id, userId!);
+  res.status(200).json({ success: true, data: order, message: 'Completion request sent' });
+});
+
+export const confirmCompletion = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const order = await orderService.confirmCompletion(req.params.id, userId!);
+  res.status(200).json({ success: true, data: order, message: 'Order marked as completed' });
+});
+
 export const completeOrder = catchAsync(async (req: Request, res: Response) => {
   const order = await orderService.completeOrder(req.params.id);
   res.status(200).json({ success: true, data: order });
@@ -69,5 +81,17 @@ export const deleteOrder = catchAsync(async (req: Request, res: Response) => {
   await orderService.deleteOrder(req.params.id);
   res.status(200).json({ success: true, message: 'Order deleted successfully' });
 });
+
+export const processPayment = catchAsync(async (req: Request, res: Response) => {
+  const paymentSession = await orderService.processPayment(req.body);
+  res.status(200).json({ success: true, data: paymentSession });
+});
+
+export const verifyPaymentOtp = catchAsync(async (req: Request, res: Response) => {
+  const { paymentSessionId, otp } = req.body;
+  const payment = await orderService.verifyPaymentOtp(paymentSessionId, otp);
+  res.status(200).json({ success: true, data: payment });
+});
+
 
 

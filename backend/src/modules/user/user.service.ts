@@ -42,12 +42,24 @@ export const updateUser = async (id: string, updates: Partial<UserDocument>) => 
   return user;
 };
 
+export const updatePassword = async (id: string, newPassword: string) => {
+  const user = await User.findById(id).select('+password');
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  user.password = await hashPassword(newPassword);
+  await user.save();
+  return user;
+};
+
 export const userService = {
   createUser,
   getUserByEmail,
   getUserById,
   listUsers,
   updateUser,
+  updatePassword,
 };
 
 

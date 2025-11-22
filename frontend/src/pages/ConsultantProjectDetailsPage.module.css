@@ -153,6 +153,60 @@
   color: #5a6c7d;
 }
 
+/* Attachments Section */
+.attachmentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachmentItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+}
+
+.attachmentName {
+  flex: 1;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  color: #333333;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.downloadButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #2d5a5f;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.downloadButton:hover {
+  background: #1f3e42;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(45, 90, 95, 0.3);
+}
+
+.downloadButton:active {
+  transform: translateY(0);
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -228,6 +282,7 @@
     gap: 12px;
   }
 }
+
 
 
 

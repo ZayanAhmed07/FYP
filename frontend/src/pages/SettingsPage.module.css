@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 32px;
 }
 
 .content {
@@ -15,52 +15,55 @@
 
 .backButton {
   position: absolute;
-  top: -60px;
+  top: -64px;
   left: 0;
   background: none;
   border: none;
   font-family: 'Reddit Sans', sans-serif;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 17px;
+  font-weight: 600;
   color: #2d5a5f;
   cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  padding: 10px 20px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .backButton:hover {
   background: #f0f3f7;
-  transform: translateX(-4px);
+  transform: translateX(-6px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .card {
   background: #ffffff;
-  border-radius: 20px;
-  padding: 60px;
+  border-radius: 28px;
+  padding: 72px;
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e0e6ed;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  border: 2px solid #e0e6ed;
 }
 
 .icon {
-  font-size: 80px;
-  margin-bottom: 24px;
+  font-size: 96px;
+  margin-bottom: 28px;
 }
 
 .title {
   font-family: 'Reddit Sans', sans-serif;
-  font-size: 36px;
+  font-size: 40px;
   font-weight: 700;
   color: #2d5a5f;
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
+  letter-spacing: -0.5px;
 }
 
 .description {
   font-family: 'Reddit Sans', sans-serif;
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: 400;
   color: #5a6c7d;
-  line-height: 1.6;
+  line-height: 1.7;
   margin: 0;
 }
 
@@ -86,5 +89,6 @@
     position: static;
   }
 }
+
 
 

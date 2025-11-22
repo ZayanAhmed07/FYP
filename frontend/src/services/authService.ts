@@ -69,6 +69,10 @@ const getCurrentUser = (): AuthResponse['user'] | null => {
   }
 };
 
+const getToken = (): string | null => {
+  return storage.getToken(TOKEN_KEY);
+};
+
 const isAuthenticated = (): boolean => {
   const token = storage.getToken(TOKEN_KEY);
   return !!token;
@@ -84,13 +88,26 @@ const parseError = (error: unknown) => {
   return 'Something went wrong. Please try again.';
 };
 
+const forgotPassword = async (payload: { email: string }) => {
+  const { data } = await httpClient.post('/auth/forgot-password', payload);
+  return data.data;
+};
+
+const resetPassword = async (payload: { token: string; password: string }) => {
+  const { data } = await httpClient.post('/auth/reset-password', payload);
+  return data.data;
+};
+
 export const authService = {
   login,
   register,
   getProfile,
   logout,
   getCurrentUser,
+  getToken,
   isAuthenticated,
   parseError,
+  forgotPassword,
+  resetPassword,
 };
 

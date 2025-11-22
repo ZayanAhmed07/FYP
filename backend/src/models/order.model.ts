@@ -38,6 +38,8 @@ export interface IOrder {
   amountPending: number;            // Amount pending payment
   startDate: Date;                  // Project start date
   completionDate?: Date;            // Project completion date
+  completionRequestedAt?: Date;     // When consultant requested completion
+  completionRequestedBy?: 'consultant' | 'buyer';  // Who requested completion
 }
 
 export interface OrderDocument extends IOrder, Document {
@@ -103,6 +105,8 @@ const orderSchema = new Schema<OrderDocument, OrderModel>(
     amountPending: { type: Number, required: true },
     startDate: { type: Date, default: Date.now },
     completionDate: { type: Date },
+    completionRequestedAt: { type: Date },
+    completionRequestedBy: { type: String, enum: ['consultant', 'buyer'] },
   },
   {
     timestamps: true,        // Auto-manage createdat (in diagram)
@@ -118,5 +122,6 @@ const orderSchema = new Schema<OrderDocument, OrderModel>(
  * - Consultant.markdeliverable(): Updates progress and marks milestones complete
  */
 export const Order = model<OrderDocument, OrderModel>('Order', orderSchema);
+
 
 

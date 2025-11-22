@@ -43,6 +43,8 @@ export interface Order {
   amountPending: number;
   startDate: string;
   completionDate?: string;
+  completionRequestedAt?: string;
+  completionRequestedBy?: 'consultant' | 'buyer';
   createdAt: string;
   updatedAt: string;
 }
@@ -105,6 +107,18 @@ export const orderService = {
   // Pay milestone
   async payMilestone(orderId: string, milestoneId: string): Promise<Order> {
     const { data } = await httpClient.patch(`/orders/${orderId}/milestones/${milestoneId}/pay`);
+    return data.data;
+  },
+
+  // Request completion (Consultant)
+  async requestCompletion(id: string): Promise<Order> {
+    const { data } = await httpClient.patch(`/orders/${id}/request-completion`);
+    return data.data;
+  },
+
+  // Confirm completion (Buyer)
+  async confirmCompletion(id: string): Promise<Order> {
+    const { data } = await httpClient.patch(`/orders/${id}/confirm-completion`);
     return data.data;
   },
 

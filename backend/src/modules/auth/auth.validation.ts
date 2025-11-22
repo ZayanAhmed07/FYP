@@ -16,4 +16,17 @@ export const registerValidator = celebrate({
   }),
 });
 
+export const forgotPasswordValidator = celebrate({
+  [Segments.BODY]: Joi.object({
+    email: Joi.string().email().required(),
+  }),
+});
+
+export const resetPasswordValidator = celebrate({
+  [Segments.BODY]: Joi.object({
+    token: Joi.string().required(),
+    password: Joi.string().min(6).required(),
+  }),
+});
+
 

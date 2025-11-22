@@ -18,6 +18,9 @@ export interface IMessage {
   receiverId: Types.ObjectId;       // User who receives the message
   content: string;                  // Message text content (text in diagram)
   isRead: boolean;                  // Message read status
+  status?: 'sent' | 'delivered' | 'seen';  // Message delivery status
+  deliveredAt?: Date;               // When message was delivered
+  readAt?: Date;                    // When message was read
   attachments?: string[];           // File attachments (URLs)
 }
 
@@ -59,6 +62,13 @@ const messageSchema = new Schema<MessageDocument, MessageModel>(
     },
     content: { type: String, required: true },
     isRead: { type: Boolean, default: false },
+    status: { 
+      type: String, 
+      enum: ['sent', 'delivered', 'seen'], 
+      default: 'sent' 
+    },
+    deliveredAt: { type: Date },
+    readAt: { type: Date },
     attachments: { type: [String], default: [] },
   },
   {
@@ -77,5 +87,6 @@ messageSchema.index({ receiverId: 1, isRead: 1 });          // Get unread messag
  * - getUnreadCount(): Counts unread messages for a user
  */
 export const Message = model<MessageDocument, MessageModel>('Message', messageSchema);
+
 
 

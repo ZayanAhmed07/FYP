@@ -74,3 +74,4 @@ proposalSchema.index({ jobId: 1, consultantId: 1 }, { unique: true });
 export const Proposal = model<ProposalDocument, ProposalModel>('Proposal', proposalSchema);
 
 
+

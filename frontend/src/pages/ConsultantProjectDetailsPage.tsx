@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaMapMarkerAlt, FaClock } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaClock, FaDownload } from 'react-icons/fa';
 
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
@@ -19,6 +19,7 @@ interface JobFromApi {
   location: string;
   status: 'open' | 'in_progress' | 'completed' | 'cancelled';
   skills?: string[];
+  attachments?: string[];
   createdAt: string;
 }
 
@@ -63,6 +64,36 @@ const ConsultantProjectDetailsPage = () => {
     if (!budget.min && !budget.max) return 'Not specified';
     if (!budget.max || budget.max <= 0) return `Rs ${budget.min.toLocaleString()}`;
     return `Rs ${budget.min.toLocaleString()} - Rs ${budget.max.toLocaleString()}`;
+  };
+
+  const getFilenameFromBase64 = (base64String: string): string => {
+    // Extract filename from data URL or generate a default one
+    try {
+      const parts = base64String.split(',');
+      if (parts.length > 1) {
+        const metadata = parts[0];
+        if (metadata.includes('filename=')) {
+          const match = metadata.match(/filename=([^;]+)/);
+          if (match) return decodeURIComponent(match[1]);
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing filename from base64', e);
+    }
+    return `attachment_${new Date().getTime()}`;
+  };
+
+  const downloadFile = (base64String: string, filename: string) => {
+    try {
+      const link = document.createElement('a');
+      link.href = base64String;
+      link.download = filename || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Failed to download file', error);
+    }
   };
 
   if (loading) {
@@ -142,6 +173,33 @@ const ConsultantProjectDetailsPage = () => {
             </div>
           )}
 
+          {job.attachments && job.attachments.length > 0 && (
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>Attachments</h3>
+              <div className={styles.attachmentsList}>
+                {job.attachments.map((attachment: string, index: number) => (
+                  <div key={index} className={styles.attachmentItem}>
+                    <span className={styles.attachmentName}>
+                      {getFilenameFromBase64(attachment)}
+                    </span>
+                    <button
+                      className={styles.downloadButton}
+                      onClick={() =>
+                        downloadFile(
+                          attachment,
+                          getFilenameFromBase64(attachment)
+                        )
+                      }
+                      title="Download attachment"
+                    >
+                      <FaDownload /> Download
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className={styles.actions}>
             <button
               className={styles.secondaryButton}
@@ -164,6 +222,7 @@ const ConsultantProjectDetailsPage = () => {
 };
 
 export default ConsultantProjectDetailsPage;
+
 
 
 

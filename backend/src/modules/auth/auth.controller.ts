@@ -12,6 +12,9 @@ import { Request, Response } from 'express';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { catchAsync } from '../../utils/catchAsync';
 import { authService } from './auth.service';
+import { tokenService } from '../../services/token.service';
+import { userService } from '../user/user.service';
+import { env } from '../../config/env';
 
 /**
  * 🔐 IMPORTANT: User Login/Authentication
@@ -39,6 +42,45 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   const result = await authService.register(req.body);
   res.status(201).json(ApiResponse.success(201, 'Registration successful', result));
 });
+
+export const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+  const { email } = req.body;
+  const user = await userService.getUserByEmail(email);
+
+  // Always return success to avoid enumeration
+  if (!user) {
+    return res.status(200).json(ApiResponse.success(200, 'If the email exists, a reset link will be sent'));
+  }
+
+  const token = tokenService.generateResetToken({ id: user.id });
+
+  // Build reset link (in prod you'd send an email)
+  const resetLink = `${env.frontendUrl}/reset-password?token=${token}`;
+  // For now we will log the reset link — replace with actual email sending
+  // TODO: Implement email provider integration
+  // Example: mailService.sendPasswordReset(email, resetLink)
+  console.log('Password reset link:', resetLink);
+
+  return res.status(200).json(ApiResponse.success(200, 'If the email exists, a reset link will be sent', { resetLink }));
+});
+
+export const resetPassword = catchAsync(async (req: Request, res: Response) => {
+  const { token, password } = req.body;
+  if (!token || !password) {
+    return res.status(400).json(ApiResponse.error(400, 'Token and new password are required'));
+  }
+
+  const payload = tokenService.verifyResetToken(token);
+  const user = await userService.getUserById(payload.id);
+  if (!user) {
+    return res.status(404).json(ApiResponse.error(404, 'Invalid token'));
+  }
+
+  await userService.updatePassword(user.id, password);
+
+  return res.status(200).json(ApiResponse.success(200, 'Password updated successfully'));
+});
+
 
 
 

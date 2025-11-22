@@ -1,0 +1,230 @@
+import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { FaCreditCard, FaWallet, FaUniversity } from 'react-icons/fa';
+import styles from './PaymentPage.module.css';
+
+type PaymentMethod = 'card' | 'wallet' | 'bank';
+type PaymentStep = 'details' | 'otp' | 'success';
+
+const PaymentPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const amount = location.state?.amount || '50.67';
+  
+  const [step, setStep] = useState<PaymentStep>('details');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+
+  const handleContinue = () => {
+    if (!accountNumber || !expiryDate || !cvv) {
+      alert('Please fill all payment details');
+      return;
+    }
+    setStep('otp');
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length <= 1 && /^\d*$/.test(value)) {
+      const newOtp = [...otp];
+      newOtp[index] = value;
+      setOtp(newOtp);
+
+      // Auto-focus next input
+      if (value && index < 5) {
+        const nextInput = document.getElementById(`otp-${index + 1}`);
+        nextInput?.focus();
+      }
+    }
+  };
+
+  const handleVerifyOtp = () => {
+    if (otp.join('').length === 6) {
+      setStep('success');
+    } else {
+      alert('Please enter complete OTP');
+    }
+  };
+
+  const handleDone = () => {
+    navigate('/buyer-dashboard', { state: { tab: 'orders' } });
+  };
+
+  return (
+    <div className={styles.pageContainer}>
+      {/* Header */}
+      <header className={styles.header}>
+        <div className={styles.logo}>
+          <img src="/src/assets/logo.png" alt="Expert Raah" className={styles.logoImage} />
+        </div>
+
+        <nav className={styles.nav}>
+          <button className={styles.navItem}>Dashboard</button>
+          <button className={styles.navItem}>Projects</button>
+          <button className={styles.navItemActive}>Orders</button>
+          <button className={styles.navItem}>Stats</button>
+        </nav>
+
+        <div className={styles.headerActions}>
+          <div className={styles.sellingToggle}>
+            <span className={styles.sellingLabel}>Selling</span>
+            <label className={styles.switch}>
+              <input type="checkbox" />
+              <span className={styles.slider}></span>
+            </label>
+          </div>
+          <button className={styles.notificationButton}>🔔</button>
+          <div className={styles.userProfile}>
+            <img src="https://i.pravatar.cc/150?img=10" alt="User" className={styles.userAvatar} />
+            <span className={styles.userName}>Julia Anne</span>
+            <span className={styles.userDropdown}>▼</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className={styles.mainContent}>
+        {step === 'details' && (
+          <div className={styles.paymentCard}>
+            <div className={styles.paymentHeader}>
+              <h2 className={styles.paymentTitle}>Payment Details</h2>
+              <div className={styles.amount}>${amount}</div>
+            </div>
+
+            <div className={styles.paymentBody}>
+              <h3 className={styles.sectionTitle}>Choose Payment Method:</h3>
+              
+              <div className={styles.paymentMethods}>
+                <button
+                  className={`${styles.methodButton} ${paymentMethod === 'card' ? styles.methodButtonActive : ''}`}
+                  onClick={() => setPaymentMethod('card')}
+                >
+                  <FaCreditCard className={styles.methodIcon} />
+                  <div className={styles.methodLabel}>Card</div>
+                  <div className={styles.methodSubtext}>(Debit and credit card Mastercard)</div>
+                </button>
+
+                <button
+                  className={`${styles.methodButton} ${paymentMethod === 'wallet' ? styles.methodButtonActive : ''}`}
+                  onClick={() => setPaymentMethod('wallet')}
+                >
+                  <FaWallet className={styles.methodIcon} />
+                  <div className={styles.methodLabel}>Wallet</div>
+                  <div className={styles.methodSubtext}>(Amazon etc.)</div>
+                </button>
+
+                <button
+                  className={`${styles.methodButton} ${paymentMethod === 'bank' ? styles.methodButtonActive : ''}`}
+                  onClick={() => setPaymentMethod('bank')}
+                >
+                  <FaUniversity className={styles.methodIcon} />
+                  <div className={styles.methodLabel}>Bank Transfer</div>
+                  <div className={styles.methodSubtext}>(Transfer from your bank account)</div>
+                </button>
+              </div>
+
+              <h3 className={styles.sectionTitle}>Enter Details</h3>
+
+              <div className={styles.formGroup}>
+                <input
+                  type="text"
+                  className={styles.input}
+                  placeholder="Enter Account Number"
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  maxLength={16}
+                />
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    placeholder="Enter Expiry Date"
+                    value={expiryDate}
+                    onChange={(e) => setExpiryDate(e.target.value)}
+                    maxLength={5}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    placeholder="Enter CVV"
+                    value={cvv}
+                    onChange={(e) => setCvv(e.target.value)}
+                    maxLength={3}
+                  />
+                </div>
+              </div>
+
+              <button className={styles.continueButton} onClick={handleContinue}>
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 'otp' && (
+          <>
+            <div className={styles.overlay} onClick={() => setStep('details')}></div>
+            <div className={styles.otpModal}>
+              <h2 className={styles.otpTitle}>Enter OTP</h2>
+              <p className={styles.otpSubtext}>
+                A 6-digit OTP is sent to your phone number +92-xxxxxxxxx32.
+              </p>
+
+              <div className={styles.otpInputs}>
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    className={styles.otpInput}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    maxLength={1}
+                  />
+                ))}
+              </div>
+
+              <button className={styles.verifyButton} onClick={handleVerifyOtp}>
+                Verify
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === 'success' && (
+          <div className={styles.successCard}>
+            <div className={styles.successContent}>
+              <div className={styles.checkmark}>
+                <svg className={styles.checkmarkIcon} viewBox="0 0 52 52">
+                  <circle className={styles.checkmarkCircle} cx="26" cy="26" r="25" fill="none"/>
+                  <path className={styles.checkmarkCheck} fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+              </div>
+              
+              <h2 className={styles.successTitle}>Payment Successful!</h2>
+              <p className={styles.successMessage}>
+                Your payment is withheld and will be transferred after completion of project.
+              </p>
+
+              <button className={styles.doneButton} onClick={handleDone}>
+                Done
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default PaymentPage;
+
+
+

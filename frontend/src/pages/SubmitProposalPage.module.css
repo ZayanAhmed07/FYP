@@ -1,7 +1,7 @@
 .pageContainer {
   min-height: 100vh;
   background: #f5f7fa;
-  padding: 32px 40px;
+  padding: 40px 48px;
   box-sizing: border-box;
 }
 
@@ -9,34 +9,38 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 960px;
-  margin: 0 auto 24px auto;
+  max-width: 980px;
+  margin: 0 auto 32px auto;
 }
 
 .title {
   font-family: 'Reddit Sans', sans-serif;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: #2d5a5f;
   margin: 0;
+  letter-spacing: -0.3px;
 }
 
 .backButton {
-  padding: 8px 16px;
+  padding: 10px 20px;
   background: #ffffff;
   color: #2d5a5f;
-  border: 1px solid #e0e6ed;
-  border-radius: 8px;
+  border: 2px solid #e0e6ed;
+  border-radius: 12px;
   font-family: 'Reddit Sans', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .backButton:hover {
   background: #f5f7fa;
   border-color: #2d5a5f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .content {
@@ -49,18 +53,19 @@
 
 .jobSummary {
   background: #ffffff;
-  border-radius: 16px;
-  padding: 24px 28px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e0e6ed;
+  border-radius: 20px;
+  padding: 28px 32px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  border: 2px solid #e0e6ed;
 }
 
 .jobTitle {
   font-family: 'Reddit Sans', sans-serif;
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: #333333;
-  margin: 0 0 8px 0;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.2px;
 }
 
 .jobMeta {
@@ -74,11 +79,12 @@
 }
 
 .category {
-  padding: 4px 10px;
-  border-radius: 12px;
+  padding: 6px 14px;
+  border-radius: 14px;
   background: #e3f2fd;
   color: #1565c0;
   font-weight: 600;
+  font-size: 14px;
 }
 
 .location {
@@ -94,16 +100,16 @@
 
 .formCard {
   background: #ffffff;
-  border-radius: 16px;
-  padding: 28px 32px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e0e6ed;
+  border-radius: 20px;
+  padding: 32px 40px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  border: 2px solid #e0e6ed;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .formGroup {
@@ -114,30 +120,33 @@
 
 .label {
   font-family: 'Reddit Sans', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: #333333;
+  letter-spacing: 0.2px;
 }
 
 .input,
 .textarea {
   width: 100%;
-  padding: 12px 14px;
+  padding: 14px 18px;
   font-family: 'Reddit Sans', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 500;
   color: #333333;
-  border-radius: 8px;
-  border: 1px solid #e0e6ed;
+  border-radius: 12px;
+  border: 2px solid #e0e6ed;
   background: #ffffff;
   outline: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .input:focus,
 .textarea:focus {
   border-color: #2d5a5f;
-  box-shadow: 0 0 0 3px rgba(45, 90, 95, 0.08);
+  box-shadow: 0 0 0 4px rgba(45, 90, 95, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .textarea {
@@ -223,6 +232,7 @@
     gap: 12px;
   }
 }
+
 
 
 

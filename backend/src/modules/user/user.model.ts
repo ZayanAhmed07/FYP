@@ -73,6 +73,7 @@ const userSchema = new Schema<UserDocument, UserModel>(
     profileImage: { type: String },
     isVerified: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },
+    lastSeen: { type: Date },
     isBanned: { type: Boolean, default: false },
     roles: {
       type: [String],

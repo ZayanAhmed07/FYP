@@ -373,10 +373,10 @@
 }
 
 .overviewCard {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 .overviewHeader {
@@ -673,10 +673,10 @@
 
 /* Orders View */
 .ordersView {
-  grid-column: 1 / -2;
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 24px;
+  grid-column: 1 / -1;
+  background: #f5f7fa;
+  padding: 48px;
+  min-height: calc(100vh - 120px);
 }
 
 .orderContent {
@@ -1084,6 +1084,55 @@
   color: #5a6c7d;
 }
 
+/* Attachments in Project Details */
+.projectDetailsAttachments {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.projectDetailsAttachmentItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  background: #f8f9fa;
+  border: 1px solid #e0e6ed;
+  border-radius: 6px;
+}
+
+.projectDetailsAttachmentName {
+  flex: 1;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 13px;
+  color: #333333;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.projectDetailsDownloadButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: #2d5a5f;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.projectDetailsDownloadButton:hover {
+  background: #1f3e42;
+  transform: scale(1.05);
+}
+
 .projectDetailsActions {
   display: flex;
   justify-content: flex-end;
@@ -1314,6 +1363,478 @@
   height: 8px;
   background: #2d5a5f;
   border-radius: 50%;
+}
+
+/* Orders View Styles */
+.ordersContent {
+  width: 100%;
+  max-width: 100%;
+}
+
+.ordersTitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #2d5a5f;
+  margin: 0 0 8px;
+}
+
+.ordersSubtitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 16px;
+  color: #999999;
+  margin: 0 0 40px;
+}
+
+.ordersList {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.orderCard {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  border: 1px solid #e0e6ed;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.orderCard:hover {
+  border-color: #2d5a5f;
+  box-shadow: 0 6px 20px rgba(45, 90, 95, 0.08);
+  transform: translateY(-2px);
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.orderTitleSection {
+  flex: 1;
+  min-width: 0;
+}
+
+.orderJobTitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #2d5a5f;
+  margin: 0 0 8px 0;
+}
+
+.orderIdBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 12px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.orderStatus {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.orderStatus.in_progress {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.orderStatus.completed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.orderStatus.cancelled {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.orderBuyer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  border-bottom: 1px solid #e0e6ed;
+  margin-bottom: 20px;
+}
+
+.orderBuyerAvatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e0e6ed;
+}
+
+.orderBuyerInfo {
+  flex: 1;
+}
+
+.orderBuyerName {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d5a5f;
+  margin: 0 0 6px;
+}
+
+.orderBuyerEmail {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  color: #5a6c7d;
+  margin: 0;
+}
+
+.orderDetails {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 20px 0;
+  margin-bottom: 20px;
+}
+
+.orderDetailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detailLabel {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 13px;
+  color: #999999;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detailValue {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d5a5f;
+}
+
+.orderProgressBar {
+  width: 100%;
+  height: 10px;
+  background: #e0e6ed;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.orderProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #2d5a5f 0%, #3a7680 100%);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.milestones {
+  padding: 20px 0;
+  border-top: 1px solid #e0e6ed;
+  margin-top: 20px;
+}
+
+.milestonesTitle {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #2d5a5f;
+  margin: 0 0 16px;
+}
+
+.milestonesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.milestoneItem {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e0e6ed;
+  transition: all 0.2s ease;
+}
+
+.milestoneItem:hover {
+  background: #ffffff;
+  border-color: #2d5a5f;
+}
+
+.milestoneDescription {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 15px;
+  color: #333333;
+  font-weight: 500;
+}
+
+.milestoneStatus {
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.milestoneStatus.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.milestoneStatus.completed {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.milestoneStatus.paid {
+  background: #d4edda;
+  color: #155724;
+}
+
+.milestoneAmount {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2d5a5f;
+}
+
+.noMilestones {
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  color: #999999;
+  font-style: italic;
+  margin: 0;
+  padding: 12px;
+  text-align: center;
+}
+
+.orderActions {
+  display: flex;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e6ed;
+  margin-top: 20px;
+}
+
+.viewDetailsButton {
+  padding: 12px 24px;
+  background: #ffffff;
+  color: #2d5a5f;
+  border: 2px solid #2d5a5f;
+  border-radius: 8px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.viewDetailsButton:hover {
+  background: #2d5a5f;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 90, 95, 0.3);
+}
+
+.messageBuyerButton {
+  padding: 10px 20px;
+  background: #014751;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.messageBuyerButton:hover {
+  background: #012a31;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(1, 71, 81, 0.3);
+}
+
+.requestCompletionButton {
+  padding: 10px 24px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.requestCompletionButton:hover {
+  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.completionRequested {
+  padding: 10px 16px;
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 16px;
+}
+
+.modalMessage {
+  font-size: 15px;
+  color: #555;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.modalOrderInfo {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.modalOrderInfo strong {
+  display: block;
+  font-size: 16px;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.modalOrderInfo p {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modalCancelButton,
+.modalConfirmButton {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modalCancelButton {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.modalCancelButton:hover {
+  background: #dee2e6;
+}
+
+.modalCancelButton:disabled,
+.modalConfirmButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modalConfirmButton {
+  background: #28a745;
+  color: white;
+}
+
+.modalConfirmButton:hover {
+  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
 @media (max-width: 1200px) {

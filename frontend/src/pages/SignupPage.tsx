@@ -4,6 +4,7 @@ import { FaGoogle, FaApple, FaEnvelope, FaFacebookF, FaEye, FaEyeSlash } from 'r
 import { FaXTwitter } from 'react-icons/fa6';
 import { authService } from '../services/authService';
 import styles from './SignupPage.module.css';
+import { Link } from 'react-router-dom';
 
 const SignupPage = () => {
   const location = useLocation();
@@ -317,6 +318,11 @@ const SignupPage = () => {
                   setShowEmailForm(false);
                   setError('');
                 }}>Sign Up</span>
+              </div>
+              <div className={styles.signupLink}>
+                <Link to="/forgot-password" className={styles.loginLinkButton}>
+                  Forgot password?
+                </Link>
               </div>
             </>
           )}

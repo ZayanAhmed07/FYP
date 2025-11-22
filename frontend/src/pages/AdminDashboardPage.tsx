@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaUserTie, FaCheckCircle, FaTimesCircle, FaBan, FaEye, FaFileAlt, FaUserCircle } from 'react-icons/fa';
+import { FaUser, FaUserTie, FaCheckCircle, FaTimesCircle, FaBan, FaEye, FaFileAlt, FaUserCircle, FaStar, FaTrash } from 'react-icons/fa';
 import { httpClient } from '../api/httpClient';
 import { authService } from '../services/authService';
+import reviewService from '../services/reviewService';
 import styles from './AdminDashboardPage.module.css';
 
 const AdminDashboardPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'consultants' | 'buyers'>('consultants');
+  const [activeTab, setActiveTab] = useState<'consultants' | 'buyers' | 'reviews'>('consultants');
   const [consultants, setConsultants] = useState<any[]>([]);
   const [buyers, setBuyers] = useState<any[]>([]);
   const [selectedConsultant, setSelectedConsultant] = useState<any>(null);
@@ -15,12 +16,24 @@ const AdminDashboardPage = () => {
   const [loading, setLoading] = useState(false);
   const [buyersLoading, setBuyersLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Reviews state
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
 
   useEffect(() => {
     // Admin dashboard can be accessed without login
     fetchConsultants();
     fetchBuyers();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'reviews') {
+      fetchReviews();
+    }
+  }, [activeTab, reviewsPage]);
 
   const fetchConsultants = async () => {
     try {
@@ -215,6 +228,32 @@ const AdminDashboardPage = () => {
     }
   };
 
+  const fetchReviews = async () => {
+    try {
+      setReviewsLoading(true);
+      const response = await reviewService.getAllReviews(reviewsPage, 20);
+      setReviews(response.reviews);
+      setReviewsTotalPages(response.pages);
+    } catch (err) {
+      console.error('Failed to fetch reviews', err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (confirm('Are you sure you want to delete this review?')) {
+      try {
+        await reviewService.deleteReview(reviewId);
+        alert('Review deleted successfully!');
+        await fetchReviews(); // Refresh list
+      } catch (err) {
+        console.error('Failed to delete review', err);
+        alert('Failed to delete review');
+      }
+    }
+  };
+
   const pendingConsultants = consultants.filter(c => c.status === 'pending');
   const approvedConsultants = consultants.filter(c => c.status === 'approved');
 
@@ -247,6 +286,12 @@ const AdminDashboardPage = () => {
             onClick={() => setActiveTab('buyers')}
           >
             <FaUser /> Buyers
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'reviews' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('reviews')}
+          >
+            <FaStar /> Reviews & Ratings
           </button>
         </div>
 
@@ -506,6 +551,109 @@ const AdminDashboardPage = () => {
             )}
           </div>
         )}
+
+        {/* Reviews Tab */}
+        {activeTab === 'reviews' && (
+          <div className={styles.content}>
+            {/* Loading State */}
+            {reviewsLoading && (
+              <div className={styles.loadingContainer}>
+                <div className={styles.loadingSpinner}></div>
+                <p>Loading reviews...</p>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!reviewsLoading && reviews.length === 0 && (
+              <div className={styles.emptyState}>
+                <FaStar className={styles.emptyIcon} />
+                <h3>No Reviews Yet</h3>
+                <p>Reviews will appear here once buyers submit them.</p>
+              </div>
+            )}
+
+            {/* Reviews List */}
+            {!reviewsLoading && reviews.length > 0 && (
+              <div className={styles.section}>
+                <h2 className={styles.sectionTitle}>All Reviews & Ratings</h2>
+                <div className={styles.reviewsGrid}>
+                  {reviews.map((review) => (
+                    <div key={review._id} className={styles.reviewCard}>
+                      <div className={styles.reviewHeader}>
+                        <div className={styles.reviewRatingStars}>
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <FaStar
+                              key={star}
+                              className={star <= review.rating ? styles.starFilled : styles.starEmpty}
+                            />
+                          ))}
+                          <span className={styles.reviewRatingNumber}>({review.rating}/5)</span>
+                        </div>
+                        <button
+                          className={styles.deleteReviewButton}
+                          onClick={() => handleDeleteReview(review._id)}
+                          title="Delete Review"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+
+                      <div className={styles.reviewContent}>
+                        <p className={styles.reviewComment}>{review.comment}</p>
+                      </div>
+
+                      <div className={styles.reviewFooter}>
+                        <div className={styles.reviewUser}>
+                          <strong>Buyer:</strong> {review.buyerId?.firstName} {review.buyerId?.lastName}
+                          <br />
+                          <small>{review.buyerId?.email}</small>
+                        </div>
+                        <div className={styles.reviewConsultant}>
+                          <strong>Consultant:</strong> {review.consultantId?.firstName} {review.consultantId?.lastName}
+                          <br />
+                          <small>{review.consultantId?.email}</small>
+                        </div>
+                        <div className={styles.reviewJob}>
+                          <strong>Job:</strong> {review.jobId?.title || 'N/A'}
+                        </div>
+                        <div className={styles.reviewDate}>
+                          {new Date(review.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {reviewsTotalPages > 1 && (
+                  <div className={styles.pagination}>
+                    <button
+                      className={styles.paginationButton}
+                      disabled={reviewsPage === 1}
+                      onClick={() => setReviewsPage((prev) => prev - 1)}
+                    >
+                      Previous
+                    </button>
+                    <span className={styles.paginationInfo}>
+                      Page {reviewsPage} of {reviewsTotalPages}
+                    </span>
+                    <button
+                      className={styles.paginationButton}
+                      disabled={reviewsPage === reviewsTotalPages}
+                      onClick={() => setReviewsPage((prev) => prev + 1)}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Documents Modal */}
@@ -560,33 +708,95 @@ const AdminDashboardPage = () => {
               <div className={styles.documentsSection}>
                 <h3>Identity Documents</h3>
                 <div className={styles.documentsGrid}>
-                  <div className={styles.docCard}>
-                    <span className={styles.docLabel}>ID Card (Front)</span>
-                    <div className={styles.docPreview}>
-                      <FaFileAlt className={styles.docIcon} />
-                      <p>id-card-front.jpg</p>
+                  {selectedConsultant.idCardFront && (
+                    <div className={styles.docCard}>
+                      <span className={styles.docLabel}>ID Card (Front)</span>
+                      <div className={styles.docPreview}>
+                        {selectedConsultant.idCardFront.startsWith('data:') ? (
+                          <img 
+                            src={selectedConsultant.idCardFront} 
+                            alt="ID Card Front" 
+                            className={styles.docImage}
+                          />
+                        ) : (
+                          <>
+                            <FaFileAlt className={styles.docIcon} />
+                            <p>id-card-front.jpg</p>
+                          </>
+                        )}
+                      </div>
+                      {selectedConsultant.idCardFront.startsWith('data:') && (
+                        <a 
+                          href={selectedConsultant.idCardFront} 
+                          download="id-card-front.jpg"
+                          className={styles.downloadButton}
+                        >
+                          Download
+                        </a>
+                      )}
                     </div>
-                    <button className={styles.downloadButton}>View/Download</button>
-                  </div>
-                  <div className={styles.docCard}>
-                    <span className={styles.docLabel}>ID Card (Back)</span>
-                    <div className={styles.docPreview}>
-                      <FaFileAlt className={styles.docIcon} />
-                      <p>id-card-back.jpg</p>
+                  )}
+                  {selectedConsultant.idCardBack && (
+                    <div className={styles.docCard}>
+                      <span className={styles.docLabel}>ID Card (Back)</span>
+                      <div className={styles.docPreview}>
+                        {selectedConsultant.idCardBack.startsWith('data:') ? (
+                          <img 
+                            src={selectedConsultant.idCardBack} 
+                            alt="ID Card Back" 
+                            className={styles.docImage}
+                          />
+                        ) : (
+                          <>
+                            <FaFileAlt className={styles.docIcon} />
+                            <p>id-card-back.jpg</p>
+                          </>
+                        )}
+                      </div>
+                      {selectedConsultant.idCardBack.startsWith('data:') && (
+                        <a 
+                          href={selectedConsultant.idCardBack} 
+                          download="id-card-back.jpg"
+                          className={styles.downloadButton}
+                        >
+                          Download
+                        </a>
+                      )}
                     </div>
-                    <button className={styles.downloadButton}>View/Download</button>
-                  </div>
+                  )}
                 </div>
 
-                {selectedConsultant.supportingDocs.length > 0 && (
+                {selectedConsultant.supportingDocs && selectedConsultant.supportingDocs.length > 0 && (
                   <>
                     <h3>Supporting Documents</h3>
                     <div className={styles.docsList}>
                       {selectedConsultant.supportingDocs.map((doc: string, index: number) => (
                         <div key={index} className={styles.docItem}>
-                          <FaFileAlt className={styles.docItemIcon} />
-                          <span>Document {index + 1}</span>
-                          <button className={styles.downloadButton}>View/Download</button>
+                          {doc.startsWith('data:') ? (
+                            <>
+                              <div className={styles.docImageWrapper}>
+                                <img 
+                                  src={doc} 
+                                  alt={`Supporting Document ${index + 1}`}
+                                  className={styles.docThumbnail}
+                                />
+                              </div>
+                              <span>Document {index + 1}</span>
+                              <a 
+                                href={doc} 
+                                download={`supporting-doc-${index + 1}.jpg`}
+                                className={styles.downloadButton}
+                              >
+                                Download
+                              </a>
+                            </>
+                          ) : (
+                            <>
+                              <FaFileAlt className={styles.docItemIcon} />
+                              <span>Document {index + 1}</span>
+                              <button className={styles.downloadButton}>View/Download</button>
+                            </>
+                          )}
                         </div>
                       ))}
                     </div>

@@ -1,0 +1,419 @@
+.pageContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #ffffff;
+  border: 2px solid #014751;
+  border-radius: 8px;
+  color: #014751;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.backButton:hover {
+  background: #014751;
+  color: #ffffff;
+  transform: translateX(-4px);
+}
+
+.pageTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #014751;
+  margin: 0;
+}
+
+/* Stats Cards */
+.statsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.statIcon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #014751;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Filters */
+.filtersContainer {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
+}
+
+.filterButton {
+  padding: 0.75rem 1.5rem;
+  background: #f5f7fa;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  color: #666;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filterButton:hover {
+  background: #e8eef5;
+  color: #014751;
+}
+
+.filterActive {
+  background: #014751;
+  color: #ffffff;
+  border-color: #014751;
+}
+
+/* Proposals List */
+.proposalsContainer {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: #666;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #014751;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 5rem;
+  margin-bottom: 1rem;
+}
+
+.emptyState h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.emptyState p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.browseJobsButton {
+  padding: 1rem 2rem;
+  background: #014751;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.browseJobsButton:hover {
+  background: #023540;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(1, 71, 81, 0.3);
+}
+
+.proposalsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.proposalCard {
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.proposalCard:hover {
+  border-color: #014751;
+  box-shadow: 0 4px 12px rgba(1, 71, 81, 0.1);
+}
+
+.proposalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.proposalTitle h3 {
+  font-size: 1.25rem;
+  color: #014751;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+}
+
+.proposalCategory {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #e0f2f1;
+  color: #014751;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.statusPending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.statusAccepted {
+  background: #d4edda;
+  color: #155724;
+}
+
+.statusRejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.statusIconPending,
+.statusIconAccepted,
+.statusIconRejected {
+  font-size: 1rem;
+}
+
+.proposalMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.metaIcon {
+  color: #014751;
+  font-size: 1rem;
+}
+
+.metaLabel {
+  color: #666;
+  font-weight: 500;
+}
+
+.metaValue {
+  color: #333;
+  font-weight: 600;
+}
+
+.proposalContent h4 {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+
+.coverLetterPreview {
+  color: #333;
+  line-height: 1.6;
+  margin: 0 0 1rem 0;
+  font-size: 0.938rem;
+}
+
+.jobBudget {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #e8f5e9;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.budgetLabel {
+  color: #666;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.budgetValue {
+  color: #2e7d32;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.proposalActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.viewJobButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #014751;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.viewJobButton:hover {
+  background: #023540;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(1, 71, 81, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pageTitle {
+    font-size: 1.5rem;
+  }
+
+  .statsContainer {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .statCard {
+    padding: 1rem;
+  }
+
+  .statValue {
+    font-size: 1.5rem;
+  }
+
+  .filtersContainer {
+    gap: 0.5rem;
+  }
+
+  .filterButton {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .proposalHeader {
+    flex-direction: column;
+  }
+
+  .proposalMeta {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .proposalActions {
+    justify-content: stretch;
+  }
+
+  .viewJobButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

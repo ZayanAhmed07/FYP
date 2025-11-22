@@ -13,6 +13,8 @@ const envSchema = Joi.object({
   MONGODB_URI: Joi.string().uri().required(),
   JWT_SECRET: Joi.string().min(16).required(),
   JWT_EXPIRES_IN: Joi.string().default('1d'),
+  FRONTEND_URL: Joi.string().uri().default('http://localhost:3000'),
+  PASSWORD_RESET_EXPIRES_IN: Joi.string().default('1h'),
   LOG_LEVEL: Joi.string().valid('error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly').default('info'),
 })
   .unknown()
@@ -31,8 +33,11 @@ export const env = {
   mongodbUri: value.MONGODB_URI as string,
   jwtSecret: value.JWT_SECRET as string,
   jwtExpiresIn: value.JWT_EXPIRES_IN as string,
+  frontendUrl: value.FRONTEND_URL as string,
+  passwordResetExpiresIn: value.PASSWORD_RESET_EXPIRES_IN as string,
   logLevel: value.LOG_LEVEL as string,
 };
+
 
 
 

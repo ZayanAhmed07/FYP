@@ -8,6 +8,7 @@ import proposalRoutes from '../modules/proposal/proposal.routes';
 import orderRoutes from '../modules/order/order.routes';
 import adminRoutes from '../modules/admin/admin.routes';
 import messagingRoutes from '../modules/messaging/messaging.routes';
+import reviewRoutes from '../modules/review/review.routes';
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.use('/jobs', jobRoutes);
 router.use('/proposals', proposalRoutes);
 router.use('/orders', orderRoutes);
 router.use('/messages', messagingRoutes);
+router.use('/reviews', reviewRoutes);
 
 // Admin
 router.use('/admin', adminRoutes);

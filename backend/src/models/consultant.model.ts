@@ -21,6 +21,7 @@ export interface IConsultant {
   availability: 'available' | 'limited' | 'unavailable';  // Current availability status
   experience: string;               // Years/description of experience
   skills: string[];                 // Technical skills and competencies (maps to diagram)
+  city?: string;                    // Location/city of consultant
   
   // Verification Documents (for Admin verification via VerifyConsultant())
   idCardFront?: string;             // URL to ID card front image
@@ -34,6 +35,8 @@ export interface IConsultant {
   rating: number;                   // Average rating from reviews (0-5 stars)
   totalProjects: number;            // Number of completed projects
   totalEarnings: number;            // Lifetime earnings
+  averageRating?: number;           // Calculated from reviews (0-5 stars, rounded to 1 decimal)
+  totalReviews?: number;            // Total number of reviews received
 }
 
 export interface ConsultantDocument extends IConsultant, Document {
@@ -67,6 +70,7 @@ const consultantSchema = new Schema<ConsultantDocument, ConsultantModel>(
     },
     experience: { type: String, required: true },
     skills: { type: [String], default: [] },
+    city: { type: String },
     
     // Verification documents (uploadverificationdocs() in diagram)
     idCardFront: { type: String },
@@ -80,6 +84,8 @@ const consultantSchema = new Schema<ConsultantDocument, ConsultantModel>(
     rating: { type: Number, default: 0, min: 0, max: 5 },
     totalProjects: { type: Number, default: 0 },
     totalEarnings: { type: Number, default: 0 },
+    averageRating: { type: Number, default: 0, min: 0, max: 5 },
+    totalReviews: { type: Number, default: 0 },
   },
   {
     timestamps: true,
@@ -94,5 +100,6 @@ const consultantSchema = new Schema<ConsultantDocument, ConsultantModel>(
  * These operations are handled through the service layer
  */
 export const Consultant = model<ConsultantDocument, ConsultantModel>('Consultant', consultantSchema);
+
 
 

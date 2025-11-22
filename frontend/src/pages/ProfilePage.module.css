@@ -1,7 +1,7 @@
 .container {
   min-height: 100vh;
   background: #f8f9fa;
-  padding: 40px 20px;
+  padding: 48px 24px;
 }
 
 .wrapper {
@@ -13,36 +13,40 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 40px;
+  margin-bottom: 48px;
 }
 
 .backButton {
   background: #ffffff;
   color: #003b42;
-  border: 1px solid #e0e6ed;
+  border: 2px solid #e0e6ed;
   font-family: 'Reddit Sans', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  padding: 10px 20px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  padding: 12px 24px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .backButton:hover {
   background: #f0f3f7;
   border-color: #003b42;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .title {
   font-family: 'Reddit Sans', sans-serif;
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
   color: #003b42;
   margin: 0;
+  letter-spacing: -0.5px;
 }
 
 .mainContent {
@@ -59,18 +63,18 @@
 
 .profileCard {
   background: #ffffff;
-  border-radius: 16px;
-  padding: 32px 24px;
+  border-radius: 20px;
+  padding: 36px 28px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e0e6ed;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  border: 2px solid #e0e6ed;
 }
 
 .profileImageContainer {
   position: relative;
-  width: 90px;
-  height: 90px;
-  margin: 0 auto 16px;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,8 +85,8 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid #003b42;
-  box-shadow: 0 4px 12px rgba(0, 59, 66, 0.15);
+  border: 5px solid #003b42;
+  box-shadow: 0 6px 20px rgba(0, 59, 66, 0.2);
 }
 
 .defaultIcon {
@@ -94,20 +98,20 @@
 
 .uploadLabel {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
+  bottom: 0;
+  right: 0;
   background: #003b42;
   color: #ffffff;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 59, 66, 0.2);
-  border: 2px solid #ffffff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 59, 66, 0.3);
+  border: 3px solid #ffffff;
 }
 
 .uploadLabel:hover {
@@ -120,15 +124,17 @@
 
 .userName {
   font-family: 'Reddit Sans', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   color: #003b42;
-  margin: 16px 0 4px 0;
+  margin: 20px 0 6px 0;
+  letter-spacing: -0.2px;
 }
 
 .userEmail {
   font-family: 'Reddit Sans', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
   color: #5a6c7d;
   margin: 0;
 }
@@ -142,10 +148,10 @@
 
 .card {
   background: #ffffff;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e0e6ed;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  border: 2px solid #e0e6ed;
 }
 
 .cardTitle {

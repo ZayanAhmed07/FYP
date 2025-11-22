@@ -111,3 +111,32 @@ export const verifyConsultant = async (id: string) => {
   return consultant;
 };
 
+export const createCompleteProfile = async (profileData: any) => {
+  // Check if consultant profile already exists for this user
+  const existingConsultant = await Consultant.findOne({ userId: profileData.userId });
+  if (existingConsultant) {
+    throw new ApiError(400, 'Consultant profile already exists for this user');
+  }
+
+  // Parse specialization and skills if they come as comma-separated strings from FormData
+  if (profileData['specialization[]']) {
+    profileData.specialization = Array.isArray(profileData['specialization[]']) 
+      ? profileData['specialization[]'] 
+      : [profileData['specialization[]']];
+    delete profileData['specialization[]'];
+  }
+
+  if (profileData['skills[]']) {
+    profileData.skills = Array.isArray(profileData['skills[]']) 
+      ? profileData['skills[]'] 
+      : [profileData['skills[]']];
+    delete profileData['skills[]'];
+  }
+
+  // Set isVerified to false by default (admin will verify)
+  profileData.isVerified = false;
+
+  const consultant = await Consultant.create(profileData);
+  return consultant.populate('userId', 'name email profileImage isBanned');
+};
+

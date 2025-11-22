@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { FaSearch, FaPaperPlane, FaUserCircle, FaPhone, FaVideo, FaEllipsisV, FaPaperclip } from 'react-icons/fa';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
+import { useSocket } from '../hooks/useSocket';
 import styles from './MessagingPage.module.css';
 
 interface User {
@@ -16,8 +17,10 @@ interface User {
 interface Message {
   _id: string;
   conversationId: string;
-  sender: User;
-  receiver: User;
+  sender?: User;
+  senderId?: User;
+  receiver?: User;
+  receiverId?: User;
   content: string;
   createdAt: string;
 }
@@ -51,9 +54,58 @@ const MessagingPage = () => {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  // Helper to determine user's account type (some responses use `accountType`, others `roles` or `role`)
+  const getAccountType = (user: any) => {
+    if (!user) return 'buyer';
+    if (user.accountType) return user.accountType;
+    if (Array.isArray(user.roles) && user.roles.includes('consultant')) return 'consultant';
+    if (user.role) return user.role;
+    return 'buyer';
+  };
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Socket.IO connection for real-time messaging
+  const { 
+    connect, 
+    disconnect, 
+    isConnected, 
+    markConversationAsRead,
+  } = useSocket({
+    onMessageReceive: (data) => {
+      console.log('[MessagingPage] Real-time message received:', data);
+      // If message is for current conversation, add it
+      if (data.message && selectedUserId) {
+        const senderId = data.message.senderId?._id || data.message.senderId;
+        if (senderId === selectedUserId) {
+          setMessages(prev => [...prev, data.message]);
+          // Mark as read since user is viewing the conversation
+          markAsRead(selectedUserId);
+        }
+      }
+      // Refresh conversations to update list
+      fetchConversations();
+    },
+    onMessagesRead: (data) => {
+      console.log('[MessagingPage] Messages marked as read:', data);
+      // Update message statuses
+      if (data.messageIds && Array.isArray(data.messageIds)) {
+        setMessages(prev => 
+          prev.map(msg => 
+            data.messageIds.includes(msg._id) 
+              ? { ...msg, isRead: true, status: 'seen' }
+              : msg
+          )
+        );
+      }
+    },
+    onUnreadCountUpdate: (data) => {
+      console.log('[MessagingPage] Unread count updated:', data);
+      // Refresh conversations to show updated counts
+      fetchConversations();
+    },
+  });
 
   // Initialize and fetch user
   useEffect(() => {
@@ -62,15 +114,28 @@ const MessagingPage = () => {
       navigate('/login');
       return;
     }
-    setCurrentUser(user);
+    // Normalize user id fields: some responses use `id`, others `_id`.
+    const normalizedUser = {
+      ...user,
+      id: (user as any).id ?? (user as any)._id,
+      _id: (user as any)._id ?? (user as any).id,
+    } as any;
+    setCurrentUser(normalizedUser);
+    
+    // Connect to Socket.IO
+    connect();
+    
     fetchConversations();
 
-    // Poll conversations every 5 seconds
+    // Poll conversations less frequently since we have real-time updates
     const conversationInterval = setInterval(() => {
       fetchConversations();
-    }, 5000);
+    }, 10000); // Reduced from 5s to 10s
 
-    return () => clearInterval(conversationInterval);
+    return () => {
+      clearInterval(conversationInterval);
+      disconnect();
+    };
   }, [navigate]);
 
   // Handle URL parameter changes
@@ -116,31 +181,45 @@ const MessagingPage = () => {
   const fetchMessages = async (otherUserId: string) => {
     try {
       setLoading(true);
+      console.log('[MessagingPage] Fetching messages with user:', otherUserId);
       const response = await httpClient.get(`/messages/${otherUserId}`);
+      console.log('[MessagingPage] Messages response:', response.data);
+      
       const data = response.data?.data;
       if (data?.messages) {
+        // Keep original order (oldest first, newest last)
         setMessages(data.messages);
       } else if (Array.isArray(data)) {
         setMessages(data);
       } else {
         setMessages([]);
       }
-    } catch (error) {
-      console.error('Failed to fetch messages', error);
+    } catch (error: any) {
+      console.error('[MessagingPage] Failed to fetch messages:', {
+        error: error.response?.data || error.message,
+        otherUserId
+      });
       setMessages([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const markAsRead = async (otherUserId: string) => {
+  const markAsRead = useCallback(async (otherUserId: string) => {
     try {
-      await httpClient.patch(`/messages/${otherUserId}/read`);
+      // Try Socket.IO first for real-time updates
+      if (isConnected) {
+        await markConversationAsRead(otherUserId);
+      } else {
+        // Fallback to HTTP if socket not connected
+        await httpClient.patch(`/messages/${otherUserId}/read`);
+      }
+      // Refresh conversations to update unread counts
       fetchConversations();
     } catch (error) {
       console.error('Failed to mark as read', error);
     }
-  };
+  }, [isConnected]);
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,17 +231,37 @@ const MessagingPage = () => {
     
     try {
       setSending(true);
-      await httpClient.post('/messages', {
+      console.log('[MessagingPage] Sending message:', { 
+        receiverId: selectedUserId, 
+        content: messageContent,
+        currentUser: currentUser?.id || currentUser?._id
+      });
+      
+      const response = await httpClient.post('/messages', {
         receiverId: selectedUserId,
         content: messageContent,
       });
+      
+      console.log('[MessagingPage] Message sent successfully:', response.data);
 
+      // Immediately add the message to the UI for instant feedback
+      if (response.data?.data) {
+        setMessages(prev => [...prev, response.data.data]);
+      }
+
+      // Then fetch to sync
       await fetchMessages(selectedUserId);
       await fetchConversations();
       inputRef.current?.focus();
-    } catch (error) {
-      console.error('Failed to send message', error);
+    } catch (error: any) {
+      console.error('[MessagingPage] Failed to send message:', {
+        error: error.response?.data || error.message,
+        status: error.response?.status,
+        receiverId: selectedUserId
+      });
+      // Restore message if failed
       setNewMessage(messageContent);
+      alert('Failed to send message: ' + (error.response?.data?.message || error.message));
     } finally {
       setSending(false);
     }
@@ -271,8 +370,8 @@ const MessagingPage = () => {
           <div className={styles.logoSection}>
             <button 
               className={styles.backToDashboardSidebar} 
-              onClick={() => {
-                const role = currentUser?.role || 'buyer';
+                onClick={() => {
+                const role = getAccountType(currentUser);
                 if (role === 'consultant') {
                   navigate('/consultant-dashboard');
                 } else if (role === 'admin') {
@@ -349,7 +448,9 @@ const MessagingPage = () => {
 
                   <div className={styles.conversationContent}>
                     <div className={styles.conversationTop}>
-                      <span className={styles.conversationName}>{otherUser.name}</span>
+                      <span className={`${styles.conversationName} ${unreadCount > 0 ? styles.unreadName : ''}`}>
+                        {otherUser.name}
+                      </span>
                       <span className={styles.conversationTime}>
                         {conversation.lastMessage?.createdAt
                           ? formatTime(conversation.lastMessage.createdAt)
@@ -359,7 +460,7 @@ const MessagingPage = () => {
                       </span>
                     </div>
                     <div className={styles.conversationBottom}>
-                      <p className={styles.conversationPreview}>
+                      <p className={`${styles.conversationPreview} ${unreadCount > 0 ? styles.unreadPreview : ''}`}>
                         {conversation.lastMessage?.content || 'Such a great consultation session it was. WI...'}
                       </p>
                       {unreadCount > 0 && <span className={styles.unreadCount}>{unreadCount}</span>}
@@ -379,22 +480,6 @@ const MessagingPage = () => {
             {/* Chat Header */}
             <header className={styles.chatHeader}>
               <div className={styles.chatHeaderLeft}>
-                <button 
-                  className={styles.backToDashboard} 
-                  onClick={() => {
-                    const role = currentUser?.role || 'buyer';
-                    if (role === 'consultant') {
-                      navigate('/consultant-dashboard');
-                    } else if (role === 'admin') {
-                      navigate('/admin-dashboard');
-                    } else {
-                      navigate('/buyer-dashboard');
-                    }
-                  }}
-                  title="Back to Dashboard"
-                >
-                  ← Back
-                </button>
                 <div className={styles.chatHeaderAvatar}>
                   {selectedUser.profileImage ? (
                     <img src={selectedUser.profileImage} alt={selectedUser.name} />
@@ -444,7 +529,10 @@ const MessagingPage = () => {
                         <span>{group.date}</span>
                       </div>
                       {group.messages.map((message) => {
-                        const isSent = message.sender?._id === currentUser?._id;
+                        const messageSender = message.sender || message.senderId;
+                        const isSent =
+                          messageSender?._id === currentUser?._id || messageSender?._id === currentUser?.id ||
+                          messageSender?.id === currentUser?._id || messageSender?.id === currentUser?.id;
                         return (
                           <div
                             key={message._id}
@@ -452,8 +540,8 @@ const MessagingPage = () => {
                           >
                             {!isSent && (
                               <div className={styles.messageAvatar}>
-                                {message.sender?.profileImage ? (
-                                  <img src={message.sender.profileImage} alt={message.sender?.name || 'User'} />
+                                {messageSender?.profileImage ? (
+                                  <img src={messageSender.profileImage} alt={messageSender?.name || 'User'} />
                                 ) : (
                                   <FaUserCircle className={styles.messageDefaultAvatar} />
                                 )}

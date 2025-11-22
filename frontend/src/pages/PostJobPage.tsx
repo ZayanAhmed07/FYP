@@ -96,6 +96,15 @@ const PostJobPage = () => {
     setShowAIAssistant(false);
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleSubmit = async () => {
     try {
       const currentUser = authService.getCurrentUser();
@@ -155,6 +164,21 @@ const PostJobPage = () => {
         karachi: 'Karachi, Pakistan',
       };
 
+      // Convert files to base64
+      const attachmentsBase64: string[] = [];
+      if (jobData.attachments && jobData.attachments.length > 0) {
+        for (const file of jobData.attachments) {
+          try {
+            const base64 = await fileToBase64(file);
+            attachmentsBase64.push(base64);
+          } catch (error) {
+            console.error(`Failed to convert file ${file.name} to base64`, error);
+            setSubmitError(`Failed to process file: ${file.name}`);
+            return;
+          }
+        }
+      }
+
       const payload = {
         category: jobData.category,
         title: jobData.title,
@@ -166,7 +190,7 @@ const PostJobPage = () => {
         timeline: jobData.timeline,
         location: locationMap[jobData.location] || jobData.location,
         skills: jobData.skills,
-        attachments: [],
+        attachments: attachmentsBase64,
       };
 
       if (isEditMode && jobId) {
@@ -384,6 +408,35 @@ const PostJobPage = () => {
                       📎 Upload Documents
                     </label>
                   </div>
+                  
+                  {/* Display uploaded files */}
+                  {jobData.attachments && jobData.attachments.length > 0 && (
+                    <div className={styles.uploadedFilesList}>
+                      <p className={styles.uploadedFilesTitle}>Selected Files:</p>
+                      <ul className={styles.filesList}>
+                        {jobData.attachments.map((file, index) => (
+                          <li key={index} className={styles.fileItem}>
+                            <span className={styles.fileName}>{file.name}</span>
+                            <span className={styles.fileSize}>
+                              ({(file.size / 1024).toFixed(2)} KB)
+                            </span>
+                            <button
+                              type="button"
+                              className={styles.removeFileButton}
+                              onClick={() => {
+                                setJobData({
+                                  ...jobData,
+                                  attachments: jobData.attachments.filter((_, i) => i !== index),
+                                });
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -425,6 +478,23 @@ const PostJobPage = () => {
                     <span className={styles.reviewLabel}>Timeline:</span>
                     <span className={styles.reviewValue}>{jobData.timeline || 'Not specified'}</span>
                   </div>
+                  
+                  {/* Display attachments in review */}
+                  {jobData.attachments && jobData.attachments.length > 0 && (
+                    <div className={styles.reviewItem}>
+                      <span className={styles.reviewLabel}>Attachments:</span>
+                      <div className={styles.reviewAttachments}>
+                        {jobData.attachments.map((file, index) => (
+                          <div key={index} className={styles.attachmentItem}>
+                            <span className={styles.attachmentName}>{file.name}</span>
+                            <span className={styles.attachmentSize}>
+                              ({(file.size / 1024).toFixed(2)} KB)
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

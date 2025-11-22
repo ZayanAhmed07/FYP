@@ -7,15 +7,53 @@ export const createMessage = catchAsync(async (req: Request, res: Response) => {
   const senderId = req.user?.id;
   const { receiverId, content, attachments } = req.body;
 
+  // Debug log for incoming message requests
+  console.log('[messaging.controller] createMessage request', { 
+    senderId, 
+    receiverId, 
+    hasContent: !!content,
+    contentLength: content?.length,
+    user: req.user 
+  });
+
   if (!senderId) {
-    throw new ApiError(401, 'Authentication required');
+    console.error('[messaging.controller] No senderId - user not authenticated');
+    throw new ApiError(401, 'Authentication required - please log in again');
   }
-  if (!receiverId || !content) {
-    throw new ApiError(400, 'Receiver ID and content are required');
+  
+  if (!receiverId) {
+    console.error('[messaging.controller] No receiverId provided');
+    throw new ApiError(400, 'Receiver ID is required');
+  }
+  
+  if (!content || typeof content !== 'string') {
+    console.error('[messaging.controller] Invalid content', { content, type: typeof content });
+    throw new ApiError(400, 'Message content is required and must be a string');
   }
 
-  const message = await messagingService.createMessage(senderId, receiverId, content, attachments);
-  res.status(201).json({ success: true, data: message });
+  try {
+    const message = await messagingService.createMessage(senderId, receiverId, content, attachments);
+
+    if (!message) {
+      console.error('[messaging.controller] Message creation returned null/undefined');
+      throw new ApiError(500, 'Failed to create message - no message returned');
+    }
+
+    console.log('[messaging.controller] message created successfully', { 
+      messageId: message?._id, 
+      conversationId: (message as any)?.conversationId 
+    });
+    
+    res.status(201).json({ success: true, data: message });
+  } catch (error: any) {
+    console.error('[messaging.controller] Error creating message:', {
+      error: error.message,
+      stack: error.stack,
+      senderId,
+      receiverId
+    });
+    throw error;
+  }
 });
 
 export const getConversations = catchAsync(async (req: Request, res: Response) => {
