@@ -1,9 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { FaSearch, FaPaperPlane, FaUserCircle, FaPhone, FaVideo, FaEllipsisV, FaPaperclip } from 'react-icons/fa';
+import {
+  FaSearch,
+  FaPaperPlane,
+  FaUserCircle,
+  FaPhone,
+  FaVideo,
+  FaEllipsisV,
+  FaPaperclip,
+} from 'react-icons/fa';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
 import { useSocket } from '../hooks/useSocket';
+import NotificationDropdown from '../components/layout/NotificationDropdown';
 import styles from './MessagingPage.module.css';
 
 interface User {
@@ -42,7 +51,7 @@ const MessagingPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { userId: selectedUserIdParam } = useParams();
-  
+
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(selectedUserIdParam || null);
@@ -62,24 +71,19 @@ const MessagingPage = () => {
     if (user.role) return user.role;
     return 'buyer';
   };
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Socket.IO connection for real-time messaging
-  const { 
-    connect, 
-    disconnect, 
-    isConnected, 
-    markConversationAsRead,
-  } = useSocket({
+  const { connect, disconnect, isConnected, markConversationAsRead } = useSocket({
     onMessageReceive: (data) => {
       console.log('[MessagingPage] Real-time message received:', data);
       // If message is for current conversation, add it
       if (data.message && selectedUserId) {
         const senderId = data.message.senderId?._id || data.message.senderId;
         if (senderId === selectedUserId) {
-          setMessages(prev => [...prev, data.message]);
+          setMessages((prev) => [...prev, data.message]);
           // Mark as read since user is viewing the conversation
           markAsRead(selectedUserId);
         }
@@ -91,12 +95,10 @@ const MessagingPage = () => {
       console.log('[MessagingPage] Messages marked as read:', data);
       // Update message statuses
       if (data.messageIds && Array.isArray(data.messageIds)) {
-        setMessages(prev => 
-          prev.map(msg => 
-            data.messageIds.includes(msg._id) 
-              ? { ...msg, isRead: true, status: 'seen' }
-              : msg
-          )
+        setMessages((prev) =>
+          prev.map((msg) =>
+            data.messageIds.includes(msg._id) ? { ...msg, isRead: true, status: 'seen' } : msg,
+          ),
         );
       }
     },
@@ -121,10 +123,10 @@ const MessagingPage = () => {
       _id: (user as any)._id ?? (user as any).id,
     } as any;
     setCurrentUser(normalizedUser);
-    
+
     // Connect to Socket.IO
     connect();
-    
+
     fetchConversations();
 
     // Poll conversations less frequently since we have real-time updates
@@ -184,7 +186,7 @@ const MessagingPage = () => {
       console.log('[MessagingPage] Fetching messages with user:', otherUserId);
       const response = await httpClient.get(`/messages/${otherUserId}`);
       console.log('[MessagingPage] Messages response:', response.data);
-      
+
       const data = response.data?.data;
       if (data?.messages) {
         // Keep original order (oldest first, newest last)
@@ -197,7 +199,7 @@ const MessagingPage = () => {
     } catch (error: any) {
       console.error('[MessagingPage] Failed to fetch messages:', {
         error: error.response?.data || error.message,
-        otherUserId
+        otherUserId,
       });
       setMessages([]);
     } finally {
@@ -205,48 +207,51 @@ const MessagingPage = () => {
     }
   };
 
-  const markAsRead = useCallback(async (otherUserId: string) => {
-    try {
-      // Try Socket.IO first for real-time updates
-      if (isConnected) {
-        await markConversationAsRead(otherUserId);
-      } else {
-        // Fallback to HTTP if socket not connected
-        await httpClient.patch(`/messages/${otherUserId}/read`);
+  const markAsRead = useCallback(
+    async (otherUserId: string) => {
+      try {
+        // Try Socket.IO first for real-time updates
+        if (isConnected) {
+          await markConversationAsRead(otherUserId);
+        } else {
+          // Fallback to HTTP if socket not connected
+          await httpClient.patch(`/messages/${otherUserId}/read`);
+        }
+        // Refresh conversations to update unread counts
+        fetchConversations();
+      } catch (error) {
+        console.error('Failed to mark as read', error);
       }
-      // Refresh conversations to update unread counts
-      fetchConversations();
-    } catch (error) {
-      console.error('Failed to mark as read', error);
-    }
-  }, [isConnected]);
+    },
+    [isConnected],
+  );
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newMessage.trim() || !selectedUserId || sending) return;
 
     const messageContent = newMessage.trim();
     setNewMessage('');
-    
+
     try {
       setSending(true);
-      console.log('[MessagingPage] Sending message:', { 
-        receiverId: selectedUserId, 
+      console.log('[MessagingPage] Sending message:', {
+        receiverId: selectedUserId,
         content: messageContent,
-        currentUser: currentUser?.id || currentUser?._id
+        currentUser: currentUser?.id || currentUser?._id,
       });
-      
+
       const response = await httpClient.post('/messages', {
         receiverId: selectedUserId,
         content: messageContent,
       });
-      
+
       console.log('[MessagingPage] Message sent successfully:', response.data);
 
       // Immediately add the message to the UI for instant feedback
       if (response.data?.data) {
-        setMessages(prev => [...prev, response.data.data]);
+        setMessages((prev) => [...prev, response.data.data]);
       }
 
       // Then fetch to sync
@@ -257,7 +262,7 @@ const MessagingPage = () => {
       console.error('[MessagingPage] Failed to send message:', {
         error: error.response?.data || error.message,
         status: error.response?.status,
-        receiverId: selectedUserId
+        receiverId: selectedUserId,
       });
       // Restore message if failed
       setNewMessage(messageContent);
@@ -323,11 +328,6 @@ const MessagingPage = () => {
     }
   };
 
-  const formatMessageTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-  };
-
   const getTotalUnread = () => {
     return conversations.reduce((sum, conv) => sum + getUnreadCount(conv), 0);
   };
@@ -368,14 +368,14 @@ const MessagingPage = () => {
       <aside className={styles.conversationsSidebar}>
         <div className={styles.topBar}>
           <div className={styles.logoSection}>
-            <button 
-              className={styles.backToDashboardSidebar} 
-                onClick={() => {
+            <button
+              className={styles.backToDashboardSidebar}
+              onClick={() => {
                 const role = getAccountType(currentUser);
                 if (role === 'consultant') {
                   navigate('/consultant-dashboard');
                 } else if (role === 'admin') {
-                  navigate('/admin-dashboard');
+                  navigate('/admin');
                 } else {
                   navigate('/buyer-dashboard');
                 }
@@ -388,12 +388,13 @@ const MessagingPage = () => {
             <h1 className={styles.logoText}>EXPERT RAAH</h1>
           </div>
           <div className={styles.topBarActions}>
-            <button className={styles.topBarBtn} title="Notifications">
-              🔔
-              {getTotalUnread() > 0 && <span className={styles.notificationBadge}>{getTotalUnread()}</span>}
-            </button>
+            <NotificationDropdown />
             {currentUser?.profileImage ? (
-              <img src={currentUser.profileImage} alt={currentUser.name} className={styles.userAvatar} />
+              <img
+                src={currentUser.profileImage}
+                alt={currentUser.name}
+                className={styles.userAvatar}
+              />
             ) : (
               <FaUserCircle className={styles.userAvatar} />
             )}
@@ -402,7 +403,8 @@ const MessagingPage = () => {
 
         <div className={styles.conversationsHeader}>
           <h2 className={styles.conversationsTitle}>
-            Messages {getTotalUnread() > 0 && <span className={styles.unreadBadge}>{getTotalUnread()}</span>}
+            Messages{' '}
+            {getTotalUnread() > 0 && <span className={styles.unreadBadge}>{getTotalUnread()}</span>}
           </h2>
           <span className={styles.dropdownIcon}>▼</span>
         </div>
@@ -448,7 +450,9 @@ const MessagingPage = () => {
 
                   <div className={styles.conversationContent}>
                     <div className={styles.conversationTop}>
-                      <span className={`${styles.conversationName} ${unreadCount > 0 ? styles.unreadName : ''}`}>
+                      <span
+                        className={`${styles.conversationName} ${unreadCount > 0 ? styles.unreadName : ''}`}
+                      >
                         {otherUser.name}
                       </span>
                       <span className={styles.conversationTime}>
@@ -460,8 +464,11 @@ const MessagingPage = () => {
                       </span>
                     </div>
                     <div className={styles.conversationBottom}>
-                      <p className={`${styles.conversationPreview} ${unreadCount > 0 ? styles.unreadPreview : ''}`}>
-                        {conversation.lastMessage?.content || 'Such a great consultation session it was. WI...'}
+                      <p
+                        className={`${styles.conversationPreview} ${unreadCount > 0 ? styles.unreadPreview : ''}`}
+                      >
+                        {conversation.lastMessage?.content ||
+                          'Such a great consultation session it was. WI...'}
                       </p>
                       {unreadCount > 0 && <span className={styles.unreadCount}>{unreadCount}</span>}
                     </div>
@@ -531,8 +538,7 @@ const MessagingPage = () => {
                       {group.messages.map((message) => {
                         const messageSender = message.sender || message.senderId;
                         const isSent =
-                          messageSender?._id === currentUser?._id || messageSender?._id === currentUser?.id ||
-                          messageSender?.id === currentUser?._id || messageSender?.id === currentUser?.id;
+                          messageSender?._id === currentUser?.id;
                         return (
                           <div
                             key={message._id}
@@ -541,7 +547,10 @@ const MessagingPage = () => {
                             {!isSent && (
                               <div className={styles.messageAvatar}>
                                 {messageSender?.profileImage ? (
-                                  <img src={messageSender.profileImage} alt={messageSender?.name || 'User'} />
+                                  <img
+                                    src={messageSender.profileImage}
+                                    alt={messageSender?.name || 'User'}
+                                  />
                                 ) : (
                                   <FaUserCircle className={styles.messageDefaultAvatar} />
                                 )}

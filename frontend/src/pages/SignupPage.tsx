@@ -23,9 +23,11 @@ const SignupPage = () => {
   const handleSocialLogin = (provider: string) => {
     if (provider === 'Email') {
       setShowEmailForm(true);
+    } else if (provider === 'Google') {
+      authService.loginWithGoogle();
     } else {
       alert(`${provider} authentication is not yet implemented. Please use email signup/login.`);
-      // TODO: Implement OAuth providers
+      // TODO: Implement other OAuth providers
     }
   };
 
@@ -311,6 +313,19 @@ const SignupPage = () => {
                   {loading ? 'Logging in...' : 'Login'}
                 </button>
               </form>
+
+              <div className={styles.separator}>
+                <span>or</span>
+              </div>
+
+              <button 
+                className={styles.socialButton}
+                onClick={() => handleSocialLogin('Google')}
+                disabled={loading}
+              >
+                <FaGoogle className={styles.socialIcon} />
+                <span>Continue with Google</span>
+              </button>
 
               <div className={styles.signupLink}>
                 Don't have an account? <span className={styles.loginLinkButton} onClick={() => {

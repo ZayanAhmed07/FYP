@@ -20,8 +20,9 @@ type AuthResponse = {
     email: string;
     name: string;
     roles: string[];
-    accountType?: 'buyer' | 'consultant';
+    accountType?: 'buyer' | 'consultant' | 'admin';
     isVerified?: boolean;
+    profileImage?: string;
   };
 };
 
@@ -33,6 +34,11 @@ const login = async (payload: { email: string; password: string }): Promise<Auth
   localStorage.setItem(USER_KEY, JSON.stringify(data.data.user));
   
   return data.data;
+};
+
+const loginWithGoogle = () => {
+  // Redirect to backend Google auth endpoint
+  window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/google`;
 };
 
 const register = async (payload: { 
@@ -100,6 +106,7 @@ const resetPassword = async (payload: { token: string; password: string }) => {
 
 export const authService = {
   login,
+  loginWithGoogle,
   register,
   getProfile,
   logout,

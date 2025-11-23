@@ -1,7 +1,27 @@
+import { useNavigate } from 'react-router-dom';
 import { foundersImage, polygonBackground } from '../../assets';
+import { useAuth } from '../../hooks/useAuth';
 import styles from './AboutSection.module.css';
 
 const AboutSection = () => {
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleButtonClick = () => {
+    if (isAuthenticated && user) {
+      // Redirect to appropriate dashboard based on user type
+      if (user.roles.includes('admin') || user.accountType === 'admin') {
+        navigate('/admin');
+      } else if (user.accountType === 'consultant') {
+        navigate('/consultant-dashboard');
+      } else {
+        navigate('/buyer-dashboard');
+      }
+    } else {
+      navigate('/login');
+    }
+  };
+
   return (
     <section id="about" className={styles.wrapper}>
       <div className={styles.content}>
@@ -17,9 +37,9 @@ const AboutSection = () => {
           consistent value to the communities we serve.
         </p>
         <div className={styles.actions}>
-          <a className={styles.primaryButton} href="/login">
-            Join Us Now
-          </a>
+          <button className={styles.primaryButton} onClick={handleButtonClick}>
+            {isAuthenticated ? 'Go to Dashboard' : 'Join Us Now'}
+          </button>
         </div>
       </div>
       <div className={styles.founders}>

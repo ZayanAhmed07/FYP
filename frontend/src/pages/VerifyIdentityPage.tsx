@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaIdCard, FaUpload, FaTimesCircle, FaUser, FaBriefcase, FaDollarSign, FaClock } from 'react-icons/fa';
-import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
 import styles from './VerifyIdentityPage.module.css';
 

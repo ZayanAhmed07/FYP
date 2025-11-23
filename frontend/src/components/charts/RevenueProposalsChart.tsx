@@ -55,9 +55,9 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
     setChartData(data);
   }, [proposalStats]);
 
-  const maxProposals = Math.max(...chartData.map(d => d.proposals), 100);
-  const maxImpressions = Math.max(...chartData.map(d => d.impressions), 100);
-  const maxClicks = Math.max(...chartData.map(d => d.clicks), 100);
+  const maxProposals = chartData.length > 0 ? Math.max(...chartData.map(d => d.proposals), 100) : 100;
+  const maxImpressions = chartData.length > 0 ? Math.max(...chartData.map(d => d.impressions), 100) : 100;
+  const maxClicks = chartData.length > 0 ? Math.max(...chartData.map(d => d.clicks), 100) : 100;
 
   // SVG chart dimensions
   const svgWidth = 800;
@@ -72,13 +72,15 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
 
   // Generate SVG path for area chart
   const generatePath = (dataKey: 'proposals' | 'impressions' | 'clicks', includeBase: boolean = true) => {
+    if (chartData.length === 0) return '';
+
     let path = '';
-    
+
     chartData.forEach((d, i) => {
       const x = padding.left + i * xScale;
       const value = d[dataKey];
       const y = padding.top + chartHeight - (value * yScale);
-      
+
       if (i === 0) {
         path += `M ${x} ${y}`;
       } else {
@@ -86,17 +88,18 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
       }
     });
 
-    if (includeBase) {
-      // Close the path to create area
-      for (let i = chartData.length - 1; i >= 0; i--) {
+    if (includeBase && chartData.length > 0) {
+      // Close the path to create area by going back to the baseline
+      const lastX = padding.left + (chartData.length - 1) * xScale;
+      const baseY = padding.top + chartHeight;
+      path += ` L ${lastX} ${baseY}`;
+
+      // Go back along the baseline to the start
+      for (let i = chartData.length - 2; i >= 0; i--) {
         const x = padding.left + i * xScale;
-        const y = padding.top + chartHeight;
-        if (i === chartData.length - 1) {
-          path += ` L ${x} ${y}`;
-        } else {
-          path += ` L ${x} ${y}`;
-        }
+        path += ` L ${x} ${baseY}`;
       }
+
       path += ' Z';
     }
 
@@ -143,43 +146,47 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
           />
 
           {/* Areas - Proposals (Pink/Red) */}
-          <path
-            d={generatePath('proposals', true)}
-            className={styles.areaProposals}
-            fillOpacity="0.4"
-          />
-          <path
-            d={generatePath('proposals', false)}
-            className={styles.lineProposals}
-            fill="none"
-            strokeWidth="2"
-          />
+          {chartData.length > 0 && (
+            <>
+              <path
+                d={generatePath('proposals', true)}
+                className={styles.areaProposals}
+                fillOpacity="0.4"
+              />
+              <path
+                d={generatePath('proposals', false)}
+                className={styles.lineProposals}
+                fill="none"
+                strokeWidth="2"
+              />
 
-          {/* Areas - Impressions (Purple/Blue) */}
-          <path
-            d={generatePath('impressions', true)}
-            className={styles.areaImpressions}
-            fillOpacity="0.3"
-          />
-          <path
-            d={generatePath('impressions', false)}
-            className={styles.lineImpressions}
-            fill="none"
-            strokeWidth="2"
-          />
+              {/* Areas - Impressions (Purple/Blue) */}
+              <path
+                d={generatePath('impressions', true)}
+                className={styles.areaImpressions}
+                fillOpacity="0.3"
+              />
+              <path
+                d={generatePath('impressions', false)}
+                className={styles.lineImpressions}
+                fill="none"
+                strokeWidth="2"
+              />
 
-          {/* Areas - Clicks (Light Blue/Cyan) */}
-          <path
-            d={generatePath('clicks', true)}
-            className={styles.areaClicks}
-            fillOpacity="0.3"
-          />
-          <path
-            d={generatePath('clicks', false)}
-            className={styles.lineClicks}
-            fill="none"
-            strokeWidth="2"
-          />
+              {/* Areas - Clicks (Light Blue/Cyan) */}
+              <path
+                d={generatePath('clicks', true)}
+                className={styles.areaClicks}
+                fillOpacity="0.3"
+              />
+              <path
+                d={generatePath('clicks', false)}
+                className={styles.lineClicks}
+                fill="none"
+                strokeWidth="2"
+              />
+            </>
+          )}
 
           {/* Data points and hover interaction */}
           {chartData.map((d, i) => {

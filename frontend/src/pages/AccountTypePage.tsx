@@ -1,4 +1,4 @@
-import { useState } from 'react';
+  import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUserShield, FaUserTie } from 'react-icons/fa';
 import { httpClient } from '../api/httpClient';
@@ -13,13 +13,16 @@ const AccountTypePage = () => {
     setIsLoading(true);
     try {
       // Update account type in backend
-      const response = await httpClient.patch('/users/me', { accountType: type });
+      await httpClient.patch('/users/me', { accountType: type });
       
       // Update localStorage with new account type
       const currentUser = authService.getCurrentUser();
       if (currentUser) {
         const updatedUser = { ...currentUser, accountType: type };
         localStorage.setItem('expert_raah_user', JSON.stringify(updatedUser));
+        
+        // Dispatch a custom event to notify AuthContext of user data update
+        window.dispatchEvent(new CustomEvent('userDataUpdated', { detail: updatedUser }));
       }
 
       // Navigate based on account type

@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { toast } from 'react-toastify';
+import { httpClient } from '../../api/httpClient';
+import { useAuth } from '../../hooks/useAuth';
 
 import styles from './ContactSection.module.css';
 
-
-const initialFormState = {
-  firstName: '',
-  lastName: '',
-  email: '',
-  message: '',
-};
-
 const ContactSection = () => {
-  const [form, setForm] = useState(initialFormState);
+  const { user, isAuthenticated } = useAuth();
+  const [form, setForm] = useState(() => ({
+    firstName: user?.name?.split(' ')[0] || '',
+    lastName: user?.name?.split(' ').slice(1).join(' ') || '',
+    email: user?.email || '',
+    message: '',
+  }));
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -25,10 +25,25 @@ const ContactSection = () => {
 
     try {
       setIsSubmitting(true);
-      // TODO: Integrate with backend contact endpoint.
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const payload: any = {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        message: form.message,
+      };
+
+      if (isAuthenticated && user) {
+        payload.userId = user.id;
+      }
+
+      await httpClient.post('/contacts/submit', payload);
       toast.success('Thanks for reaching out! We will contact you shortly.');
-      setForm(initialFormState);
+      setForm({
+        firstName: user?.name?.split(' ')[0] || '',
+        lastName: user?.name?.split(' ').slice(1).join(' ') || '',
+        email: user?.email || '',
+        message: '',
+      });
     } catch (error) {
       toast.error('Failed to send your message. Please try again.');
     } finally {
