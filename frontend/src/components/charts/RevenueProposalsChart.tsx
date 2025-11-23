@@ -6,6 +6,8 @@ interface ChartDataPoint {
   proposals: number;
   impressions: number;
   clicks: number;
+  earnings?: number;
+  pendingEarnings?: number;
   monthIndex: number;
 }
 
@@ -21,43 +23,55 @@ interface RevenueProposalsChartProps {
     paid: number;
     pending: number;
   };
+  monthlyData?: ChartDataPoint[];
 }
 
 const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
-  proposalStats,
+  monthlyData,
 }) => {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [hoveredMonth, setHoveredMonth] = useState<string | null>(null);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
 
   useEffect(() => {
-    // Generate real data based on actual stats, distributed across 12 months
-    const data = months.map((month, index) => {
-      // Distribute total proposals across months with some variation
-      const proposalDistribution = proposalStats.total > 0 
-        ? Math.floor(proposalStats.total / 12) + Math.floor(Math.random() * (proposalStats.total / 6))
-        : Math.floor(Math.random() * 20 + 10);
+    console.log('📊 Chart received monthlyData:', monthlyData);
+    console.log('📈 monthlyData length:', monthlyData?.length);
 
-      // Impressions based on proposals with realistic ratio
-      const impressions = Math.floor(proposalDistribution * (8 + Math.random() * 4));
-
-      // Clicks based on impressions with realistic conversion (5-15%)
-      const clicks = Math.floor(impressions * (0.05 + Math.random() * 0.1));
-
-      return {
+    if (monthlyData && monthlyData.length > 0) {
+      // Use real monthly data from backend
+      console.log('✅ Using real data from backend:', monthlyData);
+      setChartData(monthlyData);
+    } else {
+      // Show empty chart when no data - no fake data
+      console.log('📭 No data available - showing empty chart');
+      const emptyData = months.map((month, index) => ({
         month,
-        proposals: proposalDistribution,
-        impressions,
-        clicks,
+        proposals: 0,
+        impressions: 0,
+        clicks: 0,
+        earnings: 0,
+        pendingEarnings: 0,
         monthIndex: index,
-      };
-    });
-    setChartData(data);
-  }, [proposalStats]);
-
-  const maxProposals = chartData.length > 0 ? Math.max(...chartData.map(d => d.proposals), 100) : 100;
-  const maxImpressions = chartData.length > 0 ? Math.max(...chartData.map(d => d.impressions), 100) : 100;
-  const maxClicks = chartData.length > 0 ? Math.max(...chartData.map(d => d.clicks), 100) : 100;
+      }));
+      setChartData(emptyData);
+    }
+  }, [monthlyData]);  const maxProposals = chartData.length > 0 ? Math.max(...chartData.map((d) => d.proposals), 1) : 1;
+  const maxImpressions =
+    chartData.length > 0 ? Math.max(...chartData.map((d) => d.impressions), 1) : 1;
+  const maxClicks = chartData.length > 0 ? Math.max(...chartData.map((d) => d.clicks), 1) : 1;
 
   // SVG chart dimensions
   const svgWidth = 800;
@@ -71,7 +85,10 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
   const yScale = chartHeight / Math.max(maxProposals, maxImpressions, maxClicks);
 
   // Generate SVG path for area chart
-  const generatePath = (dataKey: 'proposals' | 'impressions' | 'clicks', includeBase: boolean = true) => {
+  const generatePath = (
+    dataKey: 'proposals' | 'impressions' | 'clicks',
+    includeBase: boolean = true,
+  ) => {
     if (chartData.length === 0) return '';
 
     let path = '';
@@ -79,7 +96,7 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
     chartData.forEach((d, i) => {
       const x = padding.left + i * xScale;
       const value = d[dataKey];
-      const y = padding.top + chartHeight - (value * yScale);
+      const y = padding.top + chartHeight - value * yScale;
 
       if (i === 0) {
         path += `M ${x} ${y}`;
@@ -191,9 +208,9 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
           {/* Data points and hover interaction */}
           {chartData.map((d, i) => {
             const x = padding.left + i * xScale;
-            const yProposals = padding.top + chartHeight - (d.proposals * yScale);
-            const yImpressions = padding.top + chartHeight - (d.impressions * yScale);
-            const yClicks = padding.top + chartHeight - (d.clicks * yScale);
+            const yProposals = padding.top + chartHeight - d.proposals * yScale;
+            const yImpressions = padding.top + chartHeight - d.impressions * yScale;
+            const yClicks = padding.top + chartHeight - d.clicks * yScale;
 
             return (
               <g key={`data-${i}`}>
@@ -212,68 +229,67 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
                 {/* Data point circles */}
                 {hoveredMonth === d.month && (
                   <>
-                    <circle
-                      cx={x}
-                      cy={yProposals}
-                      r="5"
-                      className={styles.dotProposals}
-                    />
-                    <circle
-                      cx={x}
-                      cy={yImpressions}
-                      r="5"
-                      className={styles.dotImpressions}
-                    />
-                    <circle
-                      cx={x}
-                      cy={yClicks}
-                      r="5"
-                      className={styles.dotClicks}
-                    />
+                    <circle cx={x} cy={yProposals} r="5" className={styles.dotProposals} />
+                    <circle cx={x} cy={yImpressions} r="5" className={styles.dotImpressions} />
+                    <circle cx={x} cy={yClicks} r="5" className={styles.dotClicks} />
 
-                    {/* Tooltip */}
-                    <g>
-                      <rect
-                        x={x - 70}
-                        y={padding.top - 80}
-                        width="140"
-                        height="70"
-                        rx="6"
-                        className={styles.tooltipBg}
-                      />
-                      <text
-                        x={x}
-                        y={padding.top - 60}
-                        className={styles.tooltipText}
-                        fontWeight="600"
-                      >
-                        {d.month}
-                      </text>
-                      <text
-                        x={x}
-                        y={padding.top - 42}
-                        className={styles.tooltipValue}
-                        fill="#ff6b9d"
-                      >
-                        Proposals: {d.proposals}
-                      </text>
-                      <text
-                        x={x}
-                        y={padding.top - 24}
-                        className={styles.tooltipValue}
-                        fill="#9b7fdb"
-                      >
-                        Impressions: {d.impressions}
-                      </text>
-                      <text
-                        x={x}
-                        y={padding.top - 6}
-                        className={styles.tooltipValue}
-                        fill="#5fd3f3"
-                      >
-                        Clicks: {d.clicks}
-                      </text>
-                    </g>
+                    {/* Tooltip - Dynamic positioning based on data point location */}
+                    {(() => {
+                      const avgY = (yProposals + yImpressions + yClicks) / 3;
+                      const tooltipHeight = 85;
+                      const tooltipMargin = 10;
+
+                      // Position tooltip above if there's space, otherwise below
+                      const tooltipY =
+                        avgY - tooltipHeight - tooltipMargin > 0
+                          ? avgY - tooltipHeight - tooltipMargin
+                          : avgY + tooltipMargin;
+
+                      return (
+                        <g>
+                          <rect
+                            x={x - 75}
+                            y={tooltipY}
+                            width="150"
+                            height="85"
+                            rx="6"
+                            className={styles.tooltipBg}
+                          />
+                          <text
+                            x={x}
+                            y={tooltipY + 20}
+                            className={styles.tooltipText}
+                            fontWeight="600"
+                          >
+                            {d.month}
+                          </text>
+                          <text
+                            x={x}
+                            y={tooltipY + 40}
+                            className={styles.tooltipValue}
+                            fill="#ff6b9d"
+                          >
+                            Proposals: {d.proposals}
+                          </text>
+                          <text
+                            x={x}
+                            y={tooltipY + 60}
+                            className={styles.tooltipValue}
+                            fill="#9b7fdb"
+                          >
+                            Impressions: {d.impressions}
+                          </text>
+                          <text
+                            x={x}
+                            y={tooltipY + 80}
+                            className={styles.tooltipValue}
+                            fill="#5fd3f3"
+                          >
+                            Clicks: {d.clicks}
+                          </text>
+                        </g>
+                      );
+                    })()}
                   </>
                 )}
               </g>
@@ -315,7 +331,9 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
       </div>
 
       <div className={styles.chartFooter}>
-        <p className={styles.footerText}>Real-time data • Last updated: {new Date().toLocaleTimeString()}</p>
+        <p className={styles.footerText}>
+          Real-time data • Last updated: {new Date().toLocaleTimeString()}
+        </p>
       </div>
     </div>
   );

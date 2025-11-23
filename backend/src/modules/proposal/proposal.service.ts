@@ -12,6 +12,7 @@ import { Job } from '../../models/job.model';
 import { Proposal } from '../../models/proposal.model';
 import { Order } from '../../models/order.model';
 import { ApiError } from '../../utils/ApiError';
+import { Types } from 'mongoose';
 
 /**
  * 📌 IMPORTANT: Create Proposal (Consultant submits bid)
@@ -76,7 +77,7 @@ export const getProposalsByJob = async (jobId: string) => {
 };
 
 export const getProposalsByConsultant = async (consultantId: string) => {
-  const proposals = await Proposal.find({ consultantId })
+  const proposals = await Proposal.find({ consultantId: new Types.ObjectId(consultantId) })
     .populate({ path: 'jobId', select: 'title category budget status buyerId' })
     .sort({ createdAt: -1 });
   return proposals;
@@ -84,7 +85,7 @@ export const getProposalsByConsultant = async (consultantId: string) => {
 
 export const getProposalsByBuyer = async (buyerId: string) => {
   // Find all jobs by this buyer
-  const jobs = await Job.find({ buyerId }).select('_id');
+  const jobs = await Job.find({ buyerId: new Types.ObjectId(buyerId) }).select('_id');
   const jobIds = jobs.map(job => job._id);
   
   // Find all proposals for these jobs

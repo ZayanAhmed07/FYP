@@ -1,6 +1,9 @@
 import { Types } from 'mongoose';
 
 import { Consultant } from '../../models/consultant.model';
+import { Proposal } from '../../models/proposal.model';
+import { Order } from '../../models/order.model';
+import { Analytics } from '../../models/analytics.model';
 import { ApiError } from '../../utils/ApiError';
 
 export const createConsultant = async (consultantData: any) => {
@@ -58,7 +61,8 @@ export const getConsultantById = async (id: string) => {
 };
 
 export const getConsultantByUserId = async (userId: string) => {
-  const consultant = await Consultant.findOne({ userId }).populate('userId', 'name email profileImage isOnline isBanned');
+  // Convert string userId to ObjectId for proper matching
+  const consultant = await Consultant.findOne({ userId: new Types.ObjectId(userId) }).populate('userId', 'name email profileImage isOnline isBanned');
   // Return null if not found instead of throwing error (for profile page)
   return consultant;
 };
@@ -138,5 +142,149 @@ export const createCompleteProfile = async (profileData: any) => {
 
   const consultant = await Consultant.create(profileData);
   return consultant.populate('userId', 'name email profileImage isBanned');
+};
+
+export const getConsultantStats = async (consultantId: string) => {
+  // Get current year
+  const currentYear = new Date().getFullYear();
+  console.log('Getting stats for consultant:', consultantId, 'year:', currentYear);
+
+  // First, check if there are any proposals for this consultant at all
+  const totalProposals = await Proposal.countDocuments({ consultantId: new Types.ObjectId(consultantId) });
+  const totalProposalsString = await Proposal.countDocuments({ consultantId: consultantId });
+  console.log('Total proposals for consultant (ObjectId):', totalProposals);
+  console.log('Total proposals for consultant (string):', totalProposalsString);
+
+  // Aggregate proposals by month for current year
+  const proposalStats = await Proposal.aggregate([
+    {
+      $match: {
+        $or: [
+          { consultantId: new Types.ObjectId(consultantId) },
+          { consultantId: consultantId }
+        ],
+        // Check both current year and previous year
+        $or: [
+          {
+            createdAt: {
+              $gte: new Date(currentYear, 0, 1), // January 1st of current year
+              $lt: new Date(currentYear + 1, 0, 1) // January 1st of next year
+            }
+          },
+          {
+            createdAt: {
+              $gte: new Date(currentYear - 1, 0, 1), // January 1st of previous year
+              $lt: new Date(currentYear, 0, 1) // January 1st of current year
+            }
+          }
+        ]
+      }
+    },
+    {
+      $group: {
+        _id: { $month: '$createdAt' },
+        proposals: { $sum: 1 },
+        totalBidAmount: { $sum: '$bidAmount' }
+      }
+    },
+    {
+      $sort: { '_id': 1 }
+    }
+  ]);
+  console.log('Proposal stats found:', proposalStats);
+
+  // Aggregate profile views (impressions) by month for current year
+  const impressionsStats = await Analytics.aggregate([
+    {
+      $match: {
+        consultantId: new Types.ObjectId(consultantId),
+        eventType: 'profile_view',
+        createdAt: {
+          $gte: new Date(currentYear, 0, 1), // January 1st of current year
+          $lt: new Date(currentYear + 1, 0, 1) // January 1st of next year
+        }
+      }
+    },
+    {
+      $group: {
+        _id: { $month: '$createdAt' },
+        impressions: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { '_id': 1 }
+    }
+  ]);
+
+  // Aggregate proposal clicks by month for current year
+  const clicksStats = await Analytics.aggregate([
+    {
+      $match: {
+        consultantId: new Types.ObjectId(consultantId),
+        eventType: 'proposal_click',
+        createdAt: {
+          $gte: new Date(currentYear, 0, 1),
+          $lt: new Date(currentYear + 1, 0, 1)
+        }
+      }
+    },
+    {
+      $group: {
+        _id: { $month: '$createdAt' },
+        clicks: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { '_id': 1 }
+    }
+  ]);
+
+  // Aggregate orders (earnings) by month for current year
+  const earningsStats = await Order.aggregate([
+    {
+      $match: {
+        consultantId: new Types.ObjectId(consultantId),
+        createdAt: {
+          $gte: new Date(currentYear, 0, 1),
+          $lt: new Date(currentYear + 1, 0, 1)
+        }
+      }
+    },
+    {
+      $group: {
+        _id: { $month: '$createdAt' },
+        orders: { $sum: 1 },
+        totalEarnings: { $sum: '$totalAmount' },
+        pendingEarnings: { $sum: { $cond: [{ $eq: ['$status', 'in_progress'] }, '$amountPending', 0] } }
+      }
+    },
+    {
+      $sort: { '_id': 1 }
+    }
+  ]);
+
+  // Create monthly data array (12 months)
+  const monthlyData = [];
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  for (let month = 1; month <= 12; month++) {
+    const proposalData = proposalStats.find(p => p._id === month) || { proposals: 0, totalBidAmount: 0 };
+    const earningsData = earningsStats.find(e => e._id === month) || { orders: 0, totalEarnings: 0, pendingEarnings: 0 };
+    const impressionsData = impressionsStats.find(i => i._id === month) || { impressions: 0 };
+    const clicksData = clicksStats.find(c => c._id === month) || { clicks: 0 };
+
+    monthlyData.push({
+      month: monthNames[month - 1],
+      proposals: proposalData.proposals,
+      impressions: impressionsData.impressions,
+      clicks: clicksData.clicks,
+      earnings: earningsData.totalEarnings,
+      pendingEarnings: earningsData.pendingEarnings,
+      monthIndex: month - 1
+    });
+  }
+
+  console.log('Returning monthly data:', monthlyData);
+  return monthlyData;
 };
 

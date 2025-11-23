@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaStar, FaUserCircle, FaEnvelope, FaMapMarkerAlt, FaClock, FaBriefcase, FaDollarSign, FaCheckCircle } from 'react-icons/fa';
 import { httpClient } from '../api/httpClient';
+import { analyticsService } from '../services/analytics.service';
 import styles from './ConsultantProfileViewPage.module.css';
 
 interface ConsultantProfile {
@@ -45,6 +46,11 @@ const ConsultantProfileViewPage = () => {
       setLoading(true);
       const response = await httpClient.get(`/consultants/${consultantId}`);
       setConsultant(response.data.data);
+
+      // Record profile view for analytics
+      if (consultantId) {
+        analyticsService.recordProfileView(consultantId);
+      }
     } catch (err: any) {
       console.error('Error fetching consultant profile:', err);
       setError(err.response?.data?.message || 'Failed to load consultant profile');

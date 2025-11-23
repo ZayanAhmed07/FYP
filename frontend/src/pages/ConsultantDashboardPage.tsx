@@ -63,6 +63,7 @@ const ConsultantDashboardPage = () => {
     paid: 0,
     pending: 0,
   });
+  const [monthlyStats, setMonthlyStats] = useState<any[]>([]);
 
   useEffect(() => {
     // Get current user from localStorage
@@ -122,12 +123,13 @@ const ConsultantDashboardPage = () => {
   const fetchUnreadMessageCount = async () => {
     try {
       const user = authService.getCurrentUser();
-      if (!user?.id) return;
+      const userId = user?.id || (user as any)?._id;
+      if (!userId) return;
 
       const response = await httpClient.get('/conversations');
       const conversations = response.data?.data || [];
       const totalUnread = conversations.reduce((sum: number, conv: any) => {
-        const userUnread = conv.unreadCount?.[user.id] || 0;
+        const userUnread = conv.unreadCount?.[userId] || 0;
         return sum + userUnread;
       }, 0);
       setUnreadMessageCount(totalUnread);
@@ -168,6 +170,30 @@ const ConsultantDashboardPage = () => {
       setEarnings({ total, paid, pending });
     } catch (error) {
       console.error('Failed to fetch earnings:', error);
+    }
+  };
+
+  const fetchMonthlyStats = async (consultantId: string) => {
+    try {
+      console.log('📊 Fetching monthly stats for consultant:', consultantId);
+      const response = await httpClient.get(`/consultants/${consultantId}/stats`);
+      console.log('📈 Monthly stats API response:', response.data);
+      
+      const statsData = response.data?.data || [];
+      console.log('📋 Processed monthly stats data:', statsData);
+      
+      // Always set the real data from backend, even if empty
+      setMonthlyStats(statsData);
+      
+    } catch (error: any) {
+      console.error('💥 Failed to fetch monthly stats:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        message: error.message,
+        data: error.response?.data
+      });
+      // Set empty array on error
+      setMonthlyStats([]);
     }
   };
 
@@ -212,19 +238,40 @@ const ConsultantDashboardPage = () => {
   const fetchConsultantProfile = async () => {
     try {
       const user = authService.getCurrentUser();
-      if (!user?.id) return;
+      console.log('🔍 Current user:', user);
+      
+      // Handle both id and _id properties
+      const userId = user?.id || (user as any)?._id;
+      if (!userId) {
+        console.log('❌ No user ID found');
+        return;
+      }
 
-      const response = await httpClient.get(`/consultants/user/${user.id}`);
+      console.log('🌐 Fetching consultant profile for user:', userId);
+      const response = await httpClient.get(`/consultants/user/${userId}`);
+      console.log('✅ Consultant profile API response:', response);
       const consultant = response.data?.data;
+      
       if (consultant?._id) {
+        console.log('👤 Consultant found:', consultant._id);
         setConsultantId(consultant._id);
         setConsultantProfile(consultant);
-        fetchOrders(consultant._id);
-        fetchProposalStats(consultant._id);
-        fetchEarnings(consultant._id);
+        
+        // Fetch all data for this consultant
+        await Promise.all([
+          fetchOrders(consultant._id),
+          fetchProposalStats(consultant._id),
+          fetchEarnings(consultant._id),
+          fetchMonthlyStats(consultant._id)
+        ]);
+      } else {
+        console.log('❌ No consultant profile found - user needs to create consultant profile first');
+        // Set empty monthly stats when no consultant profile
+        setMonthlyStats([]);
       }
-    } catch (error) {
-      console.error('Failed to fetch consultant profile', error);
+    } catch (error: any) {
+      console.error('💥 Failed to fetch consultant profile:', error);
+      setMonthlyStats([]);
     }
   };
 
@@ -551,6 +598,7 @@ const ConsultantDashboardPage = () => {
               <RevenueProposalsChart 
                 proposalStats={proposalStats}
                 earnings={earnings}
+                monthlyData={monthlyStats}
               />
             </div>
           </div>

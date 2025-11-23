@@ -303,3 +303,26 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Tooltip Styles */
+.tooltipBg {
+  fill: rgba(0, 0, 0, 0.9);
+  stroke: #ffffff;
+  stroke-width: 1;
+}
+
+.tooltipText {
+  fill: #ffffff;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 12px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.tooltipValue {
+  fill: #ffffff;
+  font-family: 'Reddit Sans', sans-serif;
+  font-size: 11px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}

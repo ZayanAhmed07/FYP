@@ -5,6 +5,7 @@ import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
 import { orderService } from '../services/orderService';
 import reviewService from '../services/reviewService';
+import { analyticsService } from '../services/analytics.service';
 import { useSocket } from '../hooks/useSocket';
 import { useNotification } from '../context/NotificationContext';
 import styles from './BuyerDashboardPage.module.css';
@@ -720,11 +721,14 @@ const BuyerDashboardPage = () => {
                               <button
                                 type="button"
                                 className={styles.proposalJobTitleButton}
-                                onClick={() =>
+                                onClick={() => {
+                                  // Track proposal click for analytics
+                                  analyticsService.recordProposalClick(proposal.consultantId._id, proposal._id);
+                                  
                                   setExpandedProposalId(
                                     expandedProposalId === proposal._id ? null : proposal._id,
-                                  )
-                                }
+                                  );
+                                }}
                               >
                                 {jobTitle}
                                 {expandedProposalId === proposal._id ? <FaChevronUp className={styles.chevronIcon} /> : <FaChevronDown className={styles.chevronIcon} />}
