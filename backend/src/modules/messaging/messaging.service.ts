@@ -121,24 +121,6 @@ export const createMessage = async (senderId: string, receiverId: string, conten
   }
 };
 
-export const getConversations = async (userId: string) => {
-  const conversations = await Conversation.find({ participants: userId })
-    .populate('participants', 'name email profileImage isOnline accountType')
-    .sort({ lastMessageAt: -1, updatedAt: -1 });
-
-  // Format conversations with unread count for current user
-  const formattedConversations = conversations.map((conv) => {
-    const unreadCount = conv.unreadCount.get(userId.toString()) || 0;
-    return {
-      ...conv.toObject(),
-      unreadCount,
-      otherUser: conv.participants.find((p: any) => p._id.toString() !== userId.toString()),
-    };
-  });
-
-  return formattedConversations;
-};
-
 export const getMessages = async (userId: string, otherUserId: string, page: number = 1, limit: number = 50) => {
   const conversation = await Conversation.findOne({
     participants: { $all: [userId, otherUserId] },
@@ -248,6 +230,32 @@ export const getUnreadMessageCount = async (userId: string) => {
     count: totalUnread,
     conversations: conversationBreakdown,
   };
+};
+
+export const getConversations = async (userId: string) => {
+  const conversations = await Conversation.find({ participants: userId })
+    .populate('participants', 'name profileImage')
+    .sort({ lastMessageAt: -1 });
+  
+  const conversationData = conversations.map((conv) => {
+    const otherUser = conv.participants.find((p: any) => p._id.toString() !== userId.toString());
+    const unreadCount: Record<string, number> = {};
+    unreadCount[userId] = conv.unreadCount.get(userId.toString()) || 0;
+    
+    return {
+      id: conv._id.toString(),
+      participants: conv.participants.map((p: any) => ({
+        id: p._id.toString(),
+        name: p.name,
+        profileImage: p.profileImage,
+      })),
+      unreadCount,
+      lastMessageAt: conv.lastMessageAt,
+      createdAt: conv.createdAt,
+    };
+  });
+  
+  return conversationData;
 };
 
 export const deleteMessage = async (messageId: string, userId: string) => {

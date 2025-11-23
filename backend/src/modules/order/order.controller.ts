@@ -14,71 +14,71 @@ export const getAllOrders = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getOrderById = catchAsync(async (req: Request, res: Response) => {
-  const order = await orderService.getOrderById(req.params.id);
+  const order = await orderService.getOrderById(req.params.id!);
   res.status(200).json({ success: true, data: order });
 });
 
 export const getOrdersByBuyer = catchAsync(async (req: Request, res: Response) => {
-  const orders = await orderService.getOrdersByBuyer(req.params.buyerId);
+  const orders = await orderService.getOrdersByBuyer(req.params.buyerId!);
   res.status(200).json({ success: true, data: orders });
 });
 
 export const getOrdersByConsultant = catchAsync(async (req: Request, res: Response) => {
-  const orders = await orderService.getOrdersByConsultant(req.params.consultantId);
+  const orders = await orderService.getOrdersByConsultant(req.params.consultantId!);
   res.status(200).json({ success: true, data: orders });
 });
 
 export const updateOrder = catchAsync(async (req: Request, res: Response) => {
-  const order = await orderService.updateOrder(req.params.id, req.body);
+  const order = await orderService.updateOrder(req.params.id!, req.body);
   res.status(200).json({ success: true, data: order });
 });
 
 export const updateOrderProgress = catchAsync(async (req: Request, res: Response) => {
-  const order = await orderService.updateOrderProgress(req.params.id, req.body.progress);
+  const order = await orderService.updateOrderProgress(req.params.id!, req.body.progress);
   res.status(200).json({ success: true, data: order });
 });
 
 export const addMilestone = catchAsync(async (req: Request, res: Response) => {
-  const order = await orderService.addMilestone(req.params.id, req.body);
+  const order = await orderService.addMilestone(req.params.id!, req.body);
   res.status(200).json({ success: true, data: order });
 });
 
 export const completeMilestone = catchAsync(async (req: Request, res: Response) => {
   const { id, milestoneId } = req.params;
-  const order = await orderService.completeMilestone(id, milestoneId);
+  const order = await orderService.completeMilestone(id!, milestoneId!);
   res.status(200).json({ success: true, data: order });
 });
 
 export const payMilestone = catchAsync(async (req: Request, res: Response) => {
   const { id, milestoneId } = req.params;
-  const order = await orderService.payMilestone(id, milestoneId);
+  const order = await orderService.payMilestone(id!, milestoneId!);
   res.status(200).json({ success: true, data: order });
 });
 
 export const requestCompletion = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
-  const order = await orderService.requestCompletion(req.params.id, userId!);
+  const order = await orderService.requestCompletion(req.params.id!, userId!);
   res.status(200).json({ success: true, data: order, message: 'Completion request sent' });
 });
 
 export const confirmCompletion = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
-  const order = await orderService.confirmCompletion(req.params.id, userId!);
+  const order = await orderService.confirmCompletion(req.params.id!, userId!);
   res.status(200).json({ success: true, data: order, message: 'Order marked as completed' });
 });
 
 export const completeOrder = catchAsync(async (req: Request, res: Response) => {
-  const order = await orderService.completeOrder(req.params.id);
+  const order = await orderService.completeOrder(req.params.id!);
   res.status(200).json({ success: true, data: order });
 });
 
 export const cancelOrder = catchAsync(async (req: Request, res: Response) => {
-  const order = await orderService.cancelOrder(req.params.id);
+  const order = await orderService.cancelOrder(req.params.id!);
   res.status(200).json({ success: true, data: order });
 });
 
 export const deleteOrder = catchAsync(async (req: Request, res: Response) => {
-  await orderService.deleteOrder(req.params.id);
+  await orderService.deleteOrder(req.params.id!);
   res.status(200).json({ success: true, message: 'Order deleted successfully' });
 });
 

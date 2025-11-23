@@ -13,7 +13,7 @@ import { Document, Model, Schema, model, Types } from 'mongoose';
  * Milestone Interface - Project deliverable milestones
  * Sub-entity within Order/Transaction
  */
-export interface IMilestone {
+export interface IMilestone extends Document {
   description: string;              // Milestone deliverable description
   amount: number;                   // Payment amount for this milestone (float in diagram)
   status: 'pending' | 'completed' | 'paid';  // Milestone completion/payment status

@@ -20,7 +20,10 @@ export const authenticate = (req: AuthenticatedRequest, _res: Response, next: Ne
   const token = header.replace('Bearer ', '');
 
   try {
-    const payload = jwt.verify(token, env.jwtSecret) as AuthenticatedRequest['user'];
+    const payload = jwt.verify(token, env.jwtSecret!) as AuthenticatedRequest['user'];
+    if (!payload) {
+      throw new ApiError(401, 'Invalid token payload');
+    }
     req.user = payload;
     next();
   } catch (error) {

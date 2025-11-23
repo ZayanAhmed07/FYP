@@ -131,7 +131,7 @@ export const completeMilestone = async (id: string, milestoneId: string) => {
     throw new ApiError(404, 'Order not found');
   }
 
-  const milestone = order.milestones.id(milestoneId);
+  const milestone = order.milestones.find(m => m._id.toString() === milestoneId);
   if (!milestone) {
     throw new ApiError(404, 'Milestone not found');
   }
@@ -160,7 +160,7 @@ export const payMilestone = async (id: string, milestoneId: string) => {
     throw new ApiError(404, 'Order not found');
   }
 
-  const milestone = order.milestones.id(milestoneId);
+  const milestone = order.milestones.find(m => m._id.toString() === milestoneId);
   if (!milestone) {
     throw new ApiError(404, 'Milestone not found');
   }

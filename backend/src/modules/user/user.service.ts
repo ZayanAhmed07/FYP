@@ -33,10 +33,10 @@ export const updateUser = async (id: string, updates: Partial<UserDocument>) => 
   }
 
   // Update only allowed fields
-  if (updates.accountType) user.accountType = updates.accountType;
-  if (updates.name) user.name = updates.name;
-  if (updates.phone) user.phone = updates.phone;
-  if (updates.profileImage) user.profileImage = updates.profileImage;
+  if (updates.accountType !== undefined) user.accountType = updates.accountType;
+  if (updates.name !== undefined) user.name = updates.name;
+  if (updates.phone !== undefined) user.phone = updates.phone;
+  if (updates.profileImage !== undefined) user.profileImage = updates.profileImage;
 
   await user.save();
   return user;

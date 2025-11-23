@@ -14,22 +14,22 @@ export const getUsersByAccountType = catchAsync(async (req: Request, res: Respon
 });
 
 export const banUser = catchAsync(async (req: Request, res: Response) => {
-  const user = await adminService.banUser(req.params.userId);
+  const user = await adminService.banUser(req.params.userId!);
   res.status(200).json({ success: true, data: user });
 });
 
 export const unbanUser = catchAsync(async (req: Request, res: Response) => {
-  const user = await adminService.unbanUser(req.params.userId);
+  const user = await adminService.unbanUser(req.params.userId!);
   res.status(200).json({ success: true, data: user });
 });
 
 export const verifyConsultantAdmin = catchAsync(async (req: Request, res: Response) => {
-  const result = await adminService.verifyConsultantAdmin(req.params.consultantId);
+  const result = await adminService.verifyConsultantAdmin(req.params.consultantId!);
   res.status(200).json({ success: true, data: result });
 });
 
 export const declineConsultant = catchAsync(async (req: Request, res: Response) => {
-  const result = await adminService.declineConsultant(req.params.consultantId);
+  const result = await adminService.declineConsultant(req.params.consultantId!);
   res.status(200).json({ success: true, data: result });
 });
 
@@ -44,7 +44,7 @@ export const getAdminStats = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const deleteUser = catchAsync(async (req: Request, res: Response) => {
-  await adminService.deleteUser(req.params.userId);
+  await adminService.deleteUser(req.params.userId!);
   res.status(200).json({ success: true, message: 'User deleted successfully' });
 });
 
