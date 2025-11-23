@@ -78,11 +78,17 @@ const MessagingPage = () => {
   // Socket.IO connection for real-time messaging
   const { connect, disconnect, isConnected, markConversationAsRead } = useSocket({
     onMessageReceive: (data) => {
-      console.log('[MessagingPage] Real-time message received:', data);
       // If message is for current conversation, add it
       if (data.message && selectedUserId) {
-        const senderId = data.message.senderId?._id || data.message.senderId;
-        if (senderId === selectedUserId) {
+        const senderId =
+          data.message.senderId?._id || data.message.senderId || data.message.sender?._id;
+
+        // Add message if it's from the person we're chatting with OR if it's our own message
+        if (
+          senderId === selectedUserId ||
+          senderId === currentUser?.id ||
+          senderId === currentUser?._id
+        ) {
           setMessages((prev) => [...prev, data.message]);
           // Mark as read since user is viewing the conversation
           markAsRead(selectedUserId);
@@ -92,7 +98,6 @@ const MessagingPage = () => {
       fetchConversations();
     },
     onMessagesRead: (data) => {
-      console.log('[MessagingPage] Messages marked as read:', data);
       // Update message statuses
       if (data.messageIds && Array.isArray(data.messageIds)) {
         setMessages((prev) =>
@@ -103,7 +108,6 @@ const MessagingPage = () => {
       }
     },
     onUnreadCountUpdate: (data) => {
-      console.log('[MessagingPage] Unread count updated:', data);
       // Refresh conversations to show updated counts
       fetchConversations();
     },
@@ -112,16 +116,20 @@ const MessagingPage = () => {
   // Initialize and fetch user
   useEffect(() => {
     const user = authService.getCurrentUser();
+
     if (!user) {
       navigate('/login');
       return;
     }
+
     // Normalize user id fields: some responses use `id`, others `_id`.
+    const userId = (user as any).id || (user as any)._id;
     const normalizedUser = {
       ...user,
-      id: (user as any).id ?? (user as any)._id,
-      _id: (user as any)._id ?? (user as any).id,
+      id: userId,
+      _id: userId,
     } as any;
+
     setCurrentUser(normalizedUser);
 
     // Connect to Socket.IO
@@ -173,19 +181,38 @@ const MessagingPage = () => {
 
   const fetchConversations = async () => {
     try {
-      const response = await httpClient.get('/messages/conversations');
-      setConversations(response.data?.data || []);
-    } catch (error) {
-      console.error('Failed to fetch conversations', error);
+      const response = await httpClient.get('/conversations'); // Changed from /messages/conversations
+      const conversationsData = response.data?.data || [];
+      setConversations(conversationsData);
+
+      // Auto-select first conversation if none selected and conversations exist
+      if (!selectedUserId && conversationsData.length > 0 && currentUser) {
+        const firstConversation = conversationsData[0];
+        const otherUser = firstConversation.participants?.find((p: any) => {
+          const participantId = p._id || p.id;
+          return participantId !== currentUser.id && participantId !== currentUser._id;
+        });
+        if (otherUser) {
+          const otherUserId = otherUser._id || otherUser.id;
+
+          setSelectedUserId(otherUserId);
+        }
+      }
+    } catch (error: any) {
+      console.error('💥 [MessagingPage] Failed to fetch conversations:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        message: error.message,
+        data: error.response?.data,
+      });
+      setConversations([]);
     }
   };
 
   const fetchMessages = async (otherUserId: string) => {
     try {
       setLoading(true);
-      console.log('[MessagingPage] Fetching messages with user:', otherUserId);
       const response = await httpClient.get(`/messages/${otherUserId}`);
-      console.log('[MessagingPage] Messages response:', response.data);
 
       const data = response.data?.data;
       if (data?.messages) {
@@ -229,25 +256,20 @@ const MessagingPage = () => {
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!newMessage.trim() || !selectedUserId || sending) return;
+    if (!newMessage.trim() || !selectedUserId || sending) {
+      return;
+    }
 
     const messageContent = newMessage.trim();
     setNewMessage('');
 
     try {
       setSending(true);
-      console.log('[MessagingPage] Sending message:', {
-        receiverId: selectedUserId,
-        content: messageContent,
-        currentUser: currentUser?.id || currentUser?._id,
-      });
 
       const response = await httpClient.post('/messages', {
         receiverId: selectedUserId,
         content: messageContent,
       });
-
-      console.log('[MessagingPage] Message sent successfully:', response.data);
 
       // Immediately add the message to the UI for instant feedback
       if (response.data?.data) {
@@ -259,14 +281,17 @@ const MessagingPage = () => {
       await fetchConversations();
       inputRef.current?.focus();
     } catch (error: any) {
-      console.error('[MessagingPage] Failed to send message:', {
+      console.error('💥 [MessagingPage] Failed to send message:', {
         error: error.response?.data || error.message,
         status: error.response?.status,
         receiverId: selectedUserId,
+        url: error.config?.url,
+        method: error.config?.method,
       });
       // Restore message if failed
       setNewMessage(messageContent);
-      alert('Failed to send message: ' + (error.response?.data?.message || error.message));
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+      alert(`Failed to send message: ${errorMessage}`);
     } finally {
       setSending(false);
     }
@@ -281,17 +306,25 @@ const MessagingPage = () => {
 
   const getOtherUser = (conversation: Conversation): User | null => {
     if (!currentUser || !Array.isArray(conversation.participants)) return null;
-    return conversation.participants.find((p) => p._id !== currentUser.id) || null;
+
+    return (
+      conversation.participants.find((p) => {
+        const participantId = p._id || p.id;
+        return participantId !== currentUser.id && participantId !== currentUser._id;
+      }) || null
+    );
   };
 
   const getUnreadCount = (conversation: Conversation): number => {
     if (!currentUser || !conversation.unreadCount) return 0;
-    return conversation.unreadCount[currentUser.id] || 0;
+    return (
+      conversation.unreadCount[currentUser.id] || conversation.unreadCount[currentUser._id] || 0
+    );
   };
 
   const selectedUserFromConversations = conversations
     .flatMap((c) => c.participants || [])
-    .find((p) => p._id === selectedUserId);
+    .find((p) => (p._id || p.id) === selectedUserId);
 
   useEffect(() => {
     if (selectedUserFromConversations) {
@@ -435,9 +468,12 @@ const MessagingPage = () => {
 
               return (
                 <div
-                  key={conversation._id}
+                  key={`conversation-${conversation._id}-${otherUser._id || otherUser.id}`}
                   className={`${styles.conversationItem} ${isSelected ? styles.activeConversation : ''}`}
-                  onClick={() => setSelectedUserId(otherUser._id)}
+                  onClick={() => {
+                    const otherUserId = otherUser._id || otherUser.id;
+                    setSelectedUserId(otherUserId);
+                  }}
                 >
                   <div className={styles.conversationAvatar}>
                     {otherUser.profileImage ? (
@@ -531,17 +567,20 @@ const MessagingPage = () => {
               ) : (
                 <>
                   {groupMessagesByDate(messages).map((group, groupIndex) => (
-                    <div key={groupIndex}>
+                    <div key={`message-group-${groupIndex}-${group.date}`}>
                       <div className={styles.dateDivider}>
                         <span>{group.date}</span>
                       </div>
                       {group.messages.map((message) => {
                         const messageSender = message.sender || message.senderId;
+
                         const isSent =
-                          messageSender?._id === currentUser?.id;
+                          messageSender?._id === currentUser?.id ||
+                          messageSender?._id === currentUser?._id;
+
                         return (
                           <div
-                            key={message._id}
+                            key={`message-${message._id}-${message.createdAt}`}
                             className={`${styles.messageRow} ${isSent ? styles.sentMessage : styles.receivedMessage}`}
                           >
                             {!isSent && (

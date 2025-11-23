@@ -47,16 +47,12 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
   ];
 
   useEffect(() => {
-    console.log('📊 Chart received monthlyData:', monthlyData);
-    console.log('📈 monthlyData length:', monthlyData?.length);
 
     if (monthlyData && monthlyData.length > 0) {
       // Use real monthly data from backend
-      console.log('✅ Using real data from backend:', monthlyData);
       setChartData(monthlyData);
     } else {
-      // Show empty chart when no data - no fake data
-      console.log('📭 No data available - showing empty chart');
+     
       const emptyData = months.map((month, index) => ({
         month,
         proposals: 0,

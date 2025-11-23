@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaMapMarkerAlt, FaClock, FaEdit, FaHeart, FaUserCircle, FaEnvelope, FaDownload, FaComments } from 'react-icons/fa';
+import {
+  FaMapMarkerAlt,
+  FaClock,
+  FaEdit,
+  FaHeart,
+  FaUserCircle,
+  FaEnvelope,
+  FaDownload,
+  FaComments,
+} from 'react-icons/fa';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
 import { orderService } from '../services/orderService';
@@ -34,7 +43,9 @@ interface JobFromApi {
 
 const ConsultantDashboardPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'projects' | 'orders' | 'stats' | 'proposals'>('dashboard');
+  const [activeTab, setActiveTab] = useState<
+    'dashboard' | 'projects' | 'orders' | 'stats' | 'proposals'
+  >('dashboard');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [jobs, setJobs] = useState<JobFromApi[]>([]);
@@ -112,7 +123,7 @@ const ConsultantDashboardPage = () => {
     },
     onMessageReceive: () => {
       // Increment unread count when new message arrives
-      setUnreadMessageCount(prev => prev + 1);
+      setUnreadMessageCount((prev) => prev + 1);
     },
     onUnreadCountUpdate: () => {
       // Update unread count in real-time
@@ -142,7 +153,7 @@ const ConsultantDashboardPage = () => {
     try {
       const response = await httpClient.get(`/proposals/consultant/${consultantId}`);
       const proposals = response.data?.data || [];
-      
+
       setProposalStats({
         total: proposals.length,
         pending: proposals.filter((p: any) => p.status === 'pending').length,
@@ -158,7 +169,7 @@ const ConsultantDashboardPage = () => {
     try {
       const response = await httpClient.get(`/orders/consultant/${consultantId}`);
       const orders = response.data?.data || [];
-      
+
       const total = orders.reduce((sum: number, order: any) => sum + (order.amountPaid || 0), 0);
       const paid = orders
         .filter((o: any) => o.status === 'completed')
@@ -166,7 +177,7 @@ const ConsultantDashboardPage = () => {
       const pending = orders
         .filter((o: any) => o.status === 'in_progress')
         .reduce((sum: number, order: any) => sum + (order.amountPending || 0), 0);
-      
+
       setEarnings({ total, paid, pending });
     } catch (error) {
       console.error('Failed to fetch earnings:', error);
@@ -175,22 +186,18 @@ const ConsultantDashboardPage = () => {
 
   const fetchMonthlyStats = async (consultantId: string) => {
     try {
-      console.log('📊 Fetching monthly stats for consultant:', consultantId);
       const response = await httpClient.get(`/consultants/${consultantId}/stats`);
-      console.log('📈 Monthly stats API response:', response.data);
-      
+
       const statsData = response.data?.data || [];
-      console.log('📋 Processed monthly stats data:', statsData);
-      
+
       // Always set the real data from backend, even if empty
       setMonthlyStats(statsData);
-      
     } catch (error: any) {
       console.error('💥 Failed to fetch monthly stats:', error);
       console.error('Error details:', {
         status: error.response?.status,
         message: error.message,
-        data: error.response?.data
+        data: error.response?.data,
       });
       // Set empty array on error
       setMonthlyStats([]);
@@ -222,7 +229,7 @@ const ConsultantDashboardPage = () => {
 
     // Connect to socket for real-time notifications
     connect();
-    
+
     // Request notification permission
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
@@ -239,7 +246,7 @@ const ConsultantDashboardPage = () => {
     try {
       const user = authService.getCurrentUser();
       console.log('🔍 Current user:', user);
-      
+
       // Handle both id and _id properties
       const userId = user?.id || (user as any)?._id;
       if (!userId) {
@@ -251,21 +258,23 @@ const ConsultantDashboardPage = () => {
       const response = await httpClient.get(`/consultants/user/${userId}`);
       console.log('✅ Consultant profile API response:', response);
       const consultant = response.data?.data;
-      
+
       if (consultant?._id) {
         console.log('👤 Consultant found:', consultant._id);
         setConsultantId(consultant._id);
         setConsultantProfile(consultant);
-        
+
         // Fetch all data for this consultant
         await Promise.all([
           fetchOrders(consultant._id),
           fetchProposalStats(consultant._id),
           fetchEarnings(consultant._id),
-          fetchMonthlyStats(consultant._id)
+          fetchMonthlyStats(consultant._id),
         ]);
       } else {
-        console.log('❌ No consultant profile found - user needs to create consultant profile first');
+        console.log(
+          '❌ No consultant profile found - user needs to create consultant profile first',
+        );
         // Set empty monthly stats when no consultant profile
         setMonthlyStats([]);
       }
@@ -279,7 +288,7 @@ const ConsultantDashboardPage = () => {
     try {
       setOrdersLoading(true);
       setOrdersError('');
-      
+
       const ordersData = await orderService.getOrdersByConsultant(consultantId);
       setOrders(ordersData);
     } catch (error) {
@@ -302,12 +311,12 @@ const ConsultantDashboardPage = () => {
     try {
       setCompletionLoading(true);
       await orderService.requestCompletion(selectedOrderForCompletion._id);
-      
+
       // Refresh orders
       if (consultantId) {
         await fetchOrders(consultantId);
       }
-      
+
       setShowCompletionModal(false);
       setSelectedOrderForCompletion(null);
       alert('Completion request sent to buyer successfully!');
@@ -322,10 +331,8 @@ const ConsultantDashboardPage = () => {
   // Ensure a selected job that respects current filters
   useEffect(() => {
     const filtered = jobs.filter((job) => {
-      const matchesType =
-        selectedTypes.length === 0 || selectedTypes.includes(job.category);
-      const matchesStatus =
-        selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
+      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(job.category);
+      const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
       return matchesType && matchesStatus;
     });
 
@@ -389,15 +396,12 @@ const ConsultantDashboardPage = () => {
   };
 
   const filteredJobs = jobs.filter((job) => {
-    const matchesType =
-      selectedTypes.length === 0 || selectedTypes.includes(job.category);
-    const matchesStatus =
-      selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
+    const matchesType = selectedTypes.length === 0 || selectedTypes.includes(job.category);
+    const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
     return matchesType && matchesStatus;
   });
 
-  const selectedJob =
-    filteredJobs.find((job) => job._id === selectedJobId) || null;
+  const selectedJob = filteredJobs.find((job) => job._id === selectedJobId) || null;
 
   const toggleType = (type: string) => {
     setSelectedTypes((prev) =>
@@ -407,9 +411,7 @@ const ConsultantDashboardPage = () => {
 
   const toggleStatus = (status: string) => {
     setSelectedStatuses((prev) =>
-      prev.includes(status)
-        ? prev.filter((s) => s !== status)
-        : [...prev, status],
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status],
     );
   };
 
@@ -467,23 +469,31 @@ const ConsultantDashboardPage = () => {
             )}
           </button>
           <div className={styles.userProfileContainer}>
-            <div 
-              className={styles.userProfile} 
+            <div
+              className={styles.userProfile}
               onClick={() => setShowProfileDropdown(!showProfileDropdown)}
               style={{ cursor: 'pointer' }}
             >
               {currentUser?.profileImage ? (
-                <img src={currentUser.profileImage} alt={currentUser?.name || 'User'} className={styles.userAvatar} />
+                <img
+                  src={currentUser.profileImage}
+                  alt={currentUser?.name || 'User'}
+                  className={styles.userAvatar}
+                />
               ) : (
                 <FaUserCircle className={styles.defaultAvatar} />
               )}
               <span className={styles.userName}>{currentUser?.name || 'Loading...'}</span>
-              <span className={`${styles.userDropdown} ${showProfileDropdown ? styles.dropdownOpen : ''}`}>▼</span>
+              <span
+                className={`${styles.userDropdown} ${showProfileDropdown ? styles.dropdownOpen : ''}`}
+              >
+                ▼
+              </span>
             </div>
 
             {showProfileDropdown && (
               <div className={styles.profileDropdownMenu}>
-                <button 
+                <button
                   className={styles.dropdownItem}
                   onClick={() => {
                     navigate('/profile');
@@ -492,7 +502,7 @@ const ConsultantDashboardPage = () => {
                 >
                   👤 My Profile
                 </button>
-                <button 
+                <button
                   className={styles.dropdownItem}
                   onClick={() => {
                     navigate('/settings');
@@ -502,7 +512,7 @@ const ConsultantDashboardPage = () => {
                   ⚙️ Settings
                 </button>
                 <div className={styles.dropdownDivider}></div>
-                <button 
+                <button
                   className={`${styles.dropdownItem} ${styles.logoutItem}`}
                   onClick={handleLogout}
                 >
@@ -558,7 +568,12 @@ const ConsultantDashboardPage = () => {
                 <div className={styles.statsList}>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Average Rating</span>
-                    <span className={styles.statValue}>{(consultantProfile?.averageRating || consultantProfile?.rating || 0).toFixed(1)}/5</span>
+                    <span className={styles.statValue}>
+                      {(consultantProfile?.averageRating || consultantProfile?.rating || 0).toFixed(
+                        1,
+                      )}
+                      /5
+                    </span>
                   </div>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Total Reviews</span>
@@ -566,7 +581,9 @@ const ConsultantDashboardPage = () => {
                   </div>
                   <div className={styles.statItem}>
                     <span className={styles.statLabel}>Completed Projects</span>
-                    <span className={styles.statValue}>{consultantProfile?.totalProjects || 0}</span>
+                    <span className={styles.statValue}>
+                      {consultantProfile?.totalProjects || 0}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -584,18 +601,22 @@ const ConsultantDashboardPage = () => {
                   </div>
                   <div className={styles.earningItem}>
                     <span className={styles.earningLabel}>Pending</span>
-                    <span className={styles.earningValueRefund}>Rs {earnings.pending.toLocaleString()}</span>
+                    <span className={styles.earningValueRefund}>
+                      Rs {earnings.pending.toLocaleString()}
+                    </span>
                   </div>
                   <div className={styles.earningItem}>
                     <span className={styles.earningLabel}>Total Earnings</span>
-                    <span className={styles.earningValue}>Rs {earnings.total.toLocaleString()}</span>
+                    <span className={styles.earningValue}>
+                      Rs {earnings.total.toLocaleString()}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className={styles.overviewCard}>
-              <RevenueProposalsChart 
+              <RevenueProposalsChart
                 proposalStats={proposalStats}
                 earnings={earnings}
                 monthlyData={monthlyStats}
@@ -615,9 +636,7 @@ const ConsultantDashboardPage = () => {
                   <div className={styles.filterChips}>
                     <button
                       className={`${styles.filterChip} ${
-                        selectedTypes.includes('Education')
-                          ? styles.filterChipActive
-                          : ''
+                        selectedTypes.includes('Education') ? styles.filterChipActive : ''
                       }`}
                       onClick={() => toggleType('Education')}
                     >
@@ -625,9 +644,7 @@ const ConsultantDashboardPage = () => {
                     </button>
                     <button
                       className={`${styles.filterChip} ${
-                        selectedTypes.includes('Legal')
-                          ? styles.filterChipActive
-                          : ''
+                        selectedTypes.includes('Legal') ? styles.filterChipActive : ''
                       }`}
                       onClick={() => toggleType('Legal')}
                     >
@@ -635,9 +652,7 @@ const ConsultantDashboardPage = () => {
                     </button>
                     <button
                       className={`${styles.filterChip} ${
-                        selectedTypes.includes('Business')
-                          ? styles.filterChipActive
-                          : ''
+                        selectedTypes.includes('Business') ? styles.filterChipActive : ''
                       }`}
                       onClick={() => toggleType('Business')}
                     >
@@ -650,9 +665,7 @@ const ConsultantDashboardPage = () => {
                   <div className={styles.filterChips}>
                     <button
                       className={`${styles.filterChip} ${
-                        selectedStatuses.includes('open')
-                          ? styles.filterChipActive
-                          : ''
+                        selectedStatuses.includes('open') ? styles.filterChipActive : ''
                       }`}
                       onClick={() => toggleStatus('open')}
                     >
@@ -660,9 +673,7 @@ const ConsultantDashboardPage = () => {
                     </button>
                     <button
                       className={`${styles.filterChip} ${
-                        selectedStatuses.includes('in_progress')
-                          ? styles.filterChipActive
-                          : ''
+                        selectedStatuses.includes('in_progress') ? styles.filterChipActive : ''
                       }`}
                       onClick={() => toggleStatus('in_progress')}
                     >
@@ -670,9 +681,7 @@ const ConsultantDashboardPage = () => {
                     </button>
                     <button
                       className={`${styles.filterChip} ${
-                        selectedStatuses.includes('completed')
-                          ? styles.filterChipActive
-                          : ''
+                        selectedStatuses.includes('completed') ? styles.filterChipActive : ''
                       }`}
                       onClick={() => toggleStatus('completed')}
                     >
@@ -692,8 +701,7 @@ const ConsultantDashboardPage = () => {
                   {jobsError && <p>{jobsError}</p>}
                   {!jobsLoading && !jobsError && filteredJobs.length === 0 && (
                     <p>
-                      No projects match your filters. Try clearing some filters to
-                      see more jobs.
+                      No projects match your filters. Try clearing some filters to see more jobs.
                     </p>
                   )}
                   {!jobsLoading &&
@@ -702,9 +710,7 @@ const ConsultantDashboardPage = () => {
                       <div
                         key={job._id}
                         className={`${styles.projectCard} ${
-                          selectedJobId === job._id
-                            ? styles.projectCardActive
-                            : ''
+                          selectedJobId === job._id ? styles.projectCardActive : ''
                         }`}
                         onClick={() => setSelectedJobId(job._id)}
                       >
@@ -716,8 +722,7 @@ const ConsultantDashboardPage = () => {
 
                         <div className={styles.jobMeta}>
                           <span className={styles.postedTime}>
-                            <FaClock /> Posted on{' '}
-                            {new Date(job.createdAt).toLocaleDateString()}
+                            <FaClock /> Posted on {new Date(job.createdAt).toLocaleDateString()}
                           </span>
                           <span className={styles.jobLocation}>
                             <FaMapMarkerAlt /> {job.location}
@@ -726,9 +731,7 @@ const ConsultantDashboardPage = () => {
 
                         <div className={styles.jobStats}>
                           <div className={styles.statBox}>
-                            <div className={styles.statBoxValue}>
-                              {job.proposalsCount}
-                            </div>
+                            <div className={styles.statBoxValue}>{job.proposalsCount}</div>
                             <div className={styles.statBoxLabel}>Proposals</div>
                           </div>
                           <div className={styles.statBox}>
@@ -740,9 +743,7 @@ const ConsultantDashboardPage = () => {
                         </div>
 
                         <div className={styles.jobFooter}>
-                          <span className={styles.jobBudget}>
-                            {formatBudget(job.budget)}
-                          </span>
+                          <span className={styles.jobBudget}>{formatBudget(job.budget)}</span>
                           <div className={styles.jobActions}>
                             <button
                               className={styles.actionBtn}
@@ -775,8 +776,7 @@ const ConsultantDashboardPage = () => {
                     <h3 className={styles.projectDetailsTitle}>{selectedJob.title}</h3>
                     <div className={styles.projectDetailsMeta}>
                       <span className={styles.projectDetailsMetaItem}>
-                        <FaClock /> Posted on{' '}
-                        {new Date(selectedJob.createdAt).toLocaleDateString()}
+                        <FaClock /> Posted on {new Date(selectedJob.createdAt).toLocaleDateString()}
                       </span>
                       <span className={styles.projectDetailsMetaItem}>
                         <FaMapMarkerAlt /> {selectedJob.location}
@@ -802,9 +802,7 @@ const ConsultantDashboardPage = () => {
 
                     <div className={styles.projectDetailsSection}>
                       <h4 className={styles.projectDetailsSectionTitle}>Description</h4>
-                      <p className={styles.projectDetailsDescription}>
-                        {selectedJob.description}
-                      </p>
+                      <p className={styles.projectDetailsDescription}>{selectedJob.description}</p>
                     </div>
 
                     {selectedJob.skills && selectedJob.skills.length > 0 && (
@@ -812,10 +810,7 @@ const ConsultantDashboardPage = () => {
                         <h4 className={styles.projectDetailsSectionTitle}>Required Skills</h4>
                         <div className={styles.projectDetailsSkills}>
                           {selectedJob.skills.map((skill: string) => (
-                            <span
-                              key={skill}
-                              className={styles.projectDetailsSkillBadge}
-                            >
+                            <span key={skill} className={styles.projectDetailsSkillBadge}>
                               {skill.trim()}
                             </span>
                           ))}
@@ -835,10 +830,7 @@ const ConsultantDashboardPage = () => {
                               <button
                                 className={styles.projectDetailsDownloadButton}
                                 onClick={() =>
-                                  downloadFile(
-                                    attachment,
-                                    getFilenameFromBase64(attachment)
-                                  )
+                                  downloadFile(attachment, getFilenameFromBase64(attachment))
                                 }
                                 title="Download attachment"
                               >
@@ -867,14 +859,11 @@ const ConsultantDashboardPage = () => {
                       <button
                         className={styles.projectDetailsPrimaryButton}
                         onClick={() =>
-                          selectedJob &&
-                          navigate(`/submit-proposal/${selectedJob._id}`)
+                          selectedJob && navigate(`/submit-proposal/${selectedJob._id}`)
                         }
                         disabled={selectedJob.status !== 'open'}
                       >
-                        {selectedJob.status === 'open'
-                          ? 'Submit Proposal'
-                          : 'Project Closed'}
+                        {selectedJob.status === 'open' ? 'Submit Proposal' : 'Project Closed'}
                       </button>
                     </div>
                   </div>
@@ -900,122 +889,136 @@ const ConsultantDashboardPage = () => {
               {!ordersLoading && !ordersError && orders.length === 0 && (
                 <div className={styles.jobsEmpty}>
                   <p className={styles.jobsEmptyText}>No active orders yet.</p>
-                  <p className={styles.jobsEmptySubtext}>Once a buyer accepts your proposal, your orders will appear here.</p>
+                  <p className={styles.jobsEmptySubtext}>
+                    Once a buyer accepts your proposal, your orders will appear here.
+                  </p>
                 </div>
               )}
 
               <div className={styles.ordersList}>
-                {!ordersLoading && !ordersError && orders.map((order) => (
-                  <div key={order._id} className={styles.orderCard}>
-                    <div className={styles.orderHeader}>
-                      <div className={styles.orderTitleSection}>
-                        <h3 className={styles.orderJobTitle}>{order.jobId?.title || 'Untitled Job'}</h3>
-                        <span className={styles.orderIdBadge}>
-                          {order._id.slice(-8).toUpperCase()}
-                        </span>
-                      </div>
-                      <span className={`${styles.orderStatus} ${styles[order.status]}`}>
-                        {order.status === 'in_progress' ? 'In Progress' : 
-                         order.status === 'completed' ? 'Completed' : 
-                         order.status === 'cancelled' ? 'Cancelled' : order.status}
-                      </span>
-                    </div>
-
-                    <div className={styles.orderBuyer}>
-                      <img 
-                        src={order.buyerId?.profileImage || 'https://i.pravatar.cc/150?img=5'} 
-                        alt={order.buyerId?.name || 'Buyer'} 
-                        className={styles.orderBuyerAvatar} 
-                      />
-                      <div className={styles.orderBuyerInfo}>
-                        <h4 className={styles.orderBuyerName}>
-                          {order.buyerId?.name || 'Unknown Buyer'}
-                        </h4>
-                        <p className={styles.orderBuyerEmail}>
-                          {order.buyerId?.email || ''}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className={styles.orderDetails}>
-                      <div className={styles.orderDetailItem}>
-                        <span className={styles.detailLabel}>Total Amount</span>
-                        <span className={styles.detailValue}>
-                          Rs {order.totalAmount?.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className={styles.orderDetailItem}>
-                        <span className={styles.detailLabel}>Received</span>
-                        <span className={styles.detailValue}>
-                          Rs {order.amountPaid?.toLocaleString() || 0}
-                        </span>
-                      </div>
-                      <div className={styles.orderDetailItem}>
-                        <span className={styles.detailLabel}>Pending</span>
-                        <span className={styles.detailValue}>
-                          Rs {order.amountPending?.toLocaleString() || 0}
-                        </span>
-                      </div>
-                      <div className={styles.orderDetailItem}>
-                        <span className={styles.detailLabel}>Progress</span>
-                        <span className={styles.detailValue}>{order.progress || 0}%</span>
-                      </div>
-                    </div>
-
-                    <div className={styles.orderProgressBar}>
-                      <div 
-                        className={styles.orderProgressFill} 
-                        style={{ width: `${order.progress || 0}%` }}
-                      ></div>
-                    </div>
-
-                    <div className={styles.milestones}>
-                      <h4 className={styles.milestonesTitle}>Milestones ({order.milestones?.length || 0})</h4>
-                      {order.milestones && order.milestones.length > 0 ? (
-                        <div className={styles.milestonesList}>
-                          {order.milestones.map((milestone: any) => (
-                            <div key={milestone._id} className={styles.milestoneItem}>
-                              <span className={styles.milestoneDescription}>{milestone.description}</span>
-                              <span className={`${styles.milestoneStatus} ${styles[milestone.status]}`}>
-                                {milestone.status}
-                              </span>
-                              <span className={styles.milestoneAmount}>
-                                Rs {milestone.amount?.toLocaleString()}
-                              </span>
-                            </div>
-                          ))}
+                {!ordersLoading &&
+                  !ordersError &&
+                  orders.map((order) => (
+                    <div key={order._id} className={styles.orderCard}>
+                      <div className={styles.orderHeader}>
+                        <div className={styles.orderTitleSection}>
+                          <h3 className={styles.orderJobTitle}>
+                            {order.jobId?.title || 'Untitled Job'}
+                          </h3>
+                          <span className={styles.orderIdBadge}>
+                            {order._id.slice(-8).toUpperCase()}
+                          </span>
                         </div>
-                      ) : (
-                        <p className={styles.noMilestones}>No milestones defined yet</p>
-                      )}
-                    </div>
-
-                    <div className={styles.orderActions}>
-                      <button className={styles.viewDetailsButton}>View Details</button>
-                      <button 
-                        className={styles.messageBuyerButton}
-                        onClick={() => order.buyerId?._id && 
-                          navigate(`/messages/${order.buyerId._id}`)
-                        }
-                      >
-                        <FaEnvelope /> Message Buyer
-                      </button>
-                      {order.status === 'in_progress' && !order.completionRequestedAt && (
-                        <button 
-                          className={styles.requestCompletionButton}
-                          onClick={() => handleRequestCompletion(order)}
-                        >
-                          Request Completion
-                        </button>
-                      )}
-                      {order.completionRequestedAt && order.status === 'in_progress' && (
-                        <span className={styles.completionRequested}>
-                          ✓ Completion Requested - Waiting for buyer confirmation
+                        <span className={`${styles.orderStatus} ${styles[order.status]}`}>
+                          {order.status === 'in_progress'
+                            ? 'In Progress'
+                            : order.status === 'completed'
+                              ? 'Completed'
+                              : order.status === 'cancelled'
+                                ? 'Cancelled'
+                                : order.status}
                         </span>
-                      )}
+                      </div>
+
+                      <div className={styles.orderBuyer}>
+                        <img
+                          src={order.buyerId?.profileImage || 'https://i.pravatar.cc/150?img=5'}
+                          alt={order.buyerId?.name || 'Buyer'}
+                          className={styles.orderBuyerAvatar}
+                        />
+                        <div className={styles.orderBuyerInfo}>
+                          <h4 className={styles.orderBuyerName}>
+                            {order.buyerId?.name || 'Unknown Buyer'}
+                          </h4>
+                          <p className={styles.orderBuyerEmail}>{order.buyerId?.email || ''}</p>
+                        </div>
+                      </div>
+
+                      <div className={styles.orderDetails}>
+                        <div className={styles.orderDetailItem}>
+                          <span className={styles.detailLabel}>Total Amount</span>
+                          <span className={styles.detailValue}>
+                            Rs {order.totalAmount?.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className={styles.orderDetailItem}>
+                          <span className={styles.detailLabel}>Received</span>
+                          <span className={styles.detailValue}>
+                            Rs {order.amountPaid?.toLocaleString() || 0}
+                          </span>
+                        </div>
+                        <div className={styles.orderDetailItem}>
+                          <span className={styles.detailLabel}>Pending</span>
+                          <span className={styles.detailValue}>
+                            Rs {order.amountPending?.toLocaleString() || 0}
+                          </span>
+                        </div>
+                        <div className={styles.orderDetailItem}>
+                          <span className={styles.detailLabel}>Progress</span>
+                          <span className={styles.detailValue}>{order.progress || 0}%</span>
+                        </div>
+                      </div>
+
+                      <div className={styles.orderProgressBar}>
+                        <div
+                          className={styles.orderProgressFill}
+                          style={{ width: `${order.progress || 0}%` }}
+                        ></div>
+                      </div>
+
+                      <div className={styles.milestones}>
+                        <h4 className={styles.milestonesTitle}>
+                          Milestones ({order.milestones?.length || 0})
+                        </h4>
+                        {order.milestones && order.milestones.length > 0 ? (
+                          <div className={styles.milestonesList}>
+                            {order.milestones.map((milestone: any) => (
+                              <div key={milestone._id} className={styles.milestoneItem}>
+                                <span className={styles.milestoneDescription}>
+                                  {milestone.description}
+                                </span>
+                                <span
+                                  className={`${styles.milestoneStatus} ${styles[milestone.status]}`}
+                                >
+                                  {milestone.status}
+                                </span>
+                                <span className={styles.milestoneAmount}>
+                                  Rs {milestone.amount?.toLocaleString()}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className={styles.noMilestones}>No milestones defined yet</p>
+                        )}
+                      </div>
+
+                      <div className={styles.orderActions}>
+                        <button className={styles.viewDetailsButton}>View Details</button>
+                        <button
+                          className={styles.messageBuyerButton}
+                          onClick={() =>
+                            order.buyerId?._id && navigate(`/messages/${order.buyerId._id}`)
+                          }
+                        >
+                          <FaEnvelope /> Message Buyer
+                        </button>
+                        {order.status === 'in_progress' && !order.completionRequestedAt && (
+                          <button
+                            className={styles.requestCompletionButton}
+                            onClick={() => handleRequestCompletion(order)}
+                          >
+                            Request Completion
+                          </button>
+                        )}
+                        {order.completionRequestedAt && order.status === 'in_progress' && (
+                          <span className={styles.completionRequested}>
+                            ✓ Completion Requested - Waiting for buyer confirmation
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </main>
           </div>
@@ -1056,7 +1059,9 @@ const ConsultantDashboardPage = () => {
               >
                 Open Messaging Center
               </button>
-              <p className={styles.messagesHint}>Reach out to buyers, answer questions, and close deals faster.</p>
+              <p className={styles.messagesHint}>
+                Reach out to buyers, answer questions, and close deals faster.
+              </p>
             </div>
           </aside>
         )}
@@ -1064,7 +1069,10 @@ const ConsultantDashboardPage = () => {
 
       {/* Completion Request Modal */}
       {showCompletionModal && (
-        <div className={styles.modalOverlay} onClick={() => !completionLoading && setShowCompletionModal(false)}>
+        <div
+          className={styles.modalOverlay}
+          onClick={() => !completionLoading && setShowCompletionModal(false)}
+        >
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <h3 className={styles.modalTitle}>Request Order Completion</h3>
             <p className={styles.modalMessage}>
@@ -1075,14 +1083,14 @@ const ConsultantDashboardPage = () => {
               <p>The buyer will be notified to review and confirm the completion.</p>
             </div>
             <div className={styles.modalActions}>
-              <button 
+              <button
                 className={styles.modalCancelButton}
                 onClick={() => setShowCompletionModal(false)}
                 disabled={completionLoading}
               >
                 Cancel
               </button>
-              <button 
+              <button
                 className={styles.modalConfirmButton}
                 onClick={confirmRequestCompletion}
                 disabled={completionLoading}
@@ -1098,4 +1106,3 @@ const ConsultantDashboardPage = () => {
 };
 
 export default ConsultantDashboardPage;
-

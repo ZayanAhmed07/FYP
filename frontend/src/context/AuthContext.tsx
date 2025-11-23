@@ -65,13 +65,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           // Only redirect if on auth pages (login/signup/home) and not already on correct dashboard
           const currentPath = window.location.pathname;
           const isOnAuthPage = currentPath === '/login' || currentPath === '/signup' || currentPath === '/';
+          
+          // Don't redirect from common pages that all users can access
+          const commonPages = ['/messages', '/profile', '/settings', '/notifications'];
+          const isOnCommonPage = commonPages.some(page => currentPath.startsWith(page));
+          
           const isOnWrongDashboard = (
-            (profile.accountType === 'consultant' && !currentPath.startsWith('/consultant')) ||
-            ((profile.accountType === 'admin' || profile.roles?.includes('admin')) && !currentPath.startsWith('/admin')) ||
-            (profile.accountType === 'buyer' && !currentPath.startsWith('/buyer'))
+            (profile.accountType === 'consultant' && currentPath.startsWith('/buyer')) ||
+            ((profile.accountType === 'admin' || profile.roles?.includes('admin')) && 
+             (currentPath.startsWith('/buyer') || currentPath.startsWith('/consultant'))) ||
+            (profile.accountType === 'buyer' && (currentPath.startsWith('/consultant') || currentPath.startsWith('/admin')))
           );
           
-          if (isOnAuthPage || isOnWrongDashboard) {
+          if ((isOnAuthPage || isOnWrongDashboard) && !isOnCommonPage) {
             if (profile.accountType === 'consultant') {
               navigate('/consultant-dashboard', { replace: true });
             } else if (profile.accountType === 'admin' || profile.roles?.includes('admin')) {
