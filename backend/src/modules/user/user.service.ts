@@ -2,7 +2,7 @@ import { ApiError } from '../../utils/ApiError';
 import { hashPassword } from '../../utils/password';
 import { User, UserDocument } from './user.model';
 
-export const createUser = async (payload: { name: string; email: string; password: string; roles?: string[] }) => {
+export const createUser = async (payload: { name: string; email: string; password: string; accountType?: 'buyer' | 'consultant'; roles?: string[] }) => {
   const isTaken = await User.isEmailTaken(payload.email);
   if (isTaken) {
     throw new ApiError(409, 'Email already taken');

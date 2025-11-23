@@ -53,23 +53,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           
           // Handle redirection for authenticated users
           if (!profile.accountType) {
-            navigate('/account-type', { replace: true });
+            // Only redirect to account-type if on auth pages
+            const currentPath = window.location.pathname;
+            const isOnAuthPage = currentPath === '/login' || currentPath === '/signup' || currentPath === '/';
+            if (isOnAuthPage) {
+              navigate('/account-type', { replace: true });
+            }
             return;
           }
           
-          // Only redirect if on auth pages (login/signup/home) and not already on a dashboard or onboarding page
+          // Only redirect if on auth pages (login/signup/home) and not already on correct dashboard
           const currentPath = window.location.pathname;
           const isOnAuthPage = currentPath === '/login' || currentPath === '/signup' || currentPath === '/';
-          const isOnOnboardingPage = currentPath.includes('-dashboard') || 
-                                    currentPath === '/account-type' || 
-                                    currentPath === '/verify-identity' ||
-                                    currentPath === '/verification-pending';
+          const isOnWrongDashboard = (
+            (profile.accountType === 'consultant' && !currentPath.startsWith('/consultant')) ||
+            ((profile.accountType === 'admin' || profile.roles?.includes('admin')) && !currentPath.startsWith('/admin')) ||
+            (profile.accountType === 'buyer' && !currentPath.startsWith('/buyer'))
+          );
           
-          if (isOnAuthPage && !isOnOnboardingPage) {
+          if (isOnAuthPage || isOnWrongDashboard) {
             if (profile.accountType === 'consultant') {
               navigate('/consultant-dashboard', { replace: true });
-            } else if (profile.accountType === 'admin') {
-              navigate('/admin-dashboard', { replace: true });
+            } else if (profile.accountType === 'admin' || profile.roles?.includes('admin')) {
+              navigate('/admin', { replace: true });
             } else {
               navigate('/buyer-dashboard', { replace: true });
             }
@@ -138,7 +144,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       window.removeEventListener('userDataUpdated', handleUserDataUpdate as EventListener);
       window.removeEventListener('oauthLogin', handleOAuthLogin as EventListener);
     };
-  }, []);
+  }, [navigate]); // Add navigate to dependency array
 
   const login = async (credentials: { email: string; password: string }) => {
     setIsLoading(true);
@@ -150,31 +156,45 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const { token, user: profile } = await authService.login(credentials);
       storage.setToken(TOKEN_KEY, token);
       localStorage.setItem('expert_raah_user', JSON.stringify(profile));
-      setUser(profile);
       
-      // Manually trigger bootstrap to ensure AuthContext is updated
-      // (storage events don't fire in the same window)
+      // Get fresh profile data from backend to ensure consistency
       try {
         const freshProfile = await authService.getProfile();
         setUser(freshProfile);
         localStorage.setItem('expert_raah_user', JSON.stringify(freshProfile));
+        
+        toast.success('Logged in successfully');
+        
+        // Navigate based on user account type with delay to ensure state is updated
+        setTimeout(() => {
+          if (!freshProfile.accountType) {
+            navigate('/account-type', { replace: true });
+          } else if (freshProfile.accountType === 'consultant') {
+            navigate('/consultant-dashboard', { replace: true });
+          } else if (freshProfile.accountType === 'admin' || freshProfile.roles.includes('admin')) {
+            navigate('/admin', { replace: true });
+          } else {
+            navigate('/buyer-dashboard', { replace: true });
+          }
+        }, 100);
       } catch (error) {
-        // If getProfile fails, keep the login response data
+        // If getProfile fails, use login response data
         console.warn('Failed to refresh profile after login, using login data', error);
-      }
-      
-      toast.success('Logged in successfully');
-      
-      // Navigate based on user account type
-      if (!profile.accountType) {
-        // If no account type, go to account type selection
-        navigate('/account-type', { replace: true });
-      } else if (profile.accountType === 'consultant') {
-        navigate('/consultant-dashboard', { replace: true });
-      } else if (profile.accountType === 'admin') {
-        navigate('/admin-dashboard', { replace: true });
-      } else {
-        navigate('/buyer-dashboard', { replace: true });
+        setUser(profile);
+        
+        toast.success('Logged in successfully');
+        
+        setTimeout(() => {
+          if (!profile.accountType) {
+            navigate('/account-type', { replace: true });
+          } else if (profile.accountType === 'consultant') {
+            navigate('/consultant-dashboard', { replace: true });
+          } else if (profile.accountType === 'admin' || profile.roles?.includes('admin')) {
+            navigate('/admin', { replace: true });
+          } else {
+            navigate('/buyer-dashboard', { replace: true });
+          }
+        }, 100);
       }
     } catch (error) {
       toast.error(authService.parseError(error));

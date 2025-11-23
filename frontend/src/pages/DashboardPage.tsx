@@ -9,7 +9,7 @@ const DashboardPage = () => {
   useEffect(() => {
     if (user) {
       // Redirect to appropriate dashboard based on user type
-      if (user.roles.includes('admin') || user.accountType === 'admin') {
+      if (user.roles?.includes('admin') || user.accountType === 'admin') {
         navigate('/admin', { replace: true });
       } else if (user.accountType === 'consultant') {
         navigate('/consultant-dashboard', { replace: true });

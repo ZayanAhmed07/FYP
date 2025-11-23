@@ -3,11 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { FaGoogle, FaApple, FaEnvelope, FaFacebookF, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { authService } from '../services/authService';
+import { useAuth } from '../hooks/useAuth';
 import styles from './SignupPage.module.css';
 import { Link } from 'react-router-dom';
 
 const SignupPage = () => {
   const location = useLocation();
+  const { login } = useAuth();
   const [isSignup, setIsSignup] = useState(location.pathname === '/signup');
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [name, setName] = useState('');
@@ -37,17 +39,9 @@ const SignupPage = () => {
     setLoading(true);
 
     try {
-      const result = await authService.login({ email, password });
-      
-      // Navigate based on account type
-      if (result.user.accountType === 'buyer') {
-        navigate('/buyer-dashboard');
-      } else if (result.user.accountType === 'consultant') {
-        navigate('/consultant-dashboard');
-      } else {
-        // If account type not set, go to account type selection
-        navigate('/account-type');
-      }
+      // Use AuthContext login method which handles navigation
+      await login({ email, password });
+      // Navigation will be handled by AuthContext
     } catch (err) {
       setError(authService.parseError(err));
     } finally {

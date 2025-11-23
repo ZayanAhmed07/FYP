@@ -21,6 +21,7 @@ export const login = async (email: string, password: string) => {
       roles: user.roles,
       accountType: user.accountType,
       isVerified: user.isVerified,
+      profileImage: user.profileImage,
     },
   };
 };
@@ -43,6 +44,7 @@ export const register = async (payload: {
       roles: user.roles,
       accountType: user.accountType,
       isVerified: user.isVerified,
+      profileImage: user.profileImage,
     },
   };
 };
