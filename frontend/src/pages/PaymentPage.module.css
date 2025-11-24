@@ -606,29 +606,597 @@
   font-weight: 600;
 }
 
+@media (max-width: 1024px) {
+  .header {
+    padding: 16px 32px;
+  }
+
+  .logo {
+    margin-left: 0;
+  }
+
+  .logoImage {
+    width: 70px;
+    height: 70px;
+  }
+
+  .nav {
+    gap: 24px;
+  }
+
+  .navItem {
+    font-size: 15px;
+  }
+
+  .headerActions {
+    gap: 16px;
+  }
+
+  .paymentCard {
+    padding: 28px;
+  }
+
+  .paymentHeader h2 {
+    font-size: 20px;
+  }
+
+  .amount {
+    font-size: 22px;
+  }
+
+  .paymentMethods {
+    gap: 12px;
+  }
+
+  .methodButton {
+    padding: 16px 10px;
+  }
+
+  .methodIcon {
+    font-size: 28px;
+  }
+
+  .formRow {
+    gap: 12px;
+  }
+}
+
+/* ============================================
+   TABLET - 768px and below
+   ============================================ */
 @media (max-width: 768px) {
-  .paymentCard,
-  .otpModal,
-  .successCard {
-    padding: 24px;
+  .header {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo {
+    margin-left: 0;
+    flex: 1;
+  }
+
+  .logoImage {
+    width: 50px;
+    height: 50px;
+  }
+
+  .nav {
+    gap: 16px;
+    flex: 0 1 100%;
+    order: 3;
+    flex-wrap: wrap;
+  }
+
+  .navItem {
+    font-size: 13px;
+    padding: 6px 0;
+  }
+
+  .headerActions {
+    gap: 12px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .sellingToggle {
+    gap: 8px;
+  }
+
+  .sellingLabel {
+    font-size: 12px;
+  }
+
+  .switch {
+    width: 40px;
+    height: 20px;
+  }
+
+  .slider {
+    height: 20px;
+  }
+
+  .slider::before {
+    width: 16px;
+    height: 16px;
+  }
+
+  input:checked + .slider::before {
+    transform: translateX(20px);
+  }
+
+  .mainContent {
+    padding: 16px;
+  }
+
+  .paymentCard {
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 100%;
+  }
+
+  .paymentHeader h2 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .paymentSubtitle {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  .amount {
+    font-size: 20px;
+  }
+
+  .paymentBody {
+    gap: 20px;
+  }
+
+  .sectionTitle {
+    font-size: 14px;
+    margin-bottom: 8px;
   }
 
   .paymentMethods {
     flex-direction: column;
+    gap: 10px;
+  }
+
+  .methodButton {
+    padding: 16px 12px;
+    border-radius: 10px;
+  }
+
+  .methodIcon {
+    font-size: 24px;
+  }
+
+  .methodLabel {
+    font-size: 13px;
+  }
+
+  .methodSubtext {
+    font-size: 10px;
+  }
+
+  .formGroup {
+    gap: 6px;
   }
 
   .formRow {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .input {
+    padding: 12px 14px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  .input::placeholder {
+    font-size: 13px;
+  }
+
+  .otpModal {
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 100%;
   }
 
   .otpInputs {
     gap: 8px;
+    margin-bottom: 12px;
   }
 
   .otpInput {
     width: 45px;
     height: 45px;
     font-size: 20px;
+    border-radius: 8px;
+  }
+
+  .otpError {
+    font-size: 12px;
+  }
+
+  .successCard {
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 100%;
+  }
+
+  .successIcon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  .successCard h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .successCard p {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .button {
+    padding: 12px 20px;
+    font-size: 13px;
+    border-radius: 8px;
+    width: 100%;
+  }
+
+  .orderSummary {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .orderHeader {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .orderHeader h3 {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .orderItem {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+  }
+
+  .itemName {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .itemDetails {
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .itemPrice {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .orderTotal {
+    padding-top: 12px;
+    margin-top: 8px;
+  }
+
+  .totalLabel {
+    font-size: 13px;
+  }
+
+  .totalPrice {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .orderStatus {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .statusLabel {
+    font-size: 12px;
+  }
+
+  .statusPending {
+    padding: 3px 10px;
+    font-size: 11px;
+  }
+
+  .statusPaid {
+    padding: 3px 10px;
+    font-size: 11px;
+  }
+}
+
+/* ============================================
+   MOBILE - 480px and below
+   ============================================ */
+@media (max-width: 480px) {
+  .header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .logo {
+    flex: 0 0 auto;
+  }
+
+  .logoImage {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nav {
+    gap: 12px;
+    flex: 0 1 100%;
+    order: 3;
+    justify-content: space-between;
+  }
+
+  .navItem {
+    font-size: 12px;
+    padding: 4px 0;
+  }
+
+  .navItemActive::after {
+    height: 2px;
+  }
+
+  .headerActions {
+    gap: 10px;
+  }
+
+  .sellingToggle {
+    gap: 6px;
+  }
+
+  .sellingLabel {
+    font-size: 11px;
+  }
+
+  .switch {
+    width: 36px;
+    height: 18px;
+  }
+
+  .slider {
+    height: 18px;
+  }
+
+  .slider::before {
+    width: 14px;
+    height: 14px;
+    top: 2px;
+  }
+
+  input:checked + .slider::before {
+    transform: translateX(18px);
+  }
+
+  .mainContent {
+    padding: 12px;
+  }
+
+  .paymentCard {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .paymentHeader h2 {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .paymentSubtitle {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  .amount {
+    font-size: 18px;
+  }
+
+  .paymentBody {
+    gap: 16px;
+  }
+
+  .sectionTitle {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .paymentMethods {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .methodButton {
+    padding: 12px 10px;
+    gap: 6px;
+    border-radius: 8px;
+  }
+
+  .methodIcon {
+    font-size: 20px;
+  }
+
+  .methodLabel {
+    font-size: 12px;
+  }
+
+  .methodSubtext {
+    font-size: 9px;
+  }
+
+  .formGroup {
+    gap: 4px;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .input {
+    padding: 10px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+
+  .input::placeholder {
+    font-size: 12px;
+  }
+
+  .otpModal {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .otpTitle {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .otpDescription {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .otpInputs {
+    gap: 6px;
+    margin-bottom: 10px;
+    justify-content: space-between;
+  }
+
+  .otpInput {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    border-radius: 6px;
+  }
+
+  .otpError {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+
+  .resendText {
+    font-size: 11px;
+    margin-top: 8px;
+  }
+
+  .resendLink {
+    font-size: 11px;
+  }
+
+  .successCard {
+    padding: 16px;
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .successIcon {
+    font-size: 40px;
+    margin-bottom: 10px;
+  }
+
+  .successCard h2 {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+
+  .successCard p {
+    font-size: 12px;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+
+  .button {
+    padding: 11px 16px;
+    font-size: 12px;
+    border-radius: 6px;
+    width: 100%;
+  }
+
+  .button:hover {
+    transform: translateY(-1px);
+  }
+
+  .orderSummary {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .orderHeader {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+  }
+
+  .orderHeader h3 {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .orderItem {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+  }
+
+  .itemName {
+    font-size: 12px;
+    margin-bottom: 2px;
+    word-break: break-word;
+  }
+
+  .itemDetails {
+    font-size: 10px;
+    gap: 3px;
+  }
+
+  .itemPrice {
+    font-size: 11px;
+  }
+
+  .orderTotal {
+    padding-top: 10px;
+    margin-top: 6px;
+  }
+
+  .totalLabel {
+    font-size: 12px;
+  }
+
+  .totalPrice {
+    font-size: 16px;
+  }
+
+  .orderStatus {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+
+  .statusLabel {
+    font-size: 11px;
+  }
+
+  .statusPending {
+    padding: 2px 8px;
+    font-size: 10px;
+  }
+
+  .statusPaid {
+    padding: 2px 8px;
+    font-size: 10px;
   }
 }
 

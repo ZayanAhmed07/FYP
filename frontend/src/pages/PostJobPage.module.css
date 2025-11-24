@@ -557,25 +557,524 @@
   box-shadow: 0 4px 12px rgba(45, 90, 95, 0.3);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+  .header {
+    padding: 16px 32px;
+  }
+
+  .logoText {
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+
+  .closeButton {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
+
+  .content {
+    padding: 32px 20px;
+    max-width: 100%;
+  }
+
+  .stepCircle {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+  }
+
+  .stepLine {
+    width: 80px;
+  }
+
   .formCard {
-    padding: 32px 24px;
+    padding: 28px;
   }
 
   .stepTitle {
-    font-size: 24px;
+    font-size: 22px;
+  }
+
+  .categoryGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .formRow {
+    gap: 12px;
+  }
+
+  .input {
+    font-size: 13px;
+    padding: 11px 13px;
+  }
+}
+
+/* ============================================
+   TABLET - 768px and below
+   ============================================ */
+@media (max-width: 768px) {
+  .header {
+    padding: 12px 16px;
+  }
+
+  .logoText {
+    font-size: 18px;
+    letter-spacing: 1.5px;
+  }
+
+  .closeButton {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+
+  .content {
+    padding: 20px 12px;
+    max-width: 100%;
+  }
+
+  .progressBar {
+    margin-bottom: 32px;
+  }
+
+  .stepIndicators {
+    gap: 0;
+  }
+
+  .stepIndicator {
+    flex: 1;
+  }
+
+  .stepCircle {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+    border-width: 2px;
+  }
+
+  .stepCircleActive {
+    box-shadow: 0 2px 8px rgba(45, 90, 95, 0.2);
+  }
+
+  .stepLine {
+    width: 100%;
+    max-width: 50px;
+    height: 2px;
+  }
+
+  .stepLineActive {
+    background: #2d5a5f;
+  }
+
+  .formCard {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .stepTitle {
+    font-size: 20px;
+    margin-bottom: 18px;
+  }
+
+  .stepDescription {
+    font-size: 13px;
+    margin-bottom: 16px;
   }
 
   .categoryGrid {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .categoryCard {
+    padding: 14px 12px;
+    border-radius: 10px;
+  }
+
+  .categoryIcon {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .categoryLabel {
+    font-size: 12px;
+  }
+
+  .formSection {
+    margin-bottom: 18px;
+  }
+
+  .formLabel {
+    font-size: 13px;
+    margin-bottom: 6px;
   }
 
   .formRow {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .input {
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+
+  .input::placeholder {
+    font-size: 12px;
+  }
+
+  .textarea {
+    font-size: 13px;
+    padding: 10px 12px;
+    min-height: 100px;
+    border-radius: 8px;
+  }
+
+  .textarea::placeholder {
+    font-size: 12px;
+  }
+
+  .skillsInput {
+    font-size: 13px;
+  }
+
+  .skillsInputField {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .skillTag {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .skillRemoveBtn {
+    font-size: 14px;
+  }
+
+  .skillsList {
+    gap: 6px;
+  }
+
+  .fileUploadArea {
+    padding: 16px;
+    border-width: 1px;
+  }
+
+  .fileUploadIcon {
+    font-size: 28px;
+    margin-bottom: 6px;
+  }
+
+  .fileUploadText p {
+    font-size: 12px;
+  }
+
+  .fileUploadHint {
+    font-size: 11px;
+  }
+
+  .fileInputButton {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .fileList {
+    gap: 8px;
+  }
+
+  .fileItem {
+    padding: 10px;
+  }
+
+  .fileName {
+    font-size: 12px;
+  }
+
+  .fileSize {
+    font-size: 11px;
+  }
+
+  .removeFileBtn {
+    font-size: 14px;
+  }
+
+  .formActions {
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .backButton {
+    padding: 11px 18px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  .nextButton {
+    padding: 11px 24px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  .submitButton {
+    padding: 11px 24px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+}
+
+/* ============================================
+   MOBILE - 480px and below
+   ============================================ */
+@media (max-width: 480px) {
+  .header {
+    padding: 10px 12px;
+  }
+
+  .logoText {
+    font-size: 16px;
+    letter-spacing: 1px;
+  }
+
+  .closeButton {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+
+  .content {
+    padding: 16px 10px;
+    max-width: 100%;
+  }
+
+  .progressBar {
+    margin-bottom: 24px;
+  }
+
+  .stepIndicators {
+    gap: 0;
+  }
+
+  .stepIndicator {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .stepCircle {
+    width: 36px;
+    height: 36px;
+    font-size: 12px;
+    border-width: 2px;
+    min-width: 36px;
+  }
+
+  .stepCircleActive {
+    box-shadow: 0 1px 4px rgba(45, 90, 95, 0.15);
   }
 
   .stepLine {
-    width: 60px;
+    width: 100%;
+    max-width: 30px;
+    height: 2px;
+  }
+
+  .stepLabel {
+    display: none;
+  }
+
+  .formCard {
+    padding: 16px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  .stepTitle {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  .stepDescription {
+    font-size: 12px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .categoryGrid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .categoryCard {
+    padding: 12px 10px;
+    border-radius: 8px;
+  }
+
+  .categoryIcon {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+
+  .categoryLabel {
+    font-size: 11px;
+  }
+
+  .formSection {
+    margin-bottom: 14px;
+  }
+
+  .formLabel {
+    font-size: 12px;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .input {
+    font-size: 12px;
+    padding: 9px 11px;
+    border-radius: 6px;
+  }
+
+  .input::placeholder {
+    font-size: 11px;
+  }
+
+  .textarea {
+    font-size: 12px;
+    padding: 9px 11px;
+    min-height: 80px;
+    border-radius: 6px;
+  }
+
+  .textarea::placeholder {
+    font-size: 11px;
+  }
+
+  .skillsInput {
+    font-size: 12px;
+  }
+
+  .skillsInputField {
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+
+  .skillTag {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+
+  .skillRemoveBtn {
+    font-size: 12px;
+  }
+
+  .skillsList {
+    gap: 5px;
+  }
+
+  .fileUploadArea {
+    padding: 12px;
+    border-width: 1px;
+    border-radius: 8px;
+  }
+
+  .fileUploadIcon {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+
+  .fileUploadText p {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  .fileUploadHint {
+    font-size: 10px;
+  }
+
+  .fileInputButton {
+    padding: 7px 14px;
+    font-size: 11px;
+  }
+
+  .fileList {
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .fileItem {
+    padding: 8px;
+    border-radius: 6px;
+  }
+
+  .fileName {
+    font-size: 11px;
+  }
+
+  .fileSize {
+    font-size: 10px;
+  }
+
+  .removeFileBtn {
+    font-size: 12px;
+  }
+
+  .formActions {
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .backButton {
+    padding: 10px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .nextButton {
+    padding: 10px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .nextButton:hover {
+    transform: translateY(-1px);
+  }
+
+  .submitButton {
+    padding: 10px 16px;
+    font-size: 12px;
+    border-radius: 6px;
+    width: 100%;
+  }
+
+  .submitButton:hover {
+    transform: translateY(-1px);
+  }
+
+  .errorMessage {
+    font-size: 11px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+
+  .successMessage {
+    font-size: 11px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
   }
 }
 

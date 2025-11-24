@@ -263,23 +263,339 @@
   margin-bottom: 16px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .pageContainer {
-    padding: 24px 16px;
+    padding: 24px 32px;
   }
 
   .card {
-    padding: 24px 20px;
+    padding: 28px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .jobTitle {
+    font-size: 20px;
   }
 
   .sectionGrid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .metaRow {
+    gap: 12px;
+    font-size: 12px;
+  }
+}
+
+/* ============================================
+   TABLET - 768px and below
+   ============================================ */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 16px;
   }
 
   .header {
     flex-direction: column-reverse;
     align-items: flex-start;
+    gap: 10px;
+    max-width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .backButton {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    text-align: left;
+  }
+
+  .backButton:hover {
+    background: #f0f3f7;
+    transform: none;
+  }
+
+  .content {
+    max-width: 100%;
+  }
+
+  .card {
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+
+  .cardHeader {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .categoryBadge {
+    padding: 3px 10px;
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  .jobTitle {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .metaRow {
+    gap: 10px;
+    font-size: 12px;
+    flex-wrap: wrap;
+  }
+
+  .metaItem {
+    gap: 4px;
+  }
+
+  .statusBadge {
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+
+  .section {
+    margin-bottom: 16px;
+  }
+
+  .sectionTitle {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .description {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .sectionGrid {
+    grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .highlightValue {
+    font-size: 15px;
+  }
+
+  .skillsList {
+    gap: 6px;
+  }
+
+  .skillBadge {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .attachmentsList {
+    gap: 8px;
+  }
+
+  .attachmentItem {
+    gap: 8px;
+    padding: 10px;
+    flex-wrap: wrap;
+  }
+
+  .attachmentName {
+    font-size: 13px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .downloadButton {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .actions {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .primaryButton {
+    padding: 10px 16px;
+    font-size: 13px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .secondaryButton {
+    padding: 10px 16px;
+    font-size: 13px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .errorText {
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   MOBILE - 480px and below
+   ============================================ */
+@media (max-width: 480px) {
+  .pageContainer {
+    padding: 12px;
+  }
+
+  .header {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .backButton {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 12px;
+    text-align: center;
+    border-radius: 6px;
+  }
+
+  .content {
+    max-width: 100%;
+  }
+
+  .card {
+    padding: 16px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  .cardHeader {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+
+  .categoryBadge {
+    padding: 2px 8px;
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  .jobTitle {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .metaRow {
+    gap: 8px;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+
+  .metaItem {
+    gap: 3px;
+    font-size: 11px;
+  }
+
+  .statusBadge {
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+
+  .section {
+    margin-bottom: 12px;
+  }
+
+  .sectionTitle {
+    font-size: 13px;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .description {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .sectionGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .highlightValue {
+    font-size: 14px;
+  }
+
+  .skillsList {
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .skillBadge {
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+  }
+
+  .attachmentsList {
+    gap: 6px;
+  }
+
+  .attachmentItem {
+    gap: 6px;
+    padding: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .attachmentName {
+    font-size: 12px;
+    width: 100%;
+    word-break: break-word;
+  }
+
+  .downloadButton {
+    padding: 5px 10px;
+    font-size: 11px;
+    width: 100%;
+    justify-content: center;
+    border-radius: 4px;
+  }
+
+  .actions {
+    gap: 6px;
+    flex-direction: column;
+  }
+
+  .primaryButton {
+    padding: 10px 12px;
+    font-size: 12px;
+    width: 100%;
+    border-radius: 6px;
+  }
+
+  .primaryButton:hover {
+    transform: translateY(-1px);
+  }
+
+  .secondaryButton {
+    padding: 10px 12px;
+    font-size: 12px;
+    width: 100%;
+    border-radius: 6px;
+  }
+
+  .errorText {
+    font-size: 12px;
+    margin-bottom: 12px;
   }
 }
 

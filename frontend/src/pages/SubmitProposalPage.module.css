@@ -217,19 +217,275 @@
   margin-bottom: 12px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .pageContainer {
-    padding: 24px 16px;
+    padding: 32px 24px;
+  }
+
+  .content {
+    max-width: 100%;
+  }
+
+  .jobSummary {
+    padding: 24px 28px;
   }
 
   .formCard {
-    padding: 24px 20px;
+    padding: 24px 28px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .jobTitle {
+    font-size: 20px;
+  }
+}
+
+/* ============================================
+   TABLET - 768px and below
+   ============================================ */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 20px 16px;
   }
 
   .header {
     flex-direction: column-reverse;
     align-items: flex-start;
     gap: 12px;
+    max-width: 100%;
+  }
+
+  .title {
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+
+  .backButton {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 14px;
+    text-align: left;
+  }
+
+  .backButton:hover {
+    transform: translateY(-1px);
+  }
+
+  .content {
+    max-width: 100%;
+    gap: 16px;
+  }
+
+  .jobSummary {
+    padding: 20px 24px;
+    border-radius: 16px;
+  }
+
+  .jobTitle {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .jobMeta {
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .category {
+    padding: 5px 12px;
+    font-size: 12px;
+  }
+
+  .jobBudget {
+    font-size: 13px;
+  }
+
+  .formCard {
+    padding: 20px 24px;
+    border-radius: 16px;
+  }
+
+  .formCard h3 {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .formGroup {
+    margin-bottom: 16px;
+  }
+
+  .formGroup label {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .textarea {
+    min-height: 100px;
+    font-size: 13px;
+  }
+
+  .actions {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .primaryButton {
+    padding: 10px 20px;
+    font-size: 13px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .secondaryButton {
+    padding: 10px 20px;
+    font-size: 13px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .errorText {
+    font-size: 13px;
+  }
+
+  .successText {
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   MOBILE - 480px and below
+   ============================================ */
+@media (max-width: 480px) {
+  .pageContainer {
+    padding: 16px 12px;
+  }
+
+  .header {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .title {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .backButton {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 12px;
+    text-align: center;
+    border-radius: 6px;
+  }
+
+  .content {
+    max-width: 100%;
+    gap: 12px;
+  }
+
+  .jobSummary {
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .jobTitle {
+    font-size: 16px;
+    margin-bottom: 8px;
+    word-break: break-word;
+  }
+
+  .jobMeta {
+    gap: 6px;
+    font-size: 11px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .category {
+    padding: 4px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+  }
+
+  .location {
+    font-size: 11px;
+  }
+
+  .jobBudget {
+    font-size: 12px;
+  }
+
+  .formCard {
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .formCard h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .formGroup {
+    margin-bottom: 12px;
+  }
+
+  .formGroup label {
+    font-size: 12px;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .input {
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+  }
+
+  .textarea {
+    min-height: 80px;
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+  }
+
+  .actions {
+    gap: 8px;
+    flex-direction: column;
+  }
+
+  .primaryButton {
+    padding: 10px 16px;
+    font-size: 12px;
+    width: 100%;
+    border-radius: 6px;
+  }
+
+  .primaryButton:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  .secondaryButton {
+    padding: 10px 16px;
+    font-size: 12px;
+    width: 100%;
+    border-radius: 6px;
+  }
+
+  .errorText {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .successText {
+    font-size: 12px;
+    margin-bottom: 10px;
   }
 }
 

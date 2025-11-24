@@ -1839,6 +1839,7 @@
   box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
+/* Desktop Optimization (1024px+) */
 @media (max-width: 1200px) {
   .mainContent {
     grid-template-columns: 1fr;
@@ -1849,9 +1850,57 @@
     grid-template-columns: 1fr;
   }
 
+  .projectsLayout {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 20px auto 0 auto;
+  }
+
   .sidebar,
   .rightSidebar {
     display: none;
+  }
+
+  .orderCard {
+    padding: 28px;
+  }
+
+  .orderJobTitle {
+    font-size: 18px;
+  }
+
+  .orderBuyerAvatar {
+    width: 56px;
+    height: 56px;
+  }
+
+  .orderBuyerName {
+    font-size: 16px;
+  }
+
+  .detailValue {
+    font-size: 16px;
+  }
+
+  .milestoneItem {
+    padding: 14px;
+  }
+
+  .milestonesTitle {
+    font-size: 16px;
+  }
+
+  .jobTitle {
+    font-size: 15px;
+  }
+
+  .jobDescription {
+    font-size: 13px;
+  }
+
+  .categoryBadge {
+    padding: 5px 14px;
+    font-size: 11px;
   }
 }
 
@@ -1906,8 +1955,144 @@
     padding: 16px;
   }
 
+  /* Projects Layout - Tablet */
+  .projectsLayout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin: 16px auto 0 auto;
+  }
+
+  .projectsFiltersTop {
+    max-width: 100%;
+    margin: 0 auto 16px auto;
+  }
+
+  .filtersTitle {
+    font-size: 18px;
+  }
+
+  .filtersRow {
+    gap: 20px;
+  }
+
   .projectCard {
     padding: 14px;
+  }
+
+  .jobTitle {
+    font-size: 14px;
+  }
+
+  .jobDescription {
+    font-size: 12px;
+  }
+
+  .categoryBadge {
+    padding: 5px 12px;
+    font-size: 10px;
+  }
+
+  .statBoxValue {
+    font-size: 20px;
+  }
+
+  .jobBudget {
+    font-size: 14px;
+  }
+
+  /* Orders Layout - Tablet */
+  .ordersView {
+    padding: 32px 24px;
+  }
+
+  .ordersList {
+    gap: 16px;
+  }
+
+  .orderCard {
+    padding: 20px;
+  }
+
+  .orderJobTitle {
+    font-size: 17px;
+  }
+
+  .orderBuyer {
+    padding: 16px 0;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+
+  .orderBuyerAvatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .orderBuyerName {
+    font-size: 15px;
+  }
+
+  .orderBuyerEmail {
+    font-size: 12px;
+  }
+
+  .orderDetails {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 16px 0;
+    margin-bottom: 16px;
+  }
+
+  .detailLabel {
+    font-size: 12px;
+  }
+
+  .detailValue {
+    font-size: 15px;
+  }
+
+  .milestonesTitle {
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+
+  .milestoneItem {
+    grid-template-columns: 1fr auto auto;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .milestoneDescription {
+    font-size: 13px;
+  }
+
+  .milestoneStatus {
+    padding: 5px 12px;
+    font-size: 11px;
+  }
+
+  .milestoneAmount {
+    font-size: 12px;
+  }
+
+  .ordersTitle {
+    font-size: 20px;
+  }
+
+  .ordersSubtitle {
+    font-size: 13px;
+  }
+
+  .orderActions {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .viewDetailsButton,
+  .messageBuyerButton,
+  .requestCompletionButton {
+    padding: 8px 14px;
+    font-size: 12px;
   }
 
   .projectActions {
@@ -1919,7 +2104,7 @@
   }
 }
 
-/* Mobile Responsive (320px - 768px) */
+/* Mobile Responsive (480px - 768px) */
 @media (max-width: 768px) {
   .dashboardContainer {
     min-height: auto;
@@ -1997,28 +2182,94 @@
     font-size: 18px;
   }
 
+  /* Projects Layout - Mobile */
+  .projectsLayout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 12px auto 0 auto;
+  }
+
+  .projectsFiltersTop {
+    max-width: 100%;
+    margin: 0 auto 12px auto;
+  }
+
+  .filtersTitle {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+
+  .filtersRow {
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .filterTitle {
+    font-size: 12px;
+  }
+
+  .filterChips {
+    gap: 8px;
+  }
+
+  .filterChip {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
   .projectCard {
     padding: 12px;
     border-radius: 8px;
+    min-height: auto;
   }
 
-  .projectHeader {
-    gap: 12px;
+  .jobTitle {
+    font-size: 13px;
+    padding-right: 60px;
+  }
+
+  .jobDescription {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .categoryBadge {
+    padding: 4px 10px;
+    font-size: 10px;
+    top: 12px;
+    right: 12px;
+  }
+
+  .jobMeta {
+    gap: 10px;
+    margin-bottom: 6px;
     flex-wrap: wrap;
   }
 
-  .projectTitle {
-    font-size: 14px;
-  }
-
-  .projectCategory {
+  .postedTime,
+  .jobLocation {
     font-size: 11px;
-    padding: 3px 6px;
   }
 
-  .projectDescription {
-    font-size: 12px;
-    line-height: 1.4;
+  .jobStats {
+    gap: 12px;
+    margin-top: 6px;
+  }
+
+  .statBoxValue {
+    font-size: 18px;
+  }
+
+  .statBoxLabel {
+    font-size: 11px;
+  }
+
+  .jobBudget {
+    font-size: 13px;
+  }
+
+  .actionBtn {
+    font-size: 16px;
   }
 
   .projectDetails {
@@ -2046,6 +2297,157 @@
   .projectCard:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
+  }
+
+  /* Orders Layout - Mobile */
+  .ordersView {
+    padding: 20px 16px;
+    min-height: auto;
+  }
+
+  .ordersTitle {
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+
+  .ordersSubtitle {
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+
+  .ordersList {
+    gap: 12px;
+  }
+
+  .orderCard {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .orderHeader {
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+
+  .orderTitleSection {
+    min-width: 0;
+  }
+
+  .orderJobTitle {
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+
+  .orderIdBadge {
+    padding: 3px 10px;
+    font-size: 11px;
+  }
+
+  .orderStatus {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .orderBuyer {
+    padding: 12px 0;
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+
+  .orderBuyerAvatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .orderBuyerName {
+    font-size: 14px;
+  }
+
+  .orderBuyerEmail {
+    font-size: 11px;
+  }
+
+  .orderDetails {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 12px 0;
+    margin-bottom: 12px;
+  }
+
+  .detailLabel {
+    font-size: 11px;
+  }
+
+  .detailValue {
+    font-size: 14px;
+  }
+
+  .orderProgressBar {
+    height: 8px;
+    margin-bottom: 16px;
+  }
+
+  .milestonesTitle {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .milestonesList {
+    gap: 10px;
+  }
+
+  .milestoneItem {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding: 10px;
+    flex-wrap: wrap;
+  }
+
+  .milestoneDescription {
+    font-size: 12px;
+    grid-column: 1 / -1;
+  }
+
+  .milestoneStatus {
+    padding: 4px 10px;
+    font-size: 10px;
+    order: 2;
+  }
+
+  .milestoneAmount {
+    font-size: 11px;
+    order: 1;
+    text-align: right;
+  }
+
+  .noMilestones {
+    font-size: 12px;
+  }
+
+  .orderActions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .viewDetailsButton,
+  .messageBuyerButton,
+  .requestCompletionButton {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .completionRequested {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 12px;
+    text-align: center;
+    background: #d1ecf1;
+    color: #0c5460;
+    border-radius: 6px;
   }
 
   .sidebar,
@@ -2168,16 +2570,80 @@
     font-size: 16px;
   }
 
+  /* Projects Layout - Extra Small */
+  .projectsLayout {
+    margin: 8px auto 0 auto;
+    gap: 8px;
+  }
+
+  .projectsFiltersTop {
+    margin: 0 auto 8px auto;
+  }
+
+  .filtersTitle {
+    font-size: 14px;
+  }
+
+  .filterTitle {
+    font-size: 11px;
+  }
+
+  .filterChip {
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+
   .projectCard {
     padding: 10px;
+    min-height: auto;
   }
 
-  .projectTitle {
-    font-size: 13px;
+  .jobTitle {
+    font-size: 12px;
+    padding-right: 50px;
   }
 
-  .projectDescription {
+  .jobDescription {
     font-size: 11px;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .categoryBadge {
+    padding: 3px 8px;
+    font-size: 9px;
+    top: 10px;
+    right: 10px;
+  }
+
+  .jobMeta {
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .postedTime,
+  .jobLocation {
+    font-size: 10px;
+  }
+
+  .jobStats {
+    gap: 10px;
+  }
+
+  .statBoxValue {
+    font-size: 16px;
+  }
+
+  .statBoxLabel {
+    font-size: 10px;
+  }
+
+  .jobBudget {
+    font-size: 12px;
+  }
+
+  .actionBtn {
+    font-size: 14px;
   }
 
   .projectActions button {
@@ -2189,6 +2655,104 @@
     height: 200px;
   }
 
+  /* Orders Layout - Extra Small */
+  .ordersView {
+    padding: 16px 12px;
+  }
+
+  .ordersTitle {
+    font-size: 16px;
+  }
+
+  .ordersSubtitle {
+    font-size: 11px;
+  }
+
+  .ordersList {
+    gap: 10px;
+  }
+
+  .orderCard {
+    padding: 12px;
+  }
+
+  .orderJobTitle {
+    font-size: 14px;
+  }
+
+  .orderIdBadge {
+    padding: 2px 8px;
+    font-size: 10px;
+  }
+
+  .orderStatus {
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+
+  .orderBuyer {
+    padding: 10px 0;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+
+  .orderBuyerAvatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .orderBuyerName {
+    font-size: 13px;
+  }
+
+  .orderBuyerEmail {
+    font-size: 10px;
+  }
+
+  .orderDetails {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 10px 0;
+    margin-bottom: 10px;
+  }
+
+  .detailLabel {
+    font-size: 10px;
+  }
+
+  .detailValue {
+    font-size: 13px;
+  }
+
+  .orderProgressBar {
+    height: 6px;
+    margin-bottom: 12px;
+  }
+
+  .milestonesTitle {
+    font-size: 13px;
+  }
+
+  .milestoneItem {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .milestoneDescription {
+    font-size: 11px;
+  }
+
+  .milestoneStatus {
+    padding: 3px 8px;
+    font-size: 9px;
+  }
+
+  .milestoneAmount {
+    font-size: 10px;
+  }
+
+  /* Modal */
   .modal {
     width: 95vw;
   }
@@ -2204,6 +2768,26 @@
 
   .statValue {
     font-size: 14px;
+  }
+
+  .viewDetailsButton,
+  .messageBuyerButton,
+  .requestCompletionButton {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .completionRequested {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .jobsEmptyText {
+    font-size: 14px;
+  }
+
+  .jobsEmptySubtext {
+    font-size: 11px;
   }
 }
 

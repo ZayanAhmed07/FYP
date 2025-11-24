@@ -488,7 +488,7 @@
   padding: 8px 12px;
   border-radius: 8px;
   transition: all 0.2s ease;
-  display: flex;
+  display: none;
   align-items: center;
   gap: 6px;
 }
@@ -699,6 +699,48 @@
   word-break: break-word;
 }
 
+.attachmentContainer {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.attachmentLink {
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+}
+
+.sentMessage .attachmentLink {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.sentMessage .attachmentLink:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.receivedMessage .attachmentLink {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e8f5f7;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.receivedMessage .attachmentLink:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
 /* Sent Message Styling */
 .sentMessage .messageBubble {
   align-items: flex-end;
@@ -894,15 +936,91 @@
 }
 
 /* Responsive Design */
+/* Desktop Optimization (1200px+) */
 @media (max-width: 1200px) {
   .messagingPage {
     grid-template-columns: 200px 340px 1fr;
   }
+
+  .filtersSidebar {
+    padding: 24px 16px;
+  }
+
+  .filtersTitle {
+    font-size: 16px;
+  }
+
+  .filterGroup {
+    margin-bottom: 20px;
+  }
+
+  .filterCheckbox {
+    padding: 8px 0;
+  }
+
+  .filterCheckbox label {
+    font-size: 14px;
+  }
+
+  .filterSelect {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .conversationAvatar img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .defaultAvatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .conversationName {
+    font-size: 14px;
+  }
+
+  .conversationPreview {
+    font-size: 12px;
+  }
+
+  .conversationTime {
+    font-size: 10px;
+  }
+
+  .chatHeader {
+    padding: 14px 20px;
+  }
+
+  .chatHeaderName {
+    font-size: 16px;
+  }
+
+  .chatHeaderStatus {
+    font-size: 13px;
+  }
+
+  .messageBubble {
+    max-width: 80%;
+  }
+
+  .messageText {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .attachmentContainer {
+    margin-top: 6px;
+  }
+
+  .attachmentLink {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
 }
 
-/* ============================================
-   TABLET - 992px and below
-   ============================================ */
+/* Tablet Responsive (992px - 1200px) */
 @media (max-width: 992px) {
   .messagingPage {
     grid-template-columns: 340px 1fr;
@@ -911,19 +1029,178 @@
   .filtersSidebar {
     display: none;
   }
+
+  .topBar {
+    padding: 16px 20px;
+  }
+
+  .logoText {
+    font-size: 16px;
+  }
+
+  .logoImage {
+    width: 32px;
+    height: 32px;
+  }
+
+  .conversationsHeader {
+    padding: 14px 16px;
+  }
+
+  .conversationsTitle {
+    font-size: 15px;
+  }
+
+  .searchContainer {
+    padding: 10px 16px;
+  }
+
+  .searchInput {
+    font-size: 13px;
+    padding: 8px 12px 8px 32px;
+  }
+
+  .conversationItem {
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .conversationAvatar img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .defaultAvatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .conversationName {
+    font-size: 14px;
+  }
+
+  .conversationPreview {
+    font-size: 12px;
+  }
+
+  .conversationTime {
+    font-size: 10px;
+  }
+
+  .chatHeader {
+    padding: 14px 20px;
+    gap: 12px;
+  }
+
+  .chatHeaderName {
+    font-size: 16px;
+  }
+
+  .chatHeaderStatus {
+    font-size: 13px;
+  }
+
+  .chatHeaderActions {
+    gap: 8px;
+  }
+
+  .headerActionBtn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .messagesContainer {
+    padding: 16px 16px;
+    gap: 4px;
+  }
+
+  .messageInputContainer {
+    padding: 12px 16px;
+    gap: 10px;
+  }
+
+  .inputWrapper {
+    padding: 6px 6px 6px 14px;
+  }
+
+  .messageInput {
+    font-size: 14px;
+    padding: 8px 4px;
+  }
+
+  .attachmentBtn,
+  .emojiBtn {
+    font-size: 18px;
+    padding: 6px;
+  }
+
+  .sendBtn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .messageBubble {
+    max-width: 80%;
+  }
+
+  .messageRow {
+    margin-bottom: 6px;
+    gap: 6px;
+  }
+
+  .messageText {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .messageAvatar img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .messageDefaultAvatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dateDivider span {
+    padding: 4px 12px;
+    font-size: 11px;
+  }
 }
 
-/* ============================================
-   MOBILE - 768px and below
-   ============================================ */
+/* Mobile Responsive (480px - 768px) */
 @media (max-width: 768px) {
   .messagingPage {
     grid-template-columns: 1fr;
     height: 100vh;
   }
 
+  /* Show conversations list OR chat area based on selection */
   .conversationsSidebar {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    position: relative;
+    border-right: none;
+  }
+
+  /* Hide chat area when no conversation selected, show conversations list */
+  .chatArea {
     display: none;
+    height: 100vh;
+  }
+
+  /* Show chat area when conversation is selected (via JS) */
+  .chatAreaActive {
+    display: flex !important;
+  }
+
+  /* Hide conversations sidebar when chat is active */
+  .conversationsSidebarHidden {
+    display: none !important;
   }
 
   .filtersSidebar {
@@ -946,10 +1223,37 @@
 
   .chatHeaderLeft {
     gap: 8px;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .backToDashboard {
+    font-size: 12px;
+    padding: 6px 10px;
+    display: flex !important;
+    order: -1;
+  }
+
+  .chatHeaderAvatar img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .chatHeaderDefaultAvatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .chatHeaderInfo {
+    flex: 1;
+    min-width: 0;
   }
 
   .chatHeaderName {
     font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .chatHeaderStatus {
@@ -1041,15 +1345,36 @@
     font-size: 12px;
   }
 
-  .backToDashboard {
+  .emptyConversations {
+    padding: 40px 16px;
     font-size: 12px;
-    padding: 6px 10px;
+  }
+
+  .topBar {
+    padding: 12px 16px;
+  }
+
+  .logoImage {
+    width: 28px;
+    height: 28px;
+  }
+
+  .logoText {
+    font-size: 14px;
+  }
+
+  .topBarBtn {
+    font-size: 16px;
+    padding: 4px;
+  }
+
+  .userAvatar {
+    width: 28px;
+    height: 28px;
   }
 }
 
-/* ============================================
-   EXTRA SMALL MOBILE - 480px and below
-   ============================================ */
+/* Extra Small Mobile (320px - 480px) */
 @media (max-width: 480px) {
   .messagingPage {
     height: 100vh;
@@ -1063,20 +1388,37 @@
   .chatHeaderLeft {
     gap: 6px;
     flex: 1;
+    width: 100%;
+  }
+
+  .backToDashboard {
+    font-size: 11px;
+    padding: 5px 8px;
+    gap: 4px;
+    display: flex !important;
+    order: -1;
   }
 
   .chatHeaderAvatar img {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
   }
 
   .chatHeaderDefaultAvatar {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .chatHeaderInfo {
+    flex: 1;
+    min-width: 0;
   }
 
   .chatHeaderName {
     font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .chatHeaderStatus {
@@ -1181,20 +1523,119 @@
     font-size: 11px;
   }
 
-  .backToDashboard {
+  .emptyConversations {
+    padding: 30px 12px;
     font-size: 11px;
-    padding: 5px 8px;
-    gap: 4px;
   }
 
-  .chatHeaderInfo {
-    flex: 1;
-    min-width: 0;
+  .topBar {
+    padding: 8px 12px;
   }
 
-  .chatHeaderName {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .logoImage {
+    width: 24px;
+    height: 24px;
+  }
+
+  .logoText {
+    font-size: 12px;
+  }
+
+  .topBarBtn {
+    font-size: 14px;
+    padding: 3px;
+  }
+
+  .userAvatar {
+    width: 24px;
+    height: 24px;
+  }
+
+  .conversationsHeader {
+    padding: 10px 12px;
+  }
+
+  .conversationsTitle {
+    font-size: 13px;
+  }
+
+  .searchContainer {
+    padding: 8px 12px;
+  }
+
+  .searchIcon {
+    left: 20px;
+    font-size: 12px;
+  }
+
+  .searchInput {
+    font-size: 12px;
+    padding: 6px 10px 6px 28px;
+  }
+
+  .conversationItem {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .conversationAvatar img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .defaultAvatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .conversationName {
+    font-size: 13px;
+  }
+
+  .conversationPreview {
+    font-size: 11px;
+  }
+
+  .conversationTime {
+    font-size: 9px;
+  }
+
+  .unreadCount {
+    font-size: 9px;
+    padding: 2px 5px;
+  }
+
+  .unreadBadge {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .notificationBadge {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+
+  .filterCheckbox {
+    gap: 10px;
+    padding: 8px 0;
+  }
+
+  .filterCheckbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
+
+  .filterCheckbox label {
+    font-size: 12px;
+  }
+
+  .filterSelect {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .filterGroupTitle {
+    font-size: 12px;
+    margin-bottom: 10px;
   }
 }

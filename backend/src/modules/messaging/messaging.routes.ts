@@ -1,14 +1,26 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { authenticate } from '../../middleware/authMiddleware';
 import * as messagingController from './messaging.controller';
 
 const router = Router();
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit
+  },
+});
 
 // All messaging routes require authentication
 router.use(authenticate);
 
 // Send a message
 router.post('/', messagingController.createMessage);
+
+// Upload a file message
+router.post('/upload', upload.single('file'), messagingController.uploadFileMessage);
 
 // Get all conversations for current user
 router.get('/conversations', messagingController.getConversations);

@@ -119,3 +119,39 @@ export const deleteMessage = catchAsync(async (req: Request, res: Response) => {
   await messagingService.deleteMessage(messageId, userId);
   res.status(200).json({ success: true, message: 'Message deleted successfully' });
 });
+
+export const uploadFileMessage = catchAsync(async (req: Request, res: Response) => {
+  const senderId = req.user?.id;
+  const { receiverId } = req.body;
+
+  if (!senderId) {
+    throw new ApiError(401, 'Authentication required');
+  }
+
+  if (!receiverId) {
+    throw new ApiError(400, 'Receiver ID is required');
+  }
+
+  if (!req.file) {
+    throw new ApiError(400, 'No file provided');
+  }
+
+  // Convert file buffer to base64
+  const fileContent = req.file.buffer.toString('base64');
+  const fileName = req.file.originalname;
+  const fileSize = req.file.size;
+
+  // Create message with file as attachment
+  const message = await messagingService.createMessage(
+    senderId,
+    receiverId,
+    `📎 ${fileName} (${(fileSize / 1024).toFixed(2)} KB)`,
+    [fileContent]
+  );
+
+  if (!message) {
+    throw new ApiError(500, 'Failed to upload file');
+  }
+
+  res.status(201).json({ success: true, data: message });
+});

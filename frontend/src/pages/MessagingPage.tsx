@@ -31,6 +31,7 @@ interface Message {
   receiver?: User;
   receiverId?: User;
   content: string;
+  attachments?: string[];
   createdAt: string;
 }
 
@@ -63,6 +64,8 @@ const MessagingPage = () => {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   // Helper to determine user's account type (some responses use `accountType`, others `roles` or `role`)
   const getAccountType = (user: any) => {
     if (!user) return 'buyer';
@@ -304,6 +307,50 @@ const MessagingPage = () => {
     }
   };
 
+  const handleAttachmentClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedUserId) {
+      return;
+    }
+
+    try {
+      setUploadingFile(true);
+      
+      // Create FormData to send file
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('receiverId', selectedUserId);
+
+      const response = await httpClient.post('/messages/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data?.data) {
+        setMessages((prev) => [...prev, response.data.data]);
+      }
+
+      await fetchMessages(selectedUserId);
+      await fetchConversations();
+      
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error: any) {
+      console.error('Failed to upload file:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to upload file';
+      alert(`Upload failed: ${errorMessage}`);
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
   const getOtherUser = (conversation: Conversation): User | null => {
     if (!currentUser || !Array.isArray(conversation.participants)) return null;
 
@@ -398,7 +445,7 @@ const MessagingPage = () => {
   return (
     <div className={styles.messagingPage}>
       {/* Conversations List */}
-      <aside className={styles.conversationsSidebar}>
+      <aside className={`${styles.conversationsSidebar} ${selectedUserId ? styles.conversationsSidebarHidden : ''}`}>
         <div className={styles.topBar}>
           <div className={styles.logoSection}>
             <button
@@ -517,12 +564,34 @@ const MessagingPage = () => {
       </aside>
 
       {/* Right - Chat Area */}
-      <main className={styles.chatArea}>
+      <main className={`${styles.chatArea} ${selectedUserId ? styles.chatAreaActive : ''}`}>
         {selectedUser ? (
           <>
             {/* Chat Header */}
             <header className={styles.chatHeader}>
               <div className={styles.chatHeaderLeft}>
+                <button
+                  className={styles.backToDashboard}
+                  onClick={() => {
+                    // On mobile, go back to conversations list
+                    if (window.innerWidth <= 768) {
+                      setSelectedUserId(null);
+                    } else {
+                      // On desktop, go to dashboard
+                      const role = getAccountType(currentUser);
+                      if (role === 'consultant') {
+                        navigate('/consultant-dashboard');
+                      } else if (role === 'admin') {
+                        navigate('/admin');
+                      } else {
+                        navigate('/buyer-dashboard');
+                      }
+                    }
+                  }}
+                  title={window.innerWidth <= 768 ? "Back to conversations" : "Back to Dashboard"}
+                >
+                  ← {window.innerWidth <= 768 ? 'Back' : 'Dashboard'}
+                </button>
                 <div className={styles.chatHeaderAvatar}>
                   {selectedUser.profileImage ? (
                     <img src={selectedUser.profileImage} alt={selectedUser.name} />
@@ -597,6 +666,21 @@ const MessagingPage = () => {
                             )}
                             <div className={styles.messageBubble}>
                               <div className={styles.messageText}>{message.content}</div>
+                              {message.attachments && message.attachments.length > 0 && (
+                                <div className={styles.attachmentContainer}>
+                                  {message.attachments.map((attachment, idx) => (
+                                    <a
+                                      key={idx}
+                                      href={`data:application/octet-stream;base64,${attachment}`}
+                                      download={`file-${idx}`}
+                                      className={styles.attachmentLink}
+                                      title="Click to download"
+                                    >
+                                      📥 Download
+                                    </a>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
                         );
@@ -619,9 +703,22 @@ const MessagingPage = () => {
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   className={styles.messageInput}
-                  disabled={sending}
+                  disabled={sending || uploadingFile}
                 />
-                <button type="button" className={styles.attachmentBtn} title="Attach file">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  style={{ display: 'none' }}
+                  onChange={handleFileSelect}
+                  disabled={uploadingFile}
+                />
+                <button 
+                  type="button" 
+                  className={styles.attachmentBtn} 
+                  title="Attach file"
+                  onClick={handleAttachmentClick}
+                  disabled={uploadingFile}
+                >
                   <FaPaperclip />
                 </button>
                 <button type="button" className={styles.emojiBtn} title="Add emoji">
@@ -631,7 +728,7 @@ const MessagingPage = () => {
               <button
                 type="submit"
                 className={styles.sendBtn}
-                disabled={sending || !newMessage.trim()}
+                disabled={sending || !newMessage.trim() || uploadingFile}
                 title="Send message"
               >
                 <FaPaperPlane />

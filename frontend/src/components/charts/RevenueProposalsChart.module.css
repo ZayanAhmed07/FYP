@@ -264,43 +264,206 @@
   .statCard {
     padding: 16px;
   }
+
+  .chartContainer {
+    padding: 24px;
+  }
+
+  .barsContainer {
+    height: 240px;
+  }
 }
 
 @media (max-width: 768px) {
   .chartContainer {
-    padding: 20px;
+    padding: 16px;
+    border-radius: 10px;
   }
 
   .chartHeader {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .chartTitle {
+    font-size: 18px;
+    margin-bottom: 8px;
   }
 
   .metricToggle {
     width: 100%;
-    justify-content: space-between;
+    gap: 6px;
+    padding: 3px;
   }
 
   .metricButton {
     flex: 1;
-  }
-
-  .barsContainer {
-    height: 180px;
-    gap: 8px;
-  }
-
-  .bar {
-    max-width: 28px;
-  }
-
-  .statsPanel {
-    grid-template-columns: 1fr;
+    padding: 6px 12px;
+    font-size: 12px;
   }
 
   .chartContent {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .yAxisLabel {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  .barsContainer {
+    height: 200px;
+    gap: 6px;
+    padding: 16px;
+    border-radius: 8px;
+  }
+
+  .bar {
+    max-width: 24px;
+    border-radius: 4px 4px 0 0;
+  }
+
+  .barWrapper {
+    gap: 6px;
+  }
+
+  .barLabel {
+    font-size: 11px;
+  }
+
+  .statsPanel {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .statCard {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .statValue {
+    font-size: 18px;
+  }
+
+  .statLabel {
+    font-size: 12px;
+  }
+
+  .tooltip {
+    font-size: 11px;
+    padding: 4px 6px;
+    border-radius: 4px;
+  }
+}
+
+/* ============================================
+   MOBILE - 480px and below
+   ============================================ */
+@media (max-width: 480px) {
+  .chartContainer {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .chartHeader {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #f5f7fa;
+    padding-bottom: 12px;
+  }
+
+  .chartTitle {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+
+  .metricToggle {
+    width: 100%;
+    gap: 4px;
+    padding: 2px;
+    border-radius: 6px;
+  }
+
+  .metricButton {
+    padding: 5px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+  }
+
+  .metricButton.active {
+    border-radius: 4px;
+  }
+
+  .chartContent {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .chartArea {
+    gap: 12px;
+  }
+
+  .yAxisLabel {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  .barsContainer {
+    height: 160px;
+    gap: 4px;
+    padding: 12px;
+    border-radius: 6px;
+  }
+
+  .barWrapper {
+    gap: 4px;
+  }
+
+  .bar {
+    max-width: 18px;
+    border-radius: 3px 3px 0 0;
+    min-height: 6px;
+  }
+
+  .barLabel {
+    font-size: 10px;
+    font-weight: 500;
+  }
+
+  .statsPanel {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .statCard {
+    padding: 10px;
+    border-radius: 6px;
+    gap: 8px;
+  }
+
+  .statIcon {
+    font-size: 20px;
+  }
+
+  .statValue {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .statLabel {
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .tooltip {
+    font-size: 10px;
+    padding: 3px 5px;
+    border-radius: 3px;
   }
 }
 
