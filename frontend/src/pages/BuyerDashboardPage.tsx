@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   FaPlus,
   FaStar,
@@ -262,33 +262,36 @@ const BuyerDashboardPage = () => {
       const consultantsData = response.data?.data?.consultants || response.data?.data || [];
 
       // Transform data to match component structure
-      const transformedConsultants = consultantsData.map((c: any) => ({
-        id: c._id,
-        userId: c.userId?._id,
-        name: c.userId?.name || 'Unknown',
-        title: c.title,
-        category: c.specialization?.[0] || 'General',
-        rating: c.averageRating || c.rating || 0,
-        totalReviews: c.totalReviews || 0,
-        location: c.city || 'Pakistan',
-        city: c.city || '',
-        specialization: Array.isArray(c.specialization)
-          ? c.specialization.join(', ')
-          : c.specialization,
-        specializationArray: Array.isArray(c.specialization)
-          ? c.specialization
-          : [c.specialization],
-        bio: c.bio || '',
-        hourlyRate: `Rs ${c.hourlyRate?.toLocaleString()}/hr`,
-        availability:
-          c.availability === 'available'
-            ? 'Available'
-            : c.availability === 'limited'
-              ? 'Limited Availability'
-              : 'Unavailable',
-        avatar: c.userId?.profileImage || null,
-        isOnline: c.userId?.isOnline ?? false,
-      }));
+      const transformedConsultants = consultantsData.map((c: any) => {
+        console.log('Consultant data:', { _id: c._id, userId: c.userId?._id, name: c.userId?.name });
+        return {
+          id: c._id,
+          userId: c.userId?._id,
+          name: c.userId?.name || 'Unknown',
+          title: c.title,
+          category: c.specialization?.[0] || 'General',
+          rating: c.averageRating || c.rating || 0,
+          totalReviews: c.totalReviews || 0,
+          location: c.city || 'Pakistan',
+          city: c.city || '',
+          specialization: Array.isArray(c.specialization)
+            ? c.specialization.join(', ')
+            : c.specialization,
+          specializationArray: Array.isArray(c.specialization)
+            ? c.specialization
+            : [c.specialization],
+          bio: c.bio || '',
+          hourlyRate: `Rs ${c.hourlyRate?.toLocaleString()}/hr`,
+          availability:
+            c.availability === 'available'
+              ? 'Available'
+              : c.availability === 'limited'
+                ? 'Limited Availability'
+                : 'Unavailable',
+          avatar: c.userId?.profileImage || null,
+          isOnline: c.userId?.isOnline ?? false,
+        };
+      });
 
       setConsultants(transformedConsultants);
     } catch (error) {
@@ -1230,20 +1233,18 @@ const BuyerDashboardPage = () => {
                             >
                               <FaEnvelope /> Message
                             </button>
-                            <button
+                            <Link
+                              to={`/consultant/${consultant.id}`}
                               className={styles.viewProfileButton}
-                              onClick={() => {
-                                console.log('🔍 View Profile clicked for consultant:', consultant);
-                                console.log('🔗 Navigating to:', `/consultant/${consultant.id}`);
-                                if (consultant.id) {
-                                  navigate(`/consultant/${consultant.id}`);
-                                } else {
-                                  console.error('❌ No consultant ID found');
-                                }
+                              style={{
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                               }}
                             >
                               View Profile
-                            </button>
+                            </Link>
                           </div>
                         </div>
                       </div>
