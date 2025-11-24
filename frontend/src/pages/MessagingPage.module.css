@@ -900,6 +900,9 @@
   }
 }
 
+/* ============================================
+   TABLET - 992px and below
+   ============================================ */
 @media (max-width: 992px) {
   .messagingPage {
     grid-template-columns: 340px 1fr;
@@ -910,9 +913,13 @@
   }
 }
 
+/* ============================================
+   MOBILE - 768px and below
+   ============================================ */
 @media (max-width: 768px) {
   .messagingPage {
     grid-template-columns: 1fr;
+    height: 100vh;
   }
 
   .conversationsSidebar {
@@ -923,19 +930,271 @@
     display: none;
   }
 
+  .chatArea {
+    height: 100vh;
+  }
+
   .messageBubble {
     max-width: 85%;
   }
 
   .chatHeader {
     padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .chatHeaderLeft {
+    gap: 8px;
+  }
+
+  .chatHeaderName {
+    font-size: 14px;
+  }
+
+  .chatHeaderStatus {
+    font-size: 12px;
+  }
+
+  .chatHeaderActions {
+    gap: 4px;
+  }
+
+  .headerActionBtn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
   }
 
   .messagesContainer {
-    padding: 16px;
+    padding: 16px 12px;
+    gap: 3px;
   }
 
   .messageInputContainer {
-    padding: 12px 16px;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .inputWrapper {
+    padding: 4px 4px 4px 12px;
+    border-radius: 20px;
+  }
+
+  .messageInput {
+    font-size: 13px;
+    padding: 8px 0;
+  }
+
+  .attachmentBtn {
+    font-size: 16px;
+    padding: 4px;
+  }
+
+  .emojiBtn {
+    font-size: 16px;
+    padding: 4px;
+  }
+
+  .sendBtn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .messageRow {
+    margin-bottom: 6px;
+    gap: 6px;
+  }
+
+  .messageText {
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 14px;
+  }
+
+  .messageAvatar img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .messageDefaultAvatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .dateDivider span {
+    padding: 3px 10px;
+    font-size: 10px;
+  }
+
+  .emptyMessagesIcon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  .emptyMessages p {
+    font-size: 14px;
+  }
+
+  .emptyMessages span {
+    font-size: 12px;
+  }
+
+  .backToDashboard {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
+
+/* ============================================
+   EXTRA SMALL MOBILE - 480px and below
+   ============================================ */
+@media (max-width: 480px) {
+  .messagingPage {
+    height: 100vh;
+  }
+
+  .chatHeader {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .chatHeaderLeft {
+    gap: 6px;
+    flex: 1;
+  }
+
+  .chatHeaderAvatar img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .chatHeaderDefaultAvatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .chatHeaderName {
+    font-size: 13px;
+  }
+
+  .chatHeaderStatus {
+    font-size: 11px;
+  }
+
+  .chatHeaderActions {
+    gap: 0;
+  }
+
+  .headerActionBtn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    padding: 6px;
+  }
+
+  .messagesContainer {
+    padding: 12px 10px;
+    gap: 2px;
+  }
+
+  .messageInputContainer {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .inputWrapper {
+    padding: 3px 3px 3px 10px;
+    border-radius: 18px;
+  }
+
+  .messageInput {
+    font-size: 12px;
+    padding: 6px 0;
+  }
+
+  .attachmentBtn {
+    font-size: 14px;
+    padding: 3px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .emojiBtn {
+    font-size: 14px;
+    padding: 3px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .sendBtn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .messageBubble {
+    max-width: 90%;
+  }
+
+  .messageRow {
+    margin-bottom: 4px;
+    gap: 4px;
+  }
+
+  .messageText {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 12px;
+  }
+
+  .messageAvatar img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .messageDefaultAvatar {
+    width: 24px;
+    height: 24px;
+  }
+
+  .dateDivider {
+    margin: 12px 0 8px;
+  }
+
+  .dateDivider span {
+    padding: 2px 8px;
+    font-size: 9px;
+  }
+
+  .emptyMessagesIcon {
+    font-size: 40px;
+    margin-bottom: 10px;
+  }
+
+  .emptyMessages p {
+    font-size: 13px;
+  }
+
+  .emptyMessages span {
+    font-size: 11px;
+  }
+
+  .backToDashboard {
+    font-size: 11px;
+    padding: 5px 8px;
+    gap: 4px;
+  }
+
+  .chatHeaderInfo {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .chatHeaderName {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
