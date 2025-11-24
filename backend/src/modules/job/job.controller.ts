@@ -40,7 +40,9 @@ export const deleteJob = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getJobsByBuyer = catchAsync(async (req: Request, res: Response) => {
+  console.log('🔍 getJobsByBuyer called with buyerId:', req.params.buyerId);
   const jobs = await jobService.getJobsByBuyer(req.params.buyerId!);
+  console.log('📊 Found jobs for buyer:', jobs.length);
   res.status(200).json({ success: true, data: jobs });
 });
 

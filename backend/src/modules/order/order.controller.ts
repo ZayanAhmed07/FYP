@@ -19,12 +19,16 @@ export const getOrderById = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getOrdersByBuyer = catchAsync(async (req: Request, res: Response) => {
+  console.log('🔍 getOrdersByBuyer called with buyerId:', req.params.buyerId);
   const orders = await orderService.getOrdersByBuyer(req.params.buyerId!);
+  console.log('📊 Found orders for buyer:', orders.length);
   res.status(200).json({ success: true, data: orders });
 });
 
 export const getOrdersByConsultant = catchAsync(async (req: Request, res: Response) => {
+  console.log('🔍 getOrdersByConsultant called with consultantId:', req.params.consultantId);
   const orders = await orderService.getOrdersByConsultant(req.params.consultantId!);
+  console.log('📊 Found orders for consultant:', orders.length);
   res.status(200).json({ success: true, data: orders });
 });
 
@@ -83,7 +87,8 @@ export const deleteOrder = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const processPayment = catchAsync(async (req: Request, res: Response) => {
-  const paymentSession = await orderService.processPayment(req.body);
+  const userId = req.user?.id;
+  const paymentSession = await orderService.processPayment(req.body, userId!);
   res.status(200).json({ success: true, data: paymentSession });
 });
 

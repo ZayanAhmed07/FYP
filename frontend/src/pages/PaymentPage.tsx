@@ -11,7 +11,7 @@ type PaymentStep = 'details' | 'otp' | 'success';
 interface LocationState {
   amount: number;
   proposalId: string;
-  orderId?: string;
+  orderId: string;
   jobTitle?: string;
 }
 
@@ -52,7 +52,7 @@ const PaymentPage = () => {
     }
     setCurrentUser(user);
 
-    if (!proposalId || !amount) {
+    if (!proposalId || !amount || !orderId) {
       alert('Invalid payment information');
       navigate('/buyer-dashboard');
     }
@@ -151,7 +151,7 @@ const PaymentPage = () => {
       }
 
       const response = await httpClient.post('/orders/payment/process', {
-        orderId: orderId || 'temp_order_id',
+        orderId,
         proposalId,
         amount,
         paymentMethod,

@@ -15,6 +15,9 @@ import { Job } from '../../models/job.model';
 import { Order } from '../../models/order.model';
 import { ApiError } from '../../utils/ApiError';
 
+// In-memory store for payment sessions (use Redis in production)
+const paymentSessions = new Map<string, any>();
+
 /**
  * Create Order - Called when proposal is accepted
  * Implements Transaction.initiate() from class diagram
@@ -360,13 +363,17 @@ interface PaymentData {
   paymentDetails: PaymentDetails;
 }
 
-export const processPayment = async (paymentData: PaymentData) => {
+export const processPayment = async (paymentData: PaymentData, userId: string) => {
   const { orderId, proposalId, amount, paymentMethod, paymentDetails } = paymentData;
 
-  // Verify order exists
+  // Verify order exists and user owns it
   const order = await Order.findById(orderId);
   if (!order) {
     throw new ApiError(404, 'Order not found');
+  }
+
+  if (order.buyerId.toString() !== userId) {
+    throw new ApiError(403, 'You are not authorized to pay for this order');
   }
 
   // Generate OTP (in real implementation, send via SMS)
@@ -384,6 +391,9 @@ export const processPayment = async (paymentData: PaymentData) => {
     status: 'pending',
     createdAt: new Date()
   };
+
+  // Store in memory (development only)
+  paymentSessions.set(paymentSession.id, paymentSession);
 
   // In development, log OTP to console
   console.log(`[Payment] OTP for ${paymentMethod}: ${otp}`);
@@ -405,25 +415,52 @@ export const processPayment = async (paymentData: PaymentData) => {
  * Verifies OTP and completes the payment transaction
  */
 export const verifyPaymentOtp = async (paymentSessionId: string, otp: string) => {
-  // In production, retrieve from Redis/cache
-  // For development, we'll simulate OTP verification
-  
-  // Extract order info from session ID (in production, get from cache)
+  // Retrieve payment session
+  const session = paymentSessions.get(paymentSessionId);
+  if (!session) {
+    throw new ApiError(404, 'Payment session not found or expired');
+  }
+
+  if (session.status !== 'pending') {
+    throw new ApiError(400, 'Payment session already processed');
+  }
+
+  // Check if expired
+  if (new Date() > session.expiresAt) {
+    throw new ApiError(400, 'Payment session expired');
+  }
+
+  // In development, accept any 6-digit OTP
   const isValidOtp = otp.length === 6 && /^\d{6}$/.test(otp);
   
   if (!isValidOtp) {
     throw new ApiError(400, 'Invalid OTP format');
   }
 
-  // Simulate successful verification (in production, compare with stored OTP)
+  // Update order with payment
+  const order = await Order.findById(session.orderId);
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  order.amountPaid = (order.amountPaid || 0) + session.amount;
+  order.amountPending = order.totalAmount - order.amountPaid;
+  await order.save();
+
+  // Mark session as completed
+  session.status = 'completed';
+  paymentSessions.set(paymentSessionId, session);
+
   const paymentSuccess = {
     transactionId: `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     status: 'completed',
-    paidAt: new Date()
+    paidAt: new Date(),
+    amount: session.amount
   };
 
   console.log(`[Payment] Payment verified successfully`);
   console.log(`[Payment] Transaction ID: ${paymentSuccess.transactionId}`);
+  console.log(`[Payment] Order ${session.orderId} updated: paid ${session.amount}`);
 
   return paymentSuccess;
 };

@@ -89,7 +89,8 @@ const ConsultantDashboardPage = () => {
             const backendUser = response.data.data;
             const normalizedUser = {
               ...backendUser,
-              id: backendUser.id ?? backendUser._id ?? user.id,
+              id: backendUser.id ?? backendUser._id,
+              _id: backendUser._id ?? backendUser.id,
             };
             // Update localStorage with latest data
             localStorage.setItem('expert_raah_user', JSON.stringify(normalizedUser));
@@ -288,8 +289,10 @@ const ConsultantDashboardPage = () => {
     try {
       setOrdersLoading(true);
       setOrdersError('');
-
+      
+      console.log('📡 Fetching orders for consultant:', consultantId);
       const ordersData = await orderService.getOrdersByConsultant(consultantId);
+      console.log('📊 Consultant orders API response:', ordersData);
       setOrders(ordersData);
     } catch (error) {
       console.error('Failed to fetch orders', error);
