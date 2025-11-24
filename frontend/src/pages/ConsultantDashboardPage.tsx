@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaStar, FaMapMarkerAlt, FaClock, FaEdit, FaShare, FaHeart, FaUserCircle, FaEnvelope, FaDownload } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaClock, FaEdit, FaHeart, FaUserCircle, FaEnvelope, FaDownload } from 'react-icons/fa';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
 import { orderService } from '../services/orderService';
 import { useSocket } from '../hooks/useSocket';
-import { useNotification } from '../context/NotificationContext';
 import RevenueProposalsChart from '../components/charts/RevenueProposalsChart';
 import styles from './ConsultantDashboardPage.module.css';
 
@@ -35,7 +34,7 @@ interface JobFromApi {
 
 const ConsultantDashboardPage = () => {
   const navigate = useNavigate();
-  const { showNotification, showConfirm } = useNotification();
+  // const { showNotification } = useNotification();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'projects' | 'orders' | 'stats' | 'proposals'>('dashboard');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -111,11 +110,11 @@ const ConsultantDashboardPage = () => {
       // Refresh unread count
       fetchUnreadMessageCount();
     },
-    onMessageReceive: (data) => {
+    onMessageReceive: () => {
       // Increment unread count when new message arrives
       setUnreadMessageCount(prev => prev + 1);
     },
-    onUnreadCountUpdate: (data) => {
+    onUnreadCountUpdate: () => {
       // Update unread count in real-time
       fetchUnreadMessageCount();
     },
