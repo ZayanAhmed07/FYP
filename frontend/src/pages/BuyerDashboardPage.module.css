@@ -2221,3 +2221,444 @@
   }
 }
 
+/* Tablet Responsive (768px - 1024px) */
+@media (max-width: 1024px) {
+  .dashboardContainer {
+    flex-direction: column;
+  }
+
+  .header {
+    padding: 16px 24px;
+    flex-wrap: wrap;
+  }
+
+  .nav {
+    gap: 16px;
+    order: 3;
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .navItem {
+    font-size: 14px;
+    flex: 1;
+    text-align: center;
+  }
+
+  .headerActions {
+    gap: 16px;
+  }
+
+  .mainContent {
+    padding: 20px 24px;
+    grid-template-columns: 1fr;
+  }
+
+  .leftSidebar {
+    display: none !important;
+  }
+
+  .projectCard {
+    padding: 16px;
+  }
+
+  .projectActions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .projectActions button {
+    width: 100%;
+  }
+
+  .projectFooter {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .consultantCardHeader {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .headerInfoSection {
+    width: 100%;
+  }
+
+  .projectList {
+    grid-template-columns: 1fr;
+  }
+
+  .categoryBadge {
+    display: inline-block;
+    margin-top: 8px;
+  }
+
+  .statCard {
+    flex: 1;
+    min-width: 150px;
+  }
+}
+
+/* Mobile Responsive (320px - 768px) */
+@media (max-width: 768px) {
+  .dashboardContainer {
+    min-height: auto;
+  }
+
+  .header {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .logo {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .logoImage {
+    width: 60px;
+    height: 60px;
+  }
+
+  .nav {
+    width: 100%;
+    gap: 8px;
+    order: 2;
+    overflow-x: auto;
+  }
+
+  .navItem {
+    font-size: 12px;
+    padding: 6px 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .headerActions {
+    width: 100%;
+    gap: 12px;
+    justify-content: flex-end;
+    order: 1;
+  }
+
+  .mainContent {
+    padding: 16px;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .projectCard {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .projectCard:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .consultantCardHeader {
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .avatarSection {
+    min-width: 50px;
+  }
+
+  .consultantAvatarLarge {
+    width: 50px;
+    height: 50px;
+  }
+
+  .consultantAvatarDefault {
+    font-size: 40px !important;
+  }
+
+  .consultantNameLarge {
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .consultantTitleLarge {
+    font-size: 12px;
+    margin: 4px 0;
+  }
+
+  .ratingStars {
+    gap: 2px;
+  }
+
+  .starFilled,
+  .starEmpty {
+    font-size: 12px;
+  }
+
+  .ratingSection {
+    gap: 6px;
+  }
+
+  .ratingValueLarge {
+    font-size: 13px;
+  }
+
+  .reviewCount {
+    font-size: 11px;
+  }
+
+  .consultantSpecializationEnhanced {
+    font-size: 12px;
+    margin: 8px 0;
+  }
+
+  .projectDescription {
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 8px 0;
+  }
+
+  .projectFooter {
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 8px;
+  }
+
+  .rateAndAvailability {
+    width: 100%;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .rateDisplay {
+    font-size: 13px;
+    gap: 4px;
+  }
+
+  .rateIcon {
+    font-size: 14px;
+  }
+
+  .rateValue {
+    font-size: 13px;
+  }
+
+  .availability {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .projectActions {
+    width: 100%;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .viewProfileButton,
+  .messageButton,
+  .messageConsultantButton {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+  }
+
+  .messageButton:hover,
+  .viewProfileButton:hover {
+    transform: translateY(-1px);
+  }
+
+  .postJobButton {
+    width: calc(100% - 32px);
+    margin: 12px 16px;
+  }
+
+  .projectList {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .filterContainer {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .filterInput,
+  .filterSelect {
+    width: 100%;
+    font-size: 14px;
+  }
+
+  /* Stats Cards */
+  .statCard {
+    padding: 12px;
+    border-radius: 8px;
+    min-width: auto;
+  }
+
+  .statValue {
+    font-size: 20px;
+  }
+
+  .statLabel {
+    font-size: 12px;
+  }
+
+  /* Job Details */
+  .jobDetailsContainer {
+    padding: 12px;
+  }
+
+  .jobTitle {
+    font-size: 16px;
+  }
+
+  .jobCategory {
+    font-size: 12px;
+  }
+
+  .jobBudget {
+    font-size: 13px;
+  }
+
+  .jobTimeline {
+    font-size: 12px;
+  }
+
+  /* Tab Navigation */
+  .tabContainer {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tabs {
+    gap: 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+
+  .tab {
+    flex: 0 0 auto;
+    padding: 10px 14px;
+    font-size: 12px;
+    min-width: 80px;
+  }
+
+  /* Messages */
+  .messageItem {
+    padding: 8px;
+  }
+
+  .messageHeader {
+    gap: 8px;
+  }
+
+  .senderName {
+    font-size: 13px;
+  }
+
+  .messageText {
+    font-size: 12px;
+  }
+
+  /* Buttons - General */
+  button {
+    font-size: 12px;
+  }
+
+  /* Input Fields */
+  input,
+  textarea,
+  select {
+    font-size: 14px;
+  }
+
+  /* Reduce font sizes for better mobile readability */
+  h1 {
+    font-size: 20px;
+  }
+
+  h2 {
+    font-size: 18px;
+  }
+
+  h3 {
+    font-size: 16px;
+  }
+
+  p {
+    font-size: 13px;
+  }
+
+  /* Right Sidebar always hidden on mobile */
+  .rightSidebar {
+    display: none !important;
+  }
+
+  /* Left Sidebar always hidden on mobile */
+  .leftSidebar {
+    display: none !important;
+  }
+}
+
+/* Extra Small Mobile (320px - 480px) */
+@media (max-width: 480px) {
+  .header {
+    padding: 10px 12px;
+  }
+
+  .logoImage {
+    width: 50px;
+    height: 50px;
+  }
+
+  .navItem {
+    font-size: 11px;
+    padding: 4px 3px;
+  }
+
+  .mainContent {
+    padding: 12px;
+  }
+
+  .projectCard {
+    padding: 10px;
+  }
+
+  .consultantNameLarge {
+    font-size: 13px;
+  }
+
+  .projectDescription {
+    font-size: 11px;
+  }
+
+  .projectActions {
+    gap: 4px;
+  }
+
+  .viewProfileButton,
+  .messageButton {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .statCard {
+    padding: 10px;
+  }
+
+  .statValue {
+    font-size: 18px;
+  }
+
+  .statLabel {
+    font-size: 11px;
+  }
+}
+
+

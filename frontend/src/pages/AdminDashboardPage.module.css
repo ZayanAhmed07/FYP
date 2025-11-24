@@ -983,3 +983,360 @@
   color: #64748b;
 }
 
+/* Tablet Responsive (768px - 1024px) */
+@media (max-width: 1024px) {
+  .pageContainer {
+    flex-direction: column;
+  }
+
+  .header {
+    padding: 16px 24px;
+    flex-wrap: wrap;
+  }
+
+  .logoText {
+    font-size: 16px;
+  }
+
+  .logoutButton {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .mainContent {
+    padding: 20px 24px;
+  }
+
+  .tabs {
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .tab {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .tabActive {
+    padding: 12px 16px;
+  }
+
+  .contentArea {
+    grid-template-columns: 1fr;
+  }
+
+  .userList {
+    gap: 12px;
+  }
+
+  .userCard {
+    padding: 12px;
+  }
+
+  .userAvatar {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .verificationCard {
+    padding: 12px;
+  }
+
+  .documentPreview {
+    width: 80px;
+    height: 80px;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .actionButtons button {
+    width: 100%;
+    font-size: 12px;
+  }
+}
+
+/* Mobile Responsive (320px - 768px) */
+@media (max-width: 768px) {
+  .pageContainer {
+    min-height: auto;
+  }
+
+  .header {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .logo {
+    width: 100%;
+  }
+
+  .logoImage {
+    width: 50px;
+    height: 50px;
+  }
+
+  .logoText {
+    font-size: 14px;
+  }
+
+  .logoutButton {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 11px;
+    margin-top: 8px;
+  }
+
+  .mainContent {
+    padding: 16px;
+  }
+
+  .tabs {
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .tab:hover {
+    background: #f8f9fa;
+  }
+
+  .tabActive {
+    padding: 10px 12px;
+  }
+
+  .contentArea {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .userList {
+    gap: 10px;
+  }
+
+  .userCard {
+    padding: 10px;
+    border-radius: 8px;
+    flex-direction: column;
+  }
+
+  .userInfo {
+    flex: 1;
+    width: 100%;
+  }
+
+  .userAvatar {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .userName {
+    font-size: 13px;
+    margin: 4px 0 2px 0;
+  }
+
+  .userEmail {
+    font-size: 11px;
+  }
+
+  .userStatus {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .actionButtons button {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+  }
+
+  .verificationCard {
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .documentSection {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .documentPreview {
+    width: 70px;
+    height: 70px;
+  }
+
+  .verificationStatus {
+    font-size: 12px;
+  }
+
+  .verificationButtons {
+    gap: 4px;
+  }
+
+  .verificationButtons button {
+    padding: 6px 10px;
+    font-size: 11px;
+    flex: 1;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .statBox {
+    padding: 12px;
+  }
+
+  .statValue {
+    font-size: 20px;
+  }
+
+  .statLabel {
+    font-size: 12px;
+  }
+
+  .searchBox {
+    width: 100%;
+  }
+
+  .searchBox input {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  /* Tables */
+  table {
+    font-size: 11px;
+  }
+
+  th,
+  td {
+    padding: 6px;
+  }
+
+  /* General */
+  h1 {
+    font-size: 18px;
+  }
+
+  h2 {
+    font-size: 16px;
+  }
+
+  h3 {
+    font-size: 14px;
+  }
+
+  p {
+    font-size: 12px;
+  }
+
+  button {
+    font-size: 12px;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 13px;
+  }
+
+  .paginationInfo {
+    font-size: 12px;
+  }
+
+  .paginationButton {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
+
+/* Extra Small Mobile (320px - 480px) */
+@media (max-width: 480px) {
+  .header {
+    padding: 10px 12px;
+  }
+
+  .logoImage {
+    width: 40px;
+    height: 40px;
+  }
+
+  .logoText {
+    font-size: 12px;
+  }
+
+  .logoutButton {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+
+  .mainContent {
+    padding: 12px;
+  }
+
+  .tabs {
+    gap: 4px;
+  }
+
+  .tab {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .userCard {
+    padding: 8px;
+  }
+
+  .userName {
+    font-size: 12px;
+  }
+
+  .userEmail {
+    font-size: 10px;
+  }
+
+  .actionButtons button {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+
+  .verificationCard {
+    padding: 8px;
+  }
+
+  .documentPreview {
+    width: 60px;
+    height: 60px;
+  }
+
+  .statValue {
+    font-size: 18px;
+  }
+
+  .statLabel {
+    font-size: 11px;
+  }
+}
+

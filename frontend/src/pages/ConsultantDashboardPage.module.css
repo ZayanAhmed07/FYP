@@ -1855,3 +1855,355 @@
   }
 }
 
+/* Tablet Responsive (768px - 1024px) */
+@media (max-width: 1024px) {
+  .dashboardContainer {
+    flex-direction: column;
+  }
+
+  .header {
+    padding: 16px 24px;
+    flex-wrap: wrap;
+  }
+
+  .nav {
+    gap: 16px;
+    order: 3;
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .navItem {
+    font-size: 13px;
+    flex: 1;
+    text-align: center;
+  }
+
+  .headerActions {
+    gap: 16px;
+  }
+
+  .mainContent {
+    padding: 20px 24px;
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardView,
+  .ordersView {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .rightSidebar {
+    display: none;
+  }
+
+  .statCard {
+    padding: 16px;
+  }
+
+  .projectCard {
+    padding: 14px;
+  }
+
+  .projectActions {
+    flex-direction: column;
+  }
+
+  .projectActions button {
+    width: 100%;
+  }
+}
+
+/* Mobile Responsive (320px - 768px) */
+@media (max-width: 768px) {
+  .dashboardContainer {
+    min-height: auto;
+  }
+
+  .header {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .logo {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .logoImage {
+    width: 60px;
+    height: 60px;
+  }
+
+  .nav {
+    width: 100%;
+    gap: 8px;
+    order: 2;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .navItem {
+    font-size: 11px;
+    padding: 6px 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .headerActions {
+    width: 100%;
+    gap: 12px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .sellingToggle {
+    gap: 8px;
+    width: 100%;
+  }
+
+  .sellingLabel {
+    font-size: 12px;
+  }
+
+  .mainContent {
+    padding: 16px;
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardView,
+  .ordersView {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .statCard {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .statLabel {
+    font-size: 11px;
+  }
+
+  .statValue {
+    font-size: 18px;
+  }
+
+  .projectCard {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .projectHeader {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .projectTitle {
+    font-size: 14px;
+  }
+
+  .projectCategory {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+
+  .projectDescription {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .projectDetails {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .detailItem {
+    font-size: 11px;
+  }
+
+  .projectActions {
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .projectActions button {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+  }
+
+  .projectCard:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .sidebar,
+  .rightSidebar {
+    display: none !important;
+  }
+
+  /* Chart Container */
+  .chartContainer {
+    padding: 12px;
+  }
+
+  .chart {
+    width: 100%;
+    height: 250px;
+  }
+
+  /* Modal */
+  .modal {
+    width: 90vw;
+    max-width: 90%;
+  }
+
+  .modalContent {
+    padding: 16px;
+  }
+
+  .modalHeader {
+    font-size: 16px;
+  }
+
+  .modalCloseButton {
+    font-size: 20px;
+  }
+
+  /* Buttons */
+  button {
+    font-size: 12px;
+  }
+
+  /* Input Fields */
+  input,
+  textarea,
+  select {
+    font-size: 13px;
+  }
+
+  /* Typography */
+  h1 {
+    font-size: 18px;
+  }
+
+  h2 {
+    font-size: 16px;
+  }
+
+  h3 {
+    font-size: 14px;
+  }
+
+  p {
+    font-size: 12px;
+  }
+
+  /* Rating */
+  .ratingStars {
+    gap: 2px;
+  }
+
+  .starFilled,
+  .starEmpty {
+    font-size: 12px;
+  }
+
+  /* Scrollable Content */
+  .horizontalScroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Loader */
+  .loadingState {
+    padding: 20px;
+  }
+
+  .emptyState {
+    padding: 20px;
+  }
+}
+
+/* Extra Small Mobile (320px - 480px) */
+@media (max-width: 480px) {
+  .header {
+    padding: 10px 12px;
+  }
+
+  .logoImage {
+    width: 50px;
+    height: 50px;
+  }
+
+  .navItem {
+    font-size: 10px;
+    padding: 4px 3px;
+  }
+
+  .mainContent {
+    padding: 12px;
+  }
+
+  .statCard {
+    padding: 10px;
+  }
+
+  .statLabel {
+    font-size: 10px;
+  }
+
+  .statValue {
+    font-size: 16px;
+  }
+
+  .projectCard {
+    padding: 10px;
+  }
+
+  .projectTitle {
+    font-size: 13px;
+  }
+
+  .projectDescription {
+    font-size: 11px;
+  }
+
+  .projectActions button {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .chart {
+    height: 200px;
+  }
+
+  .modal {
+    width: 95vw;
+  }
+
+  .modalContent {
+    padding: 12px;
+  }
+
+  .switch {
+    width: 40px;
+    height: 20px;
+  }
+
+  .statValue {
+    font-size: 14px;
+  }
+}
+

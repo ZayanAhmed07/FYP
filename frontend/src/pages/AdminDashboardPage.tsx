@@ -4,6 +4,7 @@ import { FaUser, FaUserTie, FaCheckCircle, FaTimesCircle, FaBan, FaEye, FaFileAl
 import { httpClient } from '../api/httpClient';
 import reviewService from '../services/reviewService';
 import ContactManagement from '../components/admin/ContactManagement';
+import { authService } from '../services/authService';
 import styles from './AdminDashboardPage.module.css';
 
 const AdminDashboardPage = () => {
@@ -265,7 +266,10 @@ const AdminDashboardPage = () => {
           <span className={styles.logoText}>Admin Panel</span>
         </div>
 
-        <button className={styles.logoutButton} onClick={() => navigate('/')}>
+        <button className={styles.logoutButton} onClick={() => {
+          authService.logout();
+          navigate('/');
+        }}>
           Logout
         </button>
       </header>
