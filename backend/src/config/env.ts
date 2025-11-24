@@ -15,7 +15,12 @@ const envSchema = Joi.object({
   JWT_EXPIRES_IN: Joi.string().default('1d'),
   FRONTEND_URL: Joi.string().uri().default('http://localhost:3000'),
   PASSWORD_RESET_EXPIRES_IN: Joi.string().default('1h'),
-  LOG_LEVEL: Joi.string().valid('error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly').default('info'),
+  LOG_LEVEL: Joi.string()
+    .valid('error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly')
+    .default('info'),
+  GOOGLE_CLIENT_ID: Joi.string().required(),
+  GOOGLE_CLIENT_SECRET: Joi.string().required(),
+  API_URL: Joi.string().uri().default('http://localhost:5000'),
 })
   .unknown()
   .required();
@@ -36,8 +41,12 @@ export const env = {
   frontendUrl: value.FRONTEND_URL as string,
   passwordResetExpiresIn: value.PASSWORD_RESET_EXPIRES_IN as string,
   logLevel: value.LOG_LEVEL as string,
+  smtpHost: value.SMTP_HOST as string,
+  smtpPort: Number(value.SMTP_PORT),
+  smtpUser: value.SMTP_USER as string,
+  smtpPass: value.SMTP_PASS as string,
+  adminEmail: value.ADMIN_EMAIL as string,
+  googleClientId: value.GOOGLE_CLIENT_ID as string,
+  googleClientSecret: value.GOOGLE_CLIENT_SECRET as string,
+  apiUrl: value.API_URL as string,
 };
-
-
-
-

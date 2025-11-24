@@ -9,6 +9,11 @@ import orderRoutes from '../modules/order/order.routes';
 import adminRoutes from '../modules/admin/admin.routes';
 import messagingRoutes from '../modules/messaging/messaging.routes';
 import reviewRoutes from '../modules/review/review.routes';
+import contactRoutes from '../modules/contact/contact.routes';
+import notificationRoutes from '../modules/notification/notification.routes';
+import analyticsRoutes from '../modules/analytics/analytics.routes';
+import { authenticate } from '../middleware/authMiddleware';
+import * as messagingController from '../modules/messaging/messaging.controller';
 
 const router = Router();
 
@@ -23,6 +28,12 @@ router.use('/proposals', proposalRoutes);
 router.use('/orders', orderRoutes);
 router.use('/messages', messagingRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/contacts', contactRoutes);
+router.use('/notifications', notificationRoutes);
+router.use('/analytics', analyticsRoutes);
+
+// Conversations endpoint
+router.get('/conversations', authenticate, messagingController.getConversations);
 
 // Admin
 router.use('/admin', adminRoutes);

@@ -1,0 +1,340 @@
+.contactManagement {
+  padding: 24px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 256px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.filterSection {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.filterLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.filterSelect {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: white;
+  font-size: 14px;
+  color: #374151;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.statCard {
+  background-color: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.statNumber {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.statPending .statNumber {
+  color: #d97706;
+}
+
+.statReviewed .statNumber {
+  color: #2563eb;
+}
+
+.statResponded .statNumber {
+  color: #16a34a;
+}
+
+.contactsContainer {
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.contactsHeader {
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.contactsTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: #111827;
+  margin: 0 0 16px 0;
+}
+
+.contactsList {
+  padding: 24px;
+}
+
+.contactItem {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.contactHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.contactInfo h4 {
+  font-weight: 500;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.contactEmail {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 4px 0;
+}
+
+.contactDate {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.statusBadge {
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 9999px;
+  text-transform: capitalize;
+}
+
+.statusPending {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.statusReviewed {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.statusResponded {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.contactMessage {
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.adminResponse {
+  padding: 12px;
+  background-color: #eff6ff;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.responseTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e40af;
+  margin: 0 0 4px 0;
+}
+
+.responseText {
+  font-size: 14px;
+  color: #1e40af;
+  margin: 0;
+}
+
+.contactActions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.markReviewedButton {
+  background-color: #2563eb;
+  color: white;
+}
+
+.markReviewedButton:hover {
+  background-color: #1d4ed8;
+}
+
+.respondButton {
+  background-color: #16a34a;
+  color: white;
+}
+
+.respondButton:hover {
+  background-color: #15803d;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(75, 85, 99, 0.5);
+  overflow-y: auto;
+  height: 100vh;
+  width: 100vw;
+  z-index: 50;
+}
+
+.modal {
+  position: relative;
+  top: 80px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  width: 90%;
+  max-width: 800px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  background-color: white;
+}
+
+.modalHeader h3 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #111827;
+  margin: 0 0 16px 0;
+}
+
+.originalMessage {
+  margin-bottom: 16px;
+}
+
+.messageLabel {
+  font-size: 14px;
+  color: #374151;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.originalMessageText {
+  font-size: 14px;
+  color: #6b7280;
+  background-color: #f9fafb;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.responseSection {
+  margin-bottom: 16px;
+}
+
+.responseLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.responseTextarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 120px;
+}
+
+.responseTextarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancelButton {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: #e5e7eb;
+}
+
+.sendButton {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  background-color: #2563eb;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.sendButton:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.sendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

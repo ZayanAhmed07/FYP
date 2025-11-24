@@ -56,15 +56,6 @@ export const createMessage = catchAsync(async (req: Request, res: Response) => {
   }
 });
 
-export const getConversations = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  if (!userId) {
-    throw new ApiError(401, 'Authentication required');
-  }
-  const conversations = await messagingService.getConversations(userId);
-  res.status(200).json({ success: true, data: conversations });
-});
-
 export const getMessages = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
   const { otherUserId } = req.params;
@@ -94,6 +85,15 @@ export const markMessagesAsRead = catchAsync(async (req: Request, res: Response)
 
   await messagingService.markMessagesAsRead(userId, otherUserId);
   res.status(200).json({ success: true, message: 'Messages marked as read' });
+});
+
+export const getConversations = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    throw new ApiError(401, 'Authentication required');
+  }
+  const conversations = await messagingService.getConversations(userId);
+  res.status(200).json({ success: true, data: conversations });
 });
 
 export const getUnreadMessageCount = catchAsync(async (req: Request, res: Response) => {

@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaUserTie, FaCheckCircle, FaTimesCircle, FaBan, FaEye, FaFileAlt, FaUserCircle, FaStar, FaTrash } from 'react-icons/fa';
+import { FaUser, FaUserTie, FaCheckCircle, FaTimesCircle, FaBan, FaEye, FaFileAlt, FaUserCircle, FaStar, FaTrash, FaEnvelope } from 'react-icons/fa';
 import { httpClient } from '../api/httpClient';
-import { authService } from '../services/authService';
 import reviewService from '../services/reviewService';
+import ContactManagement from '../components/admin/ContactManagement';
 import styles from './AdminDashboardPage.module.css';
 
 const AdminDashboardPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'consultants' | 'buyers' | 'reviews'>('consultants');
+  const [activeTab, setActiveTab] = useState<'consultants' | 'buyers' | 'reviews' | 'contacts'>('consultants');
   const [consultants, setConsultants] = useState<any[]>([]);
   const [buyers, setBuyers] = useState<any[]>([]);
   const [selectedConsultant, setSelectedConsultant] = useState<any>(null);
@@ -180,7 +180,7 @@ const AdminDashboardPage = () => {
     }
   };
 
-  const handleBanConsultant = async (id: string, userId: string) => {
+  const handleBanConsultant = async (userId: string) => {
     if (confirm('Are you sure you want to ban this consultant?')) {
       try {
         await httpClient.patch(`/admin/users/${userId}/ban`);
@@ -193,7 +193,7 @@ const AdminDashboardPage = () => {
     }
   };
 
-  const handleUnbanConsultant = async (id: string, userId: string) => {
+  const handleUnbanConsultant = async (userId: string) => {
     try {
       await httpClient.patch(`/admin/users/${userId}/unban`);
       alert('Consultant unbanned successfully!');
@@ -255,7 +255,6 @@ const AdminDashboardPage = () => {
   };
 
   const pendingConsultants = consultants.filter(c => c.status === 'pending');
-  const approvedConsultants = consultants.filter(c => c.status === 'approved');
 
   return (
     <div className={styles.pageContainer}>
@@ -292,6 +291,12 @@ const AdminDashboardPage = () => {
             onClick={() => setActiveTab('reviews')}
           >
             <FaStar /> Reviews & Ratings
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'contacts' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('contacts')}
+          >
+            <FaEnvelope /> Contact Forms
           </button>
         </div>
 
@@ -439,7 +444,7 @@ const AdminDashboardPage = () => {
                             {consultant.isBanned ? (
                               <button
                                 className={styles.unbanButton}
-                                onClick={() => handleUnbanConsultant(consultant.id, consultant.userId)}
+                                onClick={() => handleUnbanConsultant(consultant.userId)}
                                 title="Unban"
                               >
                                 <FaCheckCircle />
@@ -447,7 +452,7 @@ const AdminDashboardPage = () => {
                             ) : (
                               <button
                                 className={styles.banButton}
-                                onClick={() => handleBanConsultant(consultant.id, consultant.userId)}
+                                onClick={() => handleBanConsultant(consultant.userId)}
                                 title="Ban"
                               >
                                 <FaBan />
@@ -653,6 +658,11 @@ const AdminDashboardPage = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* Contacts Tab */}
+        {activeTab === 'contacts' && (
+          <ContactManagement />
         )}
       </div>
 

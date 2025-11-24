@@ -24,6 +24,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ConsultantProposalsPage from './pages/ConsultantProposalsPage';
 import ConsultantProfileViewPage from './pages/ConsultantProfileViewPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 
 const App = () => {
   return (
@@ -45,21 +46,83 @@ const App = () => {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/account-type" element={<AccountTypePage />} />
-        <Route path="/verify-identity" element={<VerifyIdentityPage />} />
-        <Route path="/verification-pending" element={<VerificationPendingPage />} />
-        <Route path="/buyer-dashboard" element={<BuyerDashboardPage />} />
-        <Route path="/consultant-dashboard" element={<ConsultantDashboardPage />} />
-        <Route path="/consultant-proposals" element={<ConsultantProposalsPage />} />
+        <Route path="/verify-identity" element={
+          <ProtectedRoute>
+            <VerifyIdentityPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/verification-pending" element={
+          <ProtectedRoute>
+            <VerificationPendingPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/buyer-dashboard" element={
+          <ProtectedRoute requiredRole="buyer">
+            <BuyerDashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/consultant-dashboard" element={
+          <ProtectedRoute requiredRole="consultant">
+            <ConsultantDashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/consultant-proposals" element={
+          <ProtectedRoute requiredRole="consultant">
+            <ConsultantProposalsPage />
+          </ProtectedRoute>
+        } />
         <Route path="/consultant/:consultantId" element={<ConsultantProfileViewPage />} />
-        <Route path="/submit-proposal/:jobId" element={<SubmitProposalPage />} />
-        <Route path="/post-job" element={<PostJobPage />} />
-        <Route path="/post-job/:jobId" element={<PostJobPage />} />
-        <Route path="/payment" element={<PaymentPage />} />
-        <Route path="/admin" element={<AdminDashboardPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/messages" element={<MessagingPage />} />
-        <Route path="/messages/:userId" element={<MessagingPage />} />
+        <Route path="/submit-proposal/:jobId" element={
+          <ProtectedRoute requiredRole="consultant">
+            <SubmitProposalPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/post-job" element={
+          <ProtectedRoute requiredRole="buyer">
+            <PostJobPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/post-job/:jobId" element={
+          <ProtectedRoute requiredRole="buyer">
+            <PostJobPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/payment" element={
+          <ProtectedRoute>
+            <PaymentPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminDashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin-dashboard" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminDashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <SettingsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/messages" element={
+          <ProtectedRoute>
+            <MessagingPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/messages/:userId" element={
+          <ProtectedRoute>
+            <MessagingPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/404" element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>

@@ -2,7 +2,7 @@ import { ApiError } from '../../utils/ApiError';
 import { hashPassword } from '../../utils/password';
 import { User, UserDocument } from './user.model';
 
-export const createUser = async (payload: { name: string; email: string; password: string; roles?: string[] }) => {
+export const createUser = async (payload: { name: string; email: string; password: string; accountType?: 'buyer' | 'consultant'; roles?: string[] }) => {
   const isTaken = await User.isEmailTaken(payload.email);
   if (isTaken) {
     throw new ApiError(409, 'Email already taken');
@@ -33,10 +33,10 @@ export const updateUser = async (id: string, updates: Partial<UserDocument>) => 
   }
 
   // Update only allowed fields
-  if (updates.accountType) user.accountType = updates.accountType;
-  if (updates.name) user.name = updates.name;
-  if (updates.phone) user.phone = updates.phone;
-  if (updates.profileImage) user.profileImage = updates.profileImage;
+  if (updates.accountType !== undefined) user.accountType = updates.accountType;
+  if (updates.name !== undefined) user.name = updates.name;
+  if (updates.phone !== undefined) user.phone = updates.phone;
+  if (updates.profileImage !== undefined) user.profileImage = updates.profileImage;
 
   await user.save();
   return user;

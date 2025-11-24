@@ -1,9 +1,12 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import NotificationDropdown from './NotificationDropdown';
 
 import styles from './Header.module.css';
 
 const Header = () => {
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const isHome = location.pathname === '/';
 
   return (
@@ -42,6 +45,7 @@ const Header = () => {
             >
               Dashboard
             </NavLink>
+            {isAuthenticated && <NotificationDropdown />}
             <NavLink
               to="/login"
               className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`.trim()}

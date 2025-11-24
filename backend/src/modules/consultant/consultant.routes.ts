@@ -10,6 +10,7 @@ router.post('/verify-profile', authenticate, consultantController.createComplete
 router.get('/', consultantController.getAllConsultants);
 // Place more specific routes before the generic :id route
 router.get('/user/:userId', consultantController.getConsultantByUserId);
+router.get('/:id/stats', consultantController.getConsultantStats);
 router.patch('/:id/verify', consultantController.verifyConsultant);
 router.patch('/:id/documents', consultantController.uploadVerificationDocuments);
 router.get('/:id', consultantController.getConsultantById);

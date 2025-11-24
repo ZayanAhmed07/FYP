@@ -15,12 +15,14 @@ import { Document, Model, Schema, model } from 'mongoose';
 export interface IUser {
   name: string;              // Full name of the user
   email: string;             // Unique email address (used for authentication)
-  password: string;          // Hashed password (bcrypt)
+  password?: string;         // Hashed password (bcrypt) - optional for Google OAuth users
   accountType: 'buyer' | 'consultant';  // User role: Client or Admin in diagram
   phone?: string;            // Optional contact number
   profileImage?: string;     // URL to profile picture
+  googleId?: string;         // Google OAuth ID for Google sign-in users
   isVerified: boolean;       // Email/account verification status
   isOnline: boolean;         // Real-time online status for messaging
+  lastSeen?: Date;           // Last seen timestamp for online status
   isBanned: boolean;         // Admin can ban malicious users
   roles: string[];           // Additional role-based permissions
 }
@@ -60,17 +62,21 @@ const userSchema = new Schema<UserDocument, UserModel>(
       index: true          // Index for faster queries
     },
     password: { 
-      type: String, 
-      required: true,
+      type: String,
+      required: function(this: any): boolean { return !this.googleId; }, // Required only if not Google OAuth user
       select: false        // Don't include in queries by default (security)
     },
     accountType: { 
       type: String, 
       enum: ['buyer', 'consultant'],  // Maps to Client/Consultant inheritance
-      required: true 
+      required: function(this: any): boolean { 
+        // Required for email/password users, optional for Google OAuth users initially
+        return !this.googleId; 
+      }
     },
     phone: { type: String, trim: true },
     profileImage: { type: String },
+    googleId: { type: String, sparse: true, unique: true }, // Google OAuth ID
     isVerified: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },
     lastSeen: { type: Date },

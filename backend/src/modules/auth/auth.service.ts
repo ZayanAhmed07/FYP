@@ -6,7 +6,7 @@ import { userService } from '../user/user.service';
 export const login = async (email: string, password: string) => {
   const user = await userService.getUserByEmail(email);
 
-  if (!user || !(await comparePassword(password, user.password))) {
+  if (!user || !user.password || !(await comparePassword(password, user.password))) {
     throw new ApiError(401, 'Invalid email or password');
   }
 
@@ -21,6 +21,7 @@ export const login = async (email: string, password: string) => {
       roles: user.roles,
       accountType: user.accountType,
       isVerified: user.isVerified,
+      profileImage: user.profileImage,
     },
   };
 };
@@ -43,6 +44,7 @@ export const register = async (payload: {
       roles: user.roles,
       accountType: user.accountType,
       isVerified: user.isVerified,
+      profileImage: user.profileImage,
     },
   };
 };

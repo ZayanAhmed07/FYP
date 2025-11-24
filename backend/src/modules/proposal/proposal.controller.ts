@@ -32,42 +32,42 @@ export const getAllProposals = catchAsync(async (req: Request, res: Response) =>
 });
 
 export const getProposalById = catchAsync(async (req: Request, res: Response) => {
-  const proposal = await proposalService.getProposalById(req.params.id);
+  const proposal = await proposalService.getProposalById(req.params.id!);
   res.status(200).json({ success: true, data: proposal });
 });
 
 export const getProposalsByJob = catchAsync(async (req: Request, res: Response) => {
-  const proposals = await proposalService.getProposalsByJob(req.params.jobId);
+  const proposals = await proposalService.getProposalsByJob(req.params.jobId!);
   res.status(200).json({ success: true, data: proposals });
 });
 
 export const getProposalsByConsultant = catchAsync(async (req: Request, res: Response) => {
-  const proposals = await proposalService.getProposalsByConsultant(req.params.consultantId);
+  const proposals = await proposalService.getProposalsByConsultant(req.params.consultantId!);
   res.status(200).json({ success: true, data: proposals });
 });
 
 export const getProposalsByBuyer = catchAsync(async (req: Request, res: Response) => {
-  const proposals = await proposalService.getProposalsByBuyer(req.params.buyerId);
+  const proposals = await proposalService.getProposalsByBuyer(req.params.buyerId!);
   res.status(200).json({ success: true, data: proposals });
 });
 
 export const updateProposal = catchAsync(async (req: Request, res: Response) => {
-  const proposal = await proposalService.updateProposal(req.params.id, req.body);
+  const proposal = await proposalService.updateProposal(req.params.id!, req.body);
   res.status(200).json({ success: true, data: proposal });
 });
 
 export const acceptProposal = catchAsync(async (req: Request, res: Response) => {
-  const result = await proposalService.acceptProposal(req.params.id);
+  const result = await proposalService.acceptProposal(req.params.id!);
   res.status(200).json({ success: true, data: result });
 });
 
 export const rejectProposal = catchAsync(async (req: Request, res: Response) => {
-  const proposal = await proposalService.rejectProposal(req.params.id);
+  const proposal = await proposalService.rejectProposal(req.params.id!);
   res.status(200).json({ success: true, data: proposal });
 });
 
 export const deleteProposal = catchAsync(async (req: Request, res: Response) => {
-  await proposalService.deleteProposal(req.params.id);
+  await proposalService.deleteProposal(req.params.id!);
   res.status(200).json({ success: true, message: 'Proposal deleted successfully' });
 });
 

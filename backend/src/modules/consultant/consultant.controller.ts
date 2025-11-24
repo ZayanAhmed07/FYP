@@ -92,3 +92,13 @@ export const createCompleteProfile = catchAsync(async (req: Request, res: Respon
   res.status(201).json({ success: true, data: consultant, message: 'Profile submitted for verification' });
 });
 
+export const getConsultantStats = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ success: false, error: 'Consultant ID is required' });
+  }
+  
+  const stats = await consultantService.getConsultantStats(id);
+  res.status(200).json({ success: true, data: stats });
+});
+

@@ -2,6 +2,7 @@ import { Document, Model, Schema, model, Types } from 'mongoose';
 
 export interface IConversation {
   participants: Types.ObjectId[];
+  participantsKey: string;
   lastMessage?: string;
   lastMessageAt?: Date;
   unreadCount: Map<string, number>;

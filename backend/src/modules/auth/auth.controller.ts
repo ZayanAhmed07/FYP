@@ -81,6 +81,46 @@ export const resetPassword = catchAsync(async (req: Request, res: Response) => {
   return res.status(200).json(ApiResponse.success(200, 'Password updated successfully'));
 });
 
+/**
+ * 🔐 Google OAuth Authentication
+ * Initiates Google OAuth flow
+ * 
+ * @route GET /api/auth/google
+ * @access Public
+ */
+export const googleAuth = (req: Request, res: Response) => {
+  // This route is handled by Passport middleware
+};
+
+/**
+ * 🔐 Google OAuth Callback
+ * Handles Google OAuth callback and redirects to frontend
+ * 
+ * @route GET /api/auth/google/callback
+ * @access Public
+ */
+export const googleAuthCallback = (req: Request, res: Response) => {
+  const user = req.user as any;
+  
+  if (!user) {
+    return res.redirect(`${env.frontendUrl}/login?error=google_auth_failed`);
+  }
+
+  // Generate JWT token for the authenticated user
+  const token = tokenService.generateToken({ id: user._id.toString(), roles: user.roles });
+  
+  // Redirect to frontend with token
+  res.redirect(`${env.frontendUrl}/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify({
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    accountType: user.accountType,
+    roles: user.roles,
+    isVerified: user.isVerified,
+    profileImage: user.profileImage,
+  }))}`);
+};
+
 
 
 

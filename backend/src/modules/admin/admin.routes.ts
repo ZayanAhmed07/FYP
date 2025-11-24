@@ -1,6 +1,13 @@
 import { Router } from 'express';
 
 import * as adminController from './admin.controller';
+import {
+  getAllContacts,
+  getContactById,
+  updateContact,
+  deleteContact,
+  getContactStats,
+} from '../contact/contact.controller';
 
 const router = Router();
 
@@ -18,6 +25,13 @@ router.delete('/users/:userId', adminController.deleteUser);
 router.get('/consultants/pending', adminController.getPendingConsultants);
 router.patch('/consultants/:consultantId/verify', adminController.verifyConsultantAdmin);
 router.patch('/consultants/:consultantId/decline', adminController.declineConsultant);
+
+// Contact management
+router.get('/contacts', getAllContacts);
+router.get('/contacts/stats', getContactStats);
+router.get('/contacts/:id', getContactById);
+router.patch('/contacts/:id', updateContact);
+router.delete('/contacts/:id', deleteContact);
 
 // Statistics
 router.get('/stats', adminController.getAdminStats);

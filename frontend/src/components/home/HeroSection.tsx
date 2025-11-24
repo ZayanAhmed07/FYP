@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { heroImage, heroSectionBackground } from '../../assets';
+import { useAuth } from '../../hooks/useAuth';
 import styles from './HeroSection.module.css';
 
 // react-icons (install with: npm i react-icons)
@@ -14,6 +15,24 @@ const socialLinks = [
 ];
 
 const HeroSection: React.FC = () => {
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleButtonClick = () => {
+    if (isAuthenticated && user) {
+      // Redirect to appropriate dashboard based on user type
+      if (user.roles.includes('admin') || user.accountType === 'admin') {
+        navigate('/admin');
+      } else if (user.accountType === 'consultant') {
+        navigate('/consultant-dashboard');
+      } else {
+        navigate('/buyer-dashboard');
+      }
+    } else {
+      navigate('/signup');
+    }
+  };
+
   return (
     <section id="hero" className={styles.hero}>
       <div
@@ -31,12 +50,12 @@ const HeroSection: React.FC = () => {
 
           <span className={styles.tagline}>YOUR RAAH TO RELIABLE SOLUTIONS</span>
 
-          <Link to="/signup" className={styles.cta}>
-            <span>Join Us Now</span>
+          <button onClick={handleButtonClick} className={styles.cta}>
+            <span>{isAuthenticated ? 'Go to Dashboard' : 'Join Us Now'}</span>
             <span className={styles.ctaArrow} aria-hidden="true">
               →
             </span>
-          </Link>
+          </button>
         </div>
 
         <div className={styles.visual}>
