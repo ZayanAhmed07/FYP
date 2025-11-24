@@ -43,8 +43,10 @@ const ConsultantProfileViewPage = () => {
 
   const fetchConsultantProfile = async () => {
     try {
+      console.log('🔍 Fetching consultant profile for ID:', consultantId);
       setLoading(true);
       const response = await httpClient.get(`/consultants/${consultantId}`);
+      console.log('✅ Consultant profile API response:', response.data);
       setConsultant(response.data.data);
 
       // Record profile view for analytics
@@ -52,7 +54,7 @@ const ConsultantProfileViewPage = () => {
         analyticsService.recordProfileView(consultantId);
       }
     } catch (err: any) {
-      console.error('Error fetching consultant profile:', err);
+      console.error('❌ Error fetching consultant profile:', err);
       setError(err.response?.data?.message || 'Failed to load consultant profile');
     } finally {
       setLoading(false);

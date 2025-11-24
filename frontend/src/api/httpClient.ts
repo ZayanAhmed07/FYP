@@ -25,8 +25,15 @@ httpClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      storage.clearToken(TOKEN_KEY);
-      window.location.assign('/login');
+      // Only redirect to login if we're not already on a public page
+      const currentPath = window.location.pathname;
+      const publicPaths = ['/login', '/signup', '/consultant/', '/reset-password', '/verify-identity'];
+      const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
+      
+      if (!isPublicPath) {
+        storage.clearToken(TOKEN_KEY);
+        window.location.assign('/login');
+      }
     }
     return Promise.reject(error);
   },

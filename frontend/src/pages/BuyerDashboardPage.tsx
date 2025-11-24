@@ -1232,9 +1232,15 @@ const BuyerDashboardPage = () => {
                             </button>
                             <button
                               className={styles.viewProfileButton}
-                              onClick={() =>
-                                consultant.id && navigate(`/consultant/${consultant.id}`)
-                              }
+                              onClick={() => {
+                                console.log('🔍 View Profile clicked for consultant:', consultant);
+                                console.log('🔗 Navigating to:', `/consultant/${consultant.id}`);
+                                if (consultant.id) {
+                                  navigate(`/consultant/${consultant.id}`);
+                                } else {
+                                  console.error('❌ No consultant ID found');
+                                }
+                              }}
                             >
                               View Profile
                             </button>

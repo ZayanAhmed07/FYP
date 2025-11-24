@@ -67,17 +67,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const isOnAuthPage = currentPath === '/login' || currentPath === '/signup' || currentPath === '/';
           
           // Don't redirect from common pages that all users can access
-          const commonPages = ['/messages', '/profile', '/settings', '/notifications'];
+          const commonPages = ['/messages', '/profile', '/settings', '/notifications', '/consultant/', '/payment'];
           const isOnCommonPage = commonPages.some(page => currentPath.startsWith(page));
+          
+          // Don't redirect from consultant profile pages (viewing profiles should be allowed for all)
+          const isViewingConsultantProfile = /^\/consultant\/[a-zA-Z0-9]+$/.test(currentPath);
           
           const isOnWrongDashboard = (
             (profile.accountType === 'consultant' && currentPath.startsWith('/buyer')) ||
             ((profile.accountType === 'admin' || profile.roles?.includes('admin')) && 
              (currentPath.startsWith('/buyer') || currentPath.startsWith('/consultant'))) ||
-            (profile.accountType === 'buyer' && (currentPath.startsWith('/consultant') || currentPath.startsWith('/admin')))
+            (profile.accountType === 'buyer' && (currentPath.startsWith('/consultant-dashboard') || currentPath.startsWith('/admin')))
           );
           
-          if ((isOnAuthPage || isOnWrongDashboard) && !isOnCommonPage) {
+          if ((isOnAuthPage || isOnWrongDashboard) && !isOnCommonPage && !isViewingConsultantProfile) {
             if (profile.accountType === 'consultant') {
               navigate('/consultant-dashboard', { replace: true });
             } else if (profile.accountType === 'admin' || profile.roles?.includes('admin')) {
