@@ -1,16 +1,13 @@
 import { type FormEvent, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 
 import { useAuth } from '../hooks/useAuth';
 import { authService } from '../services/authService';
-import styles from './LoginPage.module.css';
 
 const LoginPage = () => {
   const { login, isLoading } = useAuth();
-  const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     await login(form);
   };
@@ -20,13 +17,10 @@ const LoginPage = () => {
   };
 
   return (
-    <section className={styles.wrapper}>
-      <form className={styles.form} onSubmit={onSubmit}>
+    <section >
+      <form onSubmit={handleSubmit}>
         <header>
           <h1>Welcome back</h1>
-          {location.state?.from?.pathname && (
-            <p>You must sign in to access {location.state.from.pathname}.</p>
-          )}
         </header>
         <label>
           Email
@@ -52,17 +46,17 @@ const LoginPage = () => {
           {isLoading ? 'Signing in…' : 'Sign In'}
         </button>
 
-        <div className={styles.divider}>
+        <div >
           <span>or</span>
         </div>
 
         <button
           type="button"
-          className={styles.googleButton}
+          
           onClick={handleGoogleSignIn}
           disabled={isLoading}
         >
-          <svg className={styles.googleIcon} viewBox="0 0 24 24">
+          <svg  >
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -88,3 +82,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+

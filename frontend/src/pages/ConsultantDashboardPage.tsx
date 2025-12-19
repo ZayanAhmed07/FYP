@@ -1,21 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  FaMapMarkerAlt,
-  FaClock,
-  FaEdit,
-  FaHeart,
-  FaUserCircle,
-  FaEnvelope,
-  FaDownload,
-  FaComments,
-} from 'react-icons/fa';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
 import { orderService } from '../services/orderService';
 import { useSocket } from '../hooks/useSocket';
 import RevenueProposalsChart from '../components/charts/RevenueProposalsChart';
-import styles from './ConsultantDashboardPage.module.css';
+import DashboardHeader from '../components/consultant/DashboardHeader';
+import ProposalStatsCard from '../components/consultant/ProposalStatsCard';
+import RatingCard from '../components/consultant/RatingCard';
+import EarningsCard from '../components/consultant/EarningsCard';
+import JobsList from '../components/consultant/JobsList';
+import JobDetails from '../components/consultant/JobDetails';
+import OrdersList from '../components/consultant/OrdersList';
+import MessagesSidebar from '../components/consultant/MessagesSidebar';
+import CompletionModal from '../components/consultant/CompletionModal';
+import { Box, Typography, Button } from '@mui/material';
 
 interface JobFromApi {
   _id: string;
@@ -47,7 +46,8 @@ const ConsultantDashboardPage = () => {
     'dashboard' | 'projects' | 'orders' | 'stats' | 'proposals'
   >('dashboard');
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const [jobs, setJobs] = useState<JobFromApi[]>([]);
   const [jobsLoading, setJobsLoading] = useState(false);
   const [jobsError, setJobsError] = useState('');
@@ -77,34 +77,41 @@ const ConsultantDashboardPage = () => {
   const [monthlyStats, setMonthlyStats] = useState<any[]>([]);
 
   useEffect(() => {
-    // Get current user from localStorage
-    const user = authService.getCurrentUser();
-    if (user) {
-      setCurrentUser(user);
-      // Refresh user data from backend to get latest profile image
-      const refreshUser = async () => {
-        try {
-          const response = await httpClient.get('/users/me');
-          if (response.data?.data) {
-            const backendUser = response.data.data;
-            const normalizedUser = {
-              ...backendUser,
-              id: backendUser.id ?? backendUser._id,
-              _id: backendUser._id ?? backendUser.id,
-            };
-            // Update localStorage with latest data
-            localStorage.setItem('expert_raah_user', JSON.stringify(normalizedUser));
-            setCurrentUser(normalizedUser);
+    try {
+      // Get current user from localStorage
+      const user = authService.getCurrentUser();
+      if (user) {
+        setCurrentUser(user);
+        setIsLoading(false);
+        // Refresh user data from backend to get latest profile image
+        const refreshUser = async () => {
+          try {
+            const response = await httpClient.get('/users/me');
+            if (response.data?.data) {
+              const backendUser = response.data.data;
+              const normalizedUser = {
+                ...backendUser,
+                id: backendUser.id ?? backendUser._id,
+                _id: backendUser._id ?? backendUser.id,
+              };
+              // Update localStorage with latest data
+              localStorage.setItem('expert_raah_user', JSON.stringify(normalizedUser));
+              setCurrentUser(normalizedUser);
+            }
+          } catch (err) {
+            // Silently fail, use cached data
+            console.log('Could not refresh user data');
           }
-        } catch (err) {
-          // Silently fail, use cached data
-          console.log('Could not refresh user data');
-        }
-      };
-      refreshUser();
-    } else {
-      // Redirect to login if not authenticated
-      navigate('/login');
+        };
+        refreshUser();
+      } else {
+        // Redirect to login if not authenticated
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Error in initial useEffect:', error);
+      setHasError(true);
+      setIsLoading(false);
     }
   }, [navigate]);
 
@@ -362,42 +369,6 @@ const ConsultantDashboardPage = () => {
     });
   };
 
-  const formatBudget = (budget: { min: number; max: number }) => {
-    if (!budget) return 'Not specified';
-    if (!budget.min && !budget.max) return 'Not specified';
-    if (budget.max <= 0) return `Rs ${budget.min.toLocaleString()}`;
-    return `Rs ${budget.min.toLocaleString()} - Rs ${budget.max.toLocaleString()}`;
-  };
-
-  const getFilenameFromBase64 = (base64String: string): string => {
-    try {
-      const parts = base64String.split(',');
-      if (parts.length > 1) {
-        const metadata = parts[0];
-        if (metadata.includes('filename=')) {
-          const match = metadata.match(/filename=([^;]+)/);
-          if (match) return decodeURIComponent(match[1]);
-        }
-      }
-    } catch (e) {
-      console.error('Error parsing filename from base64', e);
-    }
-    return `attachment_${new Date().getTime()}`;
-  };
-
-  const downloadFile = (base64String: string, filename: string) => {
-    try {
-      const link = document.createElement('a');
-      link.href = base64String;
-      link.download = filename || 'download';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Failed to download file', error);
-    }
-  };
-
   const filteredJobs = jobs.filter((job) => {
     const matchesType = selectedTypes.length === 0 || selectedTypes.includes(job.category);
     const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(job.status);
@@ -423,689 +394,311 @@ const ConsultantDashboardPage = () => {
     navigate('/login');
   };
 
-  return (
-    <div className={styles.dashboardContainer}>
+  // Show loading state
+  if (isLoading) {
+    return (
+      <Box sx={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        background: '#f8fafc'
+      }}>
+        <Typography>Loading...</Typography>
+      </Box>
+    );
+  }
+
+  // Show error state
+  if (hasError) {
+    return (
+      <Box sx={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        background: '#f8fafc',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <Typography variant="h5" color="error">Something went wrong</Typography>
+        <Button onClick={() => window.location.reload()}>Reload Page</Button>
+      </Box>
+    );
+  }
+
+  // Don't render until we have current user
+  if (!currentUser) {
+    return null;
+  }
+
+  try {
+    return (
+      <Box sx={{ minHeight: '100vh', background: '#f8fafc' }}>
       {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.logo}>
-          <img src="/src/assets/logo.png" alt="Expert Raah" className={styles.logoImage} />
-        </div>
-
-        <nav className={styles.nav}>
-          <button
-            className={`${styles.navItem} ${activeTab === 'dashboard' ? styles.navItemActive : ''}`}
-            onClick={() => setActiveTab('dashboard')}
-          >
-            Dashboard
-          </button>
-          <button
-            className={`${styles.navItem} ${activeTab === 'projects' ? styles.navItemActive : ''}`}
-            onClick={() => setActiveTab('projects')}
-          >
-            Projects
-          </button>
-          <button
-            className={`${styles.navItem} ${activeTab === 'proposals' ? styles.navItemActive : ''}`}
-            onClick={() => navigate('/consultant-proposals')}
-          >
-            My Proposals
-          </button>
-          <button
-            className={`${styles.navItem} ${activeTab === 'orders' ? styles.navItemActive : ''}`}
-            onClick={() => setActiveTab('orders')}
-          >
-            Orders
-          </button>
-          <button
-            className={`${styles.navItem} ${activeTab === 'stats' ? styles.navItemActive : ''}`}
-            onClick={() => setActiveTab('stats')}
-          >
-            Stats
-          </button>
-        </nav>
-
-        <div className={styles.headerActions}>
-          <button className={styles.notificationButton} onClick={() => navigate('/messages')}>
-            <FaComments />
-            {unreadMessageCount > 0 && (
-              <span className={styles.notificationBadge}>{unreadMessageCount}</span>
-            )}
-          </button>
-          <div className={styles.userProfileContainer}>
-            <div
-              className={styles.userProfile}
-              onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-              style={{ cursor: 'pointer' }}
-            >
-              {currentUser?.profileImage ? (
-                <img
-                  src={currentUser.profileImage}
-                  alt={currentUser?.name || 'User'}
-                  className={styles.userAvatar}
-                />
-              ) : (
-                <FaUserCircle className={styles.defaultAvatar} />
-              )}
-              <span className={styles.userName}>{currentUser?.name || 'Loading...'}</span>
-              <span
-                className={`${styles.userDropdown} ${showProfileDropdown ? styles.dropdownOpen : ''}`}
-              >
-                ▼
-              </span>
-            </div>
-
-            {showProfileDropdown && (
-              <div className={styles.profileDropdownMenu}>
-                <button
-                  className={styles.dropdownItem}
-                  onClick={() => {
-                    navigate('/profile');
-                    setShowProfileDropdown(false);
-                  }}
-                >
-                  👤 My Profile
-                </button>
-                <button
-                  className={styles.dropdownItem}
-                  onClick={() => {
-                    navigate('/settings');
-                    setShowProfileDropdown(false);
-                  }}
-                >
-                  ⚙️ Settings
-                </button>
-                <div className={styles.dropdownDivider}></div>
-                <button
-                  className={`${styles.dropdownItem} ${styles.logoutItem}`}
-                  onClick={handleLogout}
-                >
-                  🚪 Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          if (tab === 'proposals') {
+            navigate('/consultant-proposals');
+          } else {
+            setActiveTab(tab);
+          }
+        }}
+        currentUser={currentUser}
+        unreadMessageCount={unreadMessageCount}
+        onLogout={handleLogout}
+      />
 
       {/* Main Content */}
-      <div
-        className={`${styles.mainContent} ${
-          activeTab === 'projects' ? styles.mainContentProjects : ''
-        }`}
+      <Box
+        sx={{
+          pt: 10,
+          px: 3,
+          pb: 3,
+          maxWidth: activeTab === 'projects' ? '1600px' : '1400px',
+          margin: '0 auto',
+        }}
       >
         {activeTab === 'dashboard' && (
-          <div className={styles.dashboardView}>
-            <div className={styles.dashboardLeft}>
+          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, flex: '1 1 400px' }}>
               {/* Proposals Section */}
-              <div className={styles.statsCard}>
-                <div className={styles.statsHeader}>
-                  <h3 className={styles.statsTitle}>Proposals</h3>
-                  <span className={styles.statsYear}>{new Date().getFullYear()}</span>
-                </div>
-                <div className={styles.statsList}>
-                  <div className={styles.statItem}>
-                    <span className={styles.statLabel}>Total Proposals Submitted</span>
-                    <span className={styles.statValue}>{proposalStats.total}</span>
-                  </div>
-                  <div className={styles.statItem}>
-                    <span className={styles.statLabel}>Pending</span>
-                    <span className={styles.statValue}>{proposalStats.pending}</span>
-                  </div>
-                  <div className={styles.statItem}>
-                    <span className={styles.statLabel}>Accepted</span>
-                    <span className={styles.statValue}>{proposalStats.accepted}</span>
-                  </div>
-                  <div className={styles.statItem}>
-                    <span className={styles.statLabel}>Rejected</span>
-                    <span className={styles.statValue}>{proposalStats.rejected}</span>
-                  </div>
-                </div>
-              </div>
+              <ProposalStatsCard proposalStats={proposalStats} />
 
               {/* Rating Section */}
-              <div className={styles.statsCard}>
-                <div className={styles.statsHeader}>
-                  <h3 className={styles.statsTitle}>Your Rating</h3>
-                  <span className={styles.statsYear}>{new Date().getFullYear()}</span>
-                </div>
-                <div className={styles.statsList}>
-                  <div className={styles.statItem}>
-                    <span className={styles.statLabel}>Average Rating</span>
-                    <span className={styles.statValue}>
-                      {(consultantProfile?.averageRating || consultantProfile?.rating || 0).toFixed(
-                        1,
-                      )}
-                      /5
-                    </span>
-                  </div>
-                  <div className={styles.statItem}>
-                    <span className={styles.statLabel}>Total Reviews</span>
-                    <span className={styles.statValue}>{consultantProfile?.totalReviews || 0}</span>
-                  </div>
-                  <div className={styles.statItem}>
-                    <span className={styles.statLabel}>Completed Projects</span>
-                    <span className={styles.statValue}>
-                      {consultantProfile?.totalProjects || 0}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <RatingCard consultantProfile={consultantProfile} />
 
               {/* Earnings Section */}
-              <div className={styles.statsCard}>
-                <div className={styles.statsHeader}>
-                  <h3 className={styles.statsTitle}>Earnings</h3>
-                  <span className={styles.statsYear}>{new Date().getFullYear()}</span>
-                </div>
-                <div className={styles.earningsList}>
-                  <div className={styles.earningItem}>
-                    <span className={styles.earningLabel}>Total Paid</span>
-                    <span className={styles.earningValue}>Rs {earnings.paid.toLocaleString()}</span>
-                  </div>
-                  <div className={styles.earningItem}>
-                    <span className={styles.earningLabel}>Pending</span>
-                    <span className={styles.earningValueRefund}>
-                      Rs {earnings.pending.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className={styles.earningItem}>
-                    <span className={styles.earningLabel}>Total Earnings</span>
-                    <span className={styles.earningValue}>
-                      Rs {earnings.total.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+              <EarningsCard earnings={earnings} />
+            </Box>
 
-            <div className={styles.overviewCard}>
+            <Box className="glass-card" sx={{ flex: '2 1 600px', p: 3 }}>
               <RevenueProposalsChart
                 proposalStats={proposalStats}
                 earnings={earnings}
                 monthlyData={monthlyStats}
               />
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
 
         {activeTab === 'projects' && (
           <>
             {/* Top filters bar, centered */}
-            <div className={styles.projectsFiltersTop}>
-              <h3 className={styles.filtersTitle}>Filter Projects</h3>
-              <div className={styles.filtersRow}>
-                <div>
-                  <h4 className={styles.filterTitle}>Project Type</h4>
-                  <div className={styles.filterChips}>
-                    <button
-                      className={`${styles.filterChip} ${
-                        selectedTypes.includes('Education') ? styles.filterChipActive : ''
-                      }`}
+            <Box className="glass-card" sx={{ p: 3, mb: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: '#1f2937', mb: 2 }}>
+                Filter Projects
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                <Box>
+                  <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', mb: 1 }}>
+                    Project Type
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Button
+                      variant={selectedTypes.includes('Education') ? 'contained' : 'outlined'}
                       onClick={() => toggleType('Education')}
+                      sx={{
+                        borderRadius: '20px',
+                        textTransform: 'none',
+                        borderColor: '#0db4bc',
+                        color: selectedTypes.includes('Education') ? '#fff' : '#0db4bc',
+                        background: selectedTypes.includes('Education') ? 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)' : 'transparent',
+                        '&:hover': {
+                          borderColor: '#0db4bc',
+                          background: selectedTypes.includes('Education') ? 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)' : 'rgba(13, 180, 188, 0.1)',
+                        },
+                      }}
                     >
                       Education
-                    </button>
-                    <button
-                      className={`${styles.filterChip} ${
-                        selectedTypes.includes('Legal') ? styles.filterChipActive : ''
-                      }`}
+                    </Button>
+                    <Button
+                      variant={selectedTypes.includes('Legal') ? 'contained' : 'outlined'}
                       onClick={() => toggleType('Legal')}
+                      sx={{
+                        borderRadius: '20px',
+                        textTransform: 'none',
+                        borderColor: '#0db4bc',
+                        color: selectedTypes.includes('Legal') ? '#fff' : '#0db4bc',
+                        background: selectedTypes.includes('Legal') ? 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)' : 'transparent',
+                        '&:hover': {
+                          borderColor: '#0db4bc',
+                          background: selectedTypes.includes('Legal') ? 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)' : 'rgba(13, 180, 188, 0.1)',
+                        },
+                      }}
                     >
                       Legal
-                    </button>
-                    <button
-                      className={`${styles.filterChip} ${
-                        selectedTypes.includes('Business') ? styles.filterChipActive : ''
-                      }`}
+                    </Button>
+                    <Button
+                      variant={selectedTypes.includes('Business') ? 'contained' : 'outlined'}
                       onClick={() => toggleType('Business')}
+                      sx={{
+                        borderRadius: '20px',
+                        textTransform: 'none',
+                        borderColor: '#0db4bc',
+                        color: selectedTypes.includes('Business') ? '#fff' : '#0db4bc',
+                        background: selectedTypes.includes('Business') ? 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)' : 'transparent',
+                        '&:hover': {
+                          borderColor: '#0db4bc',
+                          background: selectedTypes.includes('Business') ? 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)' : 'rgba(13, 180, 188, 0.1)',
+                        },
+                      }}
                     >
                       Business
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <h4 className={styles.filterTitle}>Status</h4>
-                  <div className={styles.filterChips}>
-                    <button
-                      className={`${styles.filterChip} ${
-                        selectedStatuses.includes('open') ? styles.filterChipActive : ''
-                      }`}
+                    </Button>
+                  </Box>
+                </Box>
+                <Box>
+                  <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', mb: 1 }}>
+                    Status
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Button
+                      variant={selectedStatuses.includes('open') ? 'contained' : 'outlined'}
                       onClick={() => toggleStatus('open')}
+                      sx={{
+                        borderRadius: '20px',
+                        textTransform: 'none',
+                        borderColor: '#22c55e',
+                        color: selectedStatuses.includes('open') ? '#fff' : '#22c55e',
+                        background: selectedStatuses.includes('open') ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' : 'transparent',
+                        '&:hover': {
+                          borderColor: '#22c55e',
+                          background: selectedStatuses.includes('open') ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' : 'rgba(34, 197, 94, 0.1)',
+                        },
+                      }}
                     >
                       Open
-                    </button>
-                    <button
-                      className={`${styles.filterChip} ${
-                        selectedStatuses.includes('in_progress') ? styles.filterChipActive : ''
-                      }`}
+                    </Button>
+                    <Button
+                      variant={selectedStatuses.includes('in_progress') ? 'contained' : 'outlined'}
                       onClick={() => toggleStatus('in_progress')}
+                      sx={{
+                        borderRadius: '20px',
+                        textTransform: 'none',
+                        borderColor: '#f59e0b',
+                        color: selectedStatuses.includes('in_progress') ? '#fff' : '#f59e0b',
+                        background: selectedStatuses.includes('in_progress') ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'transparent',
+                        '&:hover': {
+                          borderColor: '#f59e0b',
+                          background: selectedStatuses.includes('in_progress') ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'rgba(245, 158, 11, 0.1)',
+                        },
+                      }}
                     >
                       In Progress
-                    </button>
-                    <button
-                      className={`${styles.filterChip} ${
-                        selectedStatuses.includes('completed') ? styles.filterChipActive : ''
-                      }`}
+                    </Button>
+                    <Button
+                      variant={selectedStatuses.includes('completed') ? 'contained' : 'outlined'}
                       onClick={() => toggleStatus('completed')}
+                      sx={{
+                        borderRadius: '20px',
+                        textTransform: 'none',
+                        borderColor: '#6b7280',
+                        color: selectedStatuses.includes('completed') ? '#fff' : '#6b7280',
+                        background: selectedStatuses.includes('completed') ? 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)' : 'transparent',
+                        '&:hover': {
+                          borderColor: '#6b7280',
+                          background: selectedStatuses.includes('completed') ? 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)' : 'rgba(107, 114, 128, 0.1)',
+                        },
+                      }}
                     >
                       Completed
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
 
             {/* Centered jobs + details layout */}
-            <div className={styles.projectsLayout}>
+            <Box sx={{ display: 'flex', gap: 3 }}>
               {/* Left Column - Job List */}
-              <main className={styles.centerContent}>
-                <div className={styles.projectList}>
-                  {jobsLoading && <p>Loading projects...</p>}
-                  {jobsError && <p>{jobsError}</p>}
-                  {!jobsLoading && !jobsError && filteredJobs.length === 0 && (
-                    <p>
-                      No projects match your filters. Try clearing some filters to see more jobs.
-                    </p>
-                  )}
-                  {!jobsLoading &&
-                    !jobsError &&
-                    filteredJobs.map((job) => (
-                      <div
-                        key={job._id}
-                        className={`${styles.projectCard} ${
-                          selectedJobId === job._id ? styles.projectCardActive : ''
-                        }`}
-                        onClick={() => setSelectedJobId(job._id)}
-                      >
-                        <div className={styles.categoryBadge}>{job.category}</div>
-
-                        <h4 className={styles.jobTitle}>{job.title}</h4>
-
-                        <p className={styles.jobDescription}>{job.description}</p>
-
-                        <div className={styles.jobMeta}>
-                          <span className={styles.postedTime}>
-                            <FaClock /> Posted on {new Date(job.createdAt).toLocaleDateString()}
-                          </span>
-                          <span className={styles.jobLocation}>
-                            <FaMapMarkerAlt /> {job.location}
-                          </span>
-                        </div>
-
-                        <div className={styles.jobStats}>
-                          <div className={styles.statBox}>
-                            <div className={styles.statBoxValue}>{job.proposalsCount}</div>
-                            <div className={styles.statBoxLabel}>Proposals</div>
-                          </div>
-                          <div className={styles.statBox}>
-                            <div className={styles.statBoxValue}>
-                              {job.status === 'open' ? 'Open' : 'Closed'}
-                            </div>
-                            <div className={styles.statBoxLabel}>Status</div>
-                          </div>
-                        </div>
-
-                        <div className={styles.jobFooter}>
-                          <span className={styles.jobBudget}>{formatBudget(job.budget)}</span>
-                          <div className={styles.jobActions}>
-                            <button
-                              className={styles.actionBtn}
-                              title="View details"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedJobId(job._id);
-                              }}
-                            >
-                              <FaEdit />
-                            </button>
-                            <button
-                              className={styles.actionBtn}
-                              title="Save"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <FaHeart />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </main>
+              <Box sx={{ flex: '1 1 600px' }}>
+                <JobsList
+                  jobs={filteredJobs}
+                  jobsLoading={jobsLoading}
+                  jobsError={jobsError}
+                  selectedJobId={selectedJobId}
+                  onSelectJob={(jobId) => setSelectedJobId(jobId)}
+                />
+              </Box>
 
               {/* Right Column - Job Details */}
-              <aside className={styles.rightSidebar}>
-                {selectedJob ? (
-                  <div className={styles.projectDetails}>
-                    <h3 className={styles.projectDetailsTitle}>{selectedJob.title}</h3>
-                    <div className={styles.projectDetailsMeta}>
-                      <span className={styles.projectDetailsMetaItem}>
-                        <FaClock /> Posted on {new Date(selectedJob.createdAt).toLocaleDateString()}
-                      </span>
-                      <span className={styles.projectDetailsMetaItem}>
-                        <FaMapMarkerAlt /> {selectedJob.location}
-                      </span>
-                      <span className={styles.projectDetailsStatus}>
-                        {selectedJob.status === 'open' ? 'Open' : selectedJob.status}
-                      </span>
-                    </div>
-
-                    <div className={styles.projectDetailsSection}>
-                      <h4 className={styles.projectDetailsSectionTitle}>Budget</h4>
-                      <p className={styles.projectDetailsValue}>
-                        {formatBudget(selectedJob.budget)}
-                      </p>
-                    </div>
-
-                    <div className={styles.projectDetailsSection}>
-                      <h4 className={styles.projectDetailsSectionTitle}>Timeline</h4>
-                      <p className={styles.projectDetailsValue}>
-                        {selectedJob.timeline || 'Not specified'}
-                      </p>
-                    </div>
-
-                    <div className={styles.projectDetailsSection}>
-                      <h4 className={styles.projectDetailsSectionTitle}>Description</h4>
-                      <p className={styles.projectDetailsDescription}>{selectedJob.description}</p>
-                    </div>
-
-                    {selectedJob.skills && selectedJob.skills.length > 0 && (
-                      <div className={styles.projectDetailsSection}>
-                        <h4 className={styles.projectDetailsSectionTitle}>Required Skills</h4>
-                        <div className={styles.projectDetailsSkills}>
-                          {selectedJob.skills.map((skill: string) => (
-                            <span key={skill} className={styles.projectDetailsSkillBadge}>
-                              {skill.trim()}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedJob.attachments && selectedJob.attachments.length > 0 && (
-                      <div className={styles.projectDetailsSection}>
-                        <h4 className={styles.projectDetailsSectionTitle}>Attachments</h4>
-                        <div className={styles.projectDetailsAttachments}>
-                          {selectedJob.attachments.map((attachment: string, index: number) => (
-                            <div key={index} className={styles.projectDetailsAttachmentItem}>
-                              <span className={styles.projectDetailsAttachmentName}>
-                                {getFilenameFromBase64(attachment)}
-                              </span>
-                              <button
-                                className={styles.projectDetailsDownloadButton}
-                                onClick={() =>
-                                  downloadFile(attachment, getFilenameFromBase64(attachment))
-                                }
-                                title="Download attachment"
-                              >
-                                <FaDownload />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className={styles.projectDetailsActions}>
-                      <button
-                        className={styles.projectDetailsMessageButton}
-                        onClick={() => handleMessageBuyer(selectedJob.buyerId)}
-                        disabled={!selectedJob.buyerId?._id}
-                      >
-                        <FaEnvelope /> Message Buyer
-                      </button>
-                      <button
-                        className={styles.projectDetailsSecondaryButton}
-                        onClick={() => setSelectedJobId(null)}
-                      >
-                        Clear
-                      </button>
-                      <button
-                        className={styles.projectDetailsPrimaryButton}
-                        onClick={() =>
-                          selectedJob && navigate(`/submit-proposal/${selectedJob._id}`)
-                        }
-                        disabled={selectedJob.status !== 'open'}
-                      >
-                        {selectedJob.status === 'open' ? 'Submit Proposal' : 'Project Closed'}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className={styles.projectDetailsEmpty}>
-                    <p>Select a project to view full details here.</p>
-                  </div>
-                )}
-              </aside>
-            </div>
+              <Box sx={{ flex: '0 0 400px' }}>
+                <JobDetails
+                  selectedJob={selectedJob}
+                  onClearSelection={() => setSelectedJobId(null)}
+                  onMessageBuyer={handleMessageBuyer}
+                />
+              </Box>
+            </Box>
           </>
         )}
 
         {activeTab === 'orders' && (
-          <div className={styles.ordersView}>
-            <main className={styles.ordersContent}>
-              <h2 className={styles.ordersTitle}>My Orders</h2>
-              <p className={styles.ordersSubtitle}>Track your ongoing projects and deliveries</p>
+          <Box>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h5" sx={{ fontWeight: 700, color: '#1f2937', mb: 1 }}>
+                My Orders
+              </Typography>
+              <Typography sx={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                Track your ongoing projects and deliveries
+              </Typography>
+            </Box>
 
-              {ordersLoading && <p className={styles.jobsInfoText}>Loading orders...</p>}
-              {ordersError && <p className={styles.jobsErrorText}>{ordersError}</p>}
-
-              {!ordersLoading && !ordersError && orders.length === 0 && (
-                <div className={styles.jobsEmpty}>
-                  <p className={styles.jobsEmptyText}>No active orders yet.</p>
-                  <p className={styles.jobsEmptySubtext}>
-                    Once a buyer accepts your proposal, your orders will appear here.
-                  </p>
-                </div>
-              )}
-
-              <div className={styles.ordersList}>
-                {!ordersLoading &&
-                  !ordersError &&
-                  orders.map((order) => (
-                    <div key={order._id} className={styles.orderCard}>
-                      <div className={styles.orderHeader}>
-                        <div className={styles.orderTitleSection}>
-                          <h3 className={styles.orderJobTitle}>
-                            {order.jobId?.title || 'Untitled Job'}
-                          </h3>
-                          <span className={styles.orderIdBadge}>
-                            {order._id.slice(-8).toUpperCase()}
-                          </span>
-                        </div>
-                        <span className={`${styles.orderStatus} ${styles[order.status]}`}>
-                          {order.status === 'in_progress'
-                            ? 'In Progress'
-                            : order.status === 'completed'
-                              ? 'Completed'
-                              : order.status === 'cancelled'
-                                ? 'Cancelled'
-                                : order.status}
-                        </span>
-                      </div>
-
-                      <div className={styles.orderBuyer}>
-                        <img
-                          src={order.buyerId?.profileImage || 'https://i.pravatar.cc/150?img=5'}
-                          alt={order.buyerId?.name || 'Buyer'}
-                          className={styles.orderBuyerAvatar}
-                        />
-                        <div className={styles.orderBuyerInfo}>
-                          <h4 className={styles.orderBuyerName}>
-                            {order.buyerId?.name || 'Unknown Buyer'}
-                          </h4>
-                          <p className={styles.orderBuyerEmail}>{order.buyerId?.email || ''}</p>
-                        </div>
-                      </div>
-
-                      <div className={styles.orderDetails}>
-                        <div className={styles.orderDetailItem}>
-                          <span className={styles.detailLabel}>Total Amount</span>
-                          <span className={styles.detailValue}>
-                            Rs {order.totalAmount?.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className={styles.orderDetailItem}>
-                          <span className={styles.detailLabel}>Received</span>
-                          <span className={styles.detailValue}>
-                            Rs {order.amountPaid?.toLocaleString() || 0}
-                          </span>
-                        </div>
-                        <div className={styles.orderDetailItem}>
-                          <span className={styles.detailLabel}>Pending</span>
-                          <span className={styles.detailValue}>
-                            Rs {order.amountPending?.toLocaleString() || 0}
-                          </span>
-                        </div>
-                        <div className={styles.orderDetailItem}>
-                          <span className={styles.detailLabel}>Progress</span>
-                          <span className={styles.detailValue}>{order.progress || 0}%</span>
-                        </div>
-                      </div>
-
-                      <div className={styles.orderProgressBar}>
-                        <div
-                          className={styles.orderProgressFill}
-                          style={{ width: `${order.progress || 0}%` }}
-                        ></div>
-                      </div>
-
-                      <div className={styles.milestones}>
-                        <h4 className={styles.milestonesTitle}>
-                          Milestones ({order.milestones?.length || 0})
-                        </h4>
-                        {order.milestones && order.milestones.length > 0 ? (
-                          <div className={styles.milestonesList}>
-                            {order.milestones.map((milestone: any) => (
-                              <div key={milestone._id} className={styles.milestoneItem}>
-                                <span className={styles.milestoneDescription}>
-                                  {milestone.description}
-                                </span>
-                                <span
-                                  className={`${styles.milestoneStatus} ${styles[milestone.status]}`}
-                                >
-                                  {milestone.status}
-                                </span>
-                                <span className={styles.milestoneAmount}>
-                                  Rs {milestone.amount?.toLocaleString()}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className={styles.noMilestones}>No milestones defined yet</p>
-                        )}
-                      </div>
-
-                      <div className={styles.orderActions}>
-                        <button className={styles.viewDetailsButton}>View Details</button>
-                        <button
-                          className={styles.messageBuyerButton}
-                          onClick={() =>
-                            order.buyerId?._id && navigate(`/messages/${order.buyerId._id}`)
-                          }
-                        >
-                          <FaEnvelope /> Message Buyer
-                        </button>
-                        {order.status === 'in_progress' && !order.completionRequestedAt && (
-                          <button
-                            className={styles.requestCompletionButton}
-                            onClick={() => handleRequestCompletion(order)}
-                          >
-                            Request Completion
-                          </button>
-                        )}
-                        {order.completionRequestedAt && order.status === 'in_progress' && (
-                          <span className={styles.completionRequested}>
-                            ✓ Completion Requested - Waiting for buyer confirmation
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </main>
-          </div>
+            <OrdersList
+              orders={orders}
+              ordersLoading={ordersLoading}
+              ordersError={ordersError}
+              onRequestCompletion={handleRequestCompletion}
+            />
+          </Box>
         )}
 
         {activeTab === 'stats' && (
-          <div className={styles.statsView}>
-            <h2 className={styles.pageTitle}>Statistics & Analytics</h2>
-            <p className={styles.pageSubtitle}>Coming soon...</p>
-          </div>
+          <Box className="glass-card" sx={{ p: 6, textAlign: 'center' }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1f2937', mb: 1 }}>
+              Statistics & Analytics
+            </Typography>
+            <Typography sx={{ color: '#6b7280', fontSize: '0.875rem' }}>
+              Coming soon...
+            </Typography>
+          </Box>
         )}
 
         {activeTab !== 'projects' && activeTab !== 'proposals' && activeTab !== 'orders' && (
-          <aside className={styles.rightSidebar}>
-            <div className={styles.messagesSection}>
-              <div className={styles.messagesSectionHeader}>
-                <h3 className={styles.messagesTitle}>Messages</h3>
-              </div>
-              <p className={styles.messagesDescription}>
-                Your conversations with buyers now live in the dedicated Messaging Center.
-              </p>
-              <button
-                className={styles.openMessagesButton}
-                onClick={() =>
-                  navigate('/messages', {
-                    state: currentUser
-                      ? {
-                          user: {
-                            _id: currentUser.id,
-                            name: currentUser.name,
-                            profileImage: currentUser.profileImage,
-                            accountType: currentUser.accountType,
-                          },
-                        }
-                      : undefined,
-                  })
-                }
-              >
-                Open Messaging Center
-              </button>
-              <p className={styles.messagesHint}>
-                Reach out to buyers, answer questions, and close deals faster.
-              </p>
-            </div>
-          </aside>
+          <MessagesSidebar currentUser={currentUser} />
         )}
-      </div>
+      </Box>
 
       {/* Completion Request Modal */}
-      {showCompletionModal && (
-        <div
-          className={styles.modalOverlay}
-          onClick={() => !completionLoading && setShowCompletionModal(false)}
-        >
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <h3 className={styles.modalTitle}>Request Order Completion</h3>
-            <p className={styles.modalMessage}>
-              Are you sure you want to request completion for this order?
-            </p>
-            <div className={styles.modalOrderInfo}>
-              <strong>{selectedOrderForCompletion?.jobId?.title}</strong>
-              <p>The buyer will be notified to review and confirm the completion.</p>
-            </div>
-            <div className={styles.modalActions}>
-              <button
-                className={styles.modalCancelButton}
-                onClick={() => setShowCompletionModal(false)}
-                disabled={completionLoading}
-              >
-                Cancel
-              </button>
-              <button
-                className={styles.modalConfirmButton}
-                onClick={confirmRequestCompletion}
-                disabled={completionLoading}
-              >
-                {completionLoading ? 'Requesting...' : 'Yes, Request Completion'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+      <CompletionModal
+        show={showCompletionModal}
+        order={selectedOrderForCompletion}
+        loading={completionLoading}
+        onConfirm={confirmRequestCompletion}
+        onCancel={() => setShowCompletionModal(false)}
+      />
+    </Box>
+    );
+  } catch (error) {
+    console.error('Render error in ConsultantDashboardPage:', error);
+    return (
+      <Box sx={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        background: '#f8fafc',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <Typography variant="h5" color="error">Error rendering dashboard</Typography>
+        <Typography color="text.secondary">{String(error)}</Typography>
+        <Button onClick={() => window.location.reload()}>Reload Page</Button>
+      </Box>
+    );
+  }
 };
 
 export default ConsultantDashboardPage;

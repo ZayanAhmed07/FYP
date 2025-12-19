@@ -1,28 +1,56 @@
 import { Outlet, useLocation } from 'react-router-dom';
-
+import { Box, Container } from '@mui/material';
 import Header from './Header';
-import styles from './MainLayout.module.css';
 
 const MainLayout = () => {
   const location = useLocation();
   const isHome = location.pathname === '/';
 
   return (
-    <div className={styles.layout}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        backgroundColor: 'background.default',
+      }}
+    >
       <Header />
-      <main className={`${styles.main} ${isHome ? styles.mainHome : ''}`}>
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          pt: isHome ? 0 : 4,
+          pb: 6,
+        }}
+      >
         {isHome ? (
           <Outlet />
         ) : (
-          <div className={styles.container}>
+          <Container maxWidth="xl" sx={{ flex: 1 }}>
             <Outlet />
-          </div>
+          </Container>
         )}
-      </main>
-      <footer className={styles.footer}>
-        <p>&copy; {new Date().getFullYear()} Expert Raah. All rights reserved.</p>
-      </footer>
-    </div>
+      </Box>
+      <Box
+        component="footer"
+        sx={{
+          py: 3,
+          px: 2,
+          mt: 'auto',
+          backgroundColor: 'background.paper',
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          textAlign: 'center',
+        }}
+      >
+        <Box component="p" sx={{ color: 'text.secondary', fontSize: '0.875rem', m: 0 }}>
+          &copy; {new Date().getFullYear()} Expert Raah. All rights reserved.
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

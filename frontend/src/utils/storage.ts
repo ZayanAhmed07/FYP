@@ -22,10 +22,22 @@ const clearToken = (key: string) => {
   withGuard(() => window.localStorage.removeItem(key), undefined);
 };
 
+const clearAll = () => {
+  if (!isBrowser) return;
+  withGuard(() => {
+    // Clear all expert_raah related items
+    window.localStorage.removeItem('expert_raah_token');
+    window.localStorage.removeItem('expert_raah_user');
+    // Clear session storage as well
+    window.sessionStorage.clear();
+  }, undefined);
+};
+
 export const storage = {
   getToken,
   setToken,
   clearToken,
+  clearAll,
 };
 
 

@@ -1,52 +1,190 @@
 import { useNavigate } from 'react-router-dom';
-import { FaClock, FaCheckCircle } from 'react-icons/fa';
-import styles from './VerificationPendingPage.module.css';
+import { Box, Typography, Button } from '@mui/material';
+import { Schedule as ClockIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 
 const VerificationPendingPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className={styles.pageContainer}>
-      <div className={styles.content}>
-        <div className={styles.iconWrapper}>
-          <FaClock className={styles.icon} />
-        </div>
-        
-        <h1 className={styles.title}>Verification Pending</h1>
-        
-        <p className={styles.message}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        py: 4,
+        px: 2,
+      }}
+    >
+      <Box
+        sx={{
+          maxWidth: '600px',
+          width: '100%',
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: 3,
+          p: 5,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          textAlign: 'center',
+        }}
+      >
+        {/* Clock Icon */}
+        <Box
+          sx={{
+            width: 100,
+            height: 100,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mx: 'auto',
+            mb: 3,
+          }}
+        >
+          <ClockIcon
+            sx={{
+              fontSize: 50,
+              color: 'white',
+            }}
+          />
+        </Box>
+
+        {/* Title */}
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 700,
+            color: '#1a1a1a',
+            mb: 2,
+          }}
+        >
+          Verification Pending
+        </Typography>
+
+        {/* Message */}
+        <Typography
+          sx={{
+            fontSize: '16px',
+            color: '#666',
+            mb: 4,
+            lineHeight: 1.6,
+          }}
+        >
           Thank you for submitting your profile! Our admin team is currently reviewing your documents and information.
-        </p>
+        </Typography>
 
-        <div className={styles.infoCard}>
-          <FaCheckCircle className={styles.infoIcon} />
-          <div className={styles.infoContent}>
-            <h3 className={styles.infoTitle}>What's Next?</h3>
-            <ul className={styles.infoList}>
-              <li>Our team will review your CNIC and profile details</li>
-              <li>Verification typically takes 24-48 hours</li>
-              <li>You'll receive an email once your profile is approved</li>
-              <li>After approval, you can access your consultant dashboard</li>
-            </ul>
-          </div>
-        </div>
+        {/* Info Card */}
+        <Box
+          sx={{
+            background: 'rgba(102, 126, 234, 0.05)',
+            border: '2px solid rgba(102, 126, 234, 0.2)',
+            borderRadius: 2,
+            p: 3,
+            mb: 4,
+            textAlign: 'left',
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 2,
+            }}
+          >
+            <CheckCircleIcon
+              sx={{
+                fontSize: 32,
+                color: '#667eea',
+                flexShrink: 0,
+                mt: 0.5,
+              }}
+            />
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 600,
+                  color: '#1a1a1a',
+                  mb: 2,
+                }}
+              >
+                What's Next?
+              </Typography>
+              <Box
+                component="ul"
+                sx={{
+                  pl: 2,
+                  m: 0,
+                  '& li': {
+                    color: '#666',
+                    mb: 1,
+                    lineHeight: 1.6,
+                  },
+                }}
+              >
+                <li>Our team will review your CNIC and profile details</li>
+                <li>Verification typically takes 24-48 hours</li>
+                <li>You'll receive an email once your profile is approved</li>
+                <li>After approval, you can access your consultant dashboard</li>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
 
-        <div className={styles.actions}>
-          <button 
-            className={styles.homeButton} 
+        {/* Action Buttons */}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 2,
+            justifyContent: 'center',
+          }}
+        >
+          <Button
             onClick={() => navigate('/')}
+            sx={{
+              px: 4,
+              py: 1.5,
+              borderRadius: 2,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              textTransform: 'none',
+              fontSize: '16px',
+              fontWeight: 600,
+              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+              '&:hover': {
+                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)',
+                transform: 'translateY(-2px)',
+              },
+              transition: 'all 0.3s ease',
+            }}
           >
             Return to Home
-          </button>
-          <button 
-            className={styles.loginButton} 
+          </Button>
+          <Button
             onClick={() => navigate('/login')}
+            sx={{
+              px: 4,
+              py: 1.5,
+              borderRadius: 2,
+              border: '2px solid #667eea',
+              color: '#667eea',
+              textTransform: 'none',
+              fontSize: '16px',
+              fontWeight: 600,
+              '&:hover': {
+                background: 'rgba(102, 126, 234, 0.1)',
+                transform: 'translateY(-2px)',
+              },
+              transition: 'all 0.3s ease',
+            }}
           >
             Go to Login
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

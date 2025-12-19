@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styles from './RevenueProposalsChart.module.css';
+import { Box, Typography } from '@mui/material';
 
 interface ChartDataPoint {
   month: string;
@@ -120,14 +120,16 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
   };
 
   return (
-    <div className={styles.chartContainer}>
-      <div className={styles.chartHeader}>
-        <h3 className={styles.chartTitle}>Overview</h3>
-        <span className={styles.yearLabel}>{new Date().getFullYear()}</span>
-      </div>
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: '#1f2937' }}>Overview</Typography>
+        <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: '#6b7280' }}>
+          {new Date().getFullYear()}
+        </Typography>
+      </Box>
 
-      <div className={styles.svgWrapper}>
-        <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className={styles.areaChart}>
+      <Box sx={{ width: '100%', overflow: 'hidden' }}>
+        <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} style={{ width: '100%', height: 'auto' }}>
           {/* Grid lines */}
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <line
@@ -136,7 +138,8 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
               y1={padding.top + (chartHeight / 5) * i}
               x2={svgWidth - padding.right}
               y2={padding.top + (chartHeight / 5) * i}
-              className={styles.gridLine}
+              stroke="#e5e7eb"
+              strokeWidth="1"
             />
           ))}
 
@@ -146,7 +149,8 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
             y1={padding.top}
             x2={padding.left}
             y2={padding.top + chartHeight}
-            className={styles.axisLine}
+            stroke="#9ca3af"
+            strokeWidth="2"
           />
 
           {/* X-axis */}
@@ -155,7 +159,8 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
             y1={padding.top + chartHeight}
             x2={svgWidth - padding.right}
             y2={padding.top + chartHeight}
-            className={styles.axisLine}
+            stroke="#9ca3af"
+            strokeWidth="2"
           />
 
           {/* Areas - Proposals (Pink/Red) */}
@@ -163,12 +168,12 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
             <>
               <path
                 d={generatePath('proposals', true)}
-                className={styles.areaProposals}
+                fill="#0db4bc"
                 fillOpacity="0.4"
               />
               <path
                 d={generatePath('proposals', false)}
-                className={styles.lineProposals}
+                stroke="#0db4bc"
                 fill="none"
                 strokeWidth="2"
               />
@@ -176,12 +181,12 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
               {/* Areas - Impressions (Purple/Blue) */}
               <path
                 d={generatePath('impressions', true)}
-                className={styles.areaImpressions}
+                fill="#8b5cf6"
                 fillOpacity="0.3"
               />
               <path
                 d={generatePath('impressions', false)}
-                className={styles.lineImpressions}
+                stroke="#8b5cf6"
                 fill="none"
                 strokeWidth="2"
               />
@@ -189,12 +194,12 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
               {/* Areas - Clicks (Light Blue/Cyan) */}
               <path
                 d={generatePath('clicks', true)}
-                className={styles.areaClicks}
+                fill="#22c55e"
                 fillOpacity="0.3"
               />
               <path
                 d={generatePath('clicks', false)}
-                className={styles.lineClicks}
+                stroke="#22c55e"
                 fill="none"
                 strokeWidth="2"
               />
@@ -225,9 +230,9 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
                 {/* Data point circles */}
                 {hoveredMonth === d.month && (
                   <>
-                    <circle cx={x} cy={yProposals} r="5" className={styles.dotProposals} />
-                    <circle cx={x} cy={yImpressions} r="5" className={styles.dotImpressions} />
-                    <circle cx={x} cy={yClicks} r="5" className={styles.dotClicks} />
+                    <circle cx={x} cy={yProposals} r="5" fill="#0db4bc" stroke="#fff" strokeWidth="2" />
+                    <circle cx={x} cy={yImpressions} r="5" fill="#8b5cf6" stroke="#fff" strokeWidth="2" />
+                    <circle cx={x} cy={yClicks} r="5" fill="#22c55e" stroke="#fff" strokeWidth="2" />
 
                     {/* Tooltip - Dynamic positioning based on data point location */}
                     {(() => {
@@ -249,37 +254,45 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
                             width="150"
                             height="85"
                             rx="6"
-                            className={styles.tooltipBg}
+                            fill="rgba(255, 255, 255, 0.98)"
+                            stroke="#e5e7eb"
+                            strokeWidth="1"
+                            filter="drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
                           />
                           <text
                             x={x}
                             y={tooltipY + 20}
-                            className={styles.tooltipText}
+                            fill="#1f2937"
+                            fontSize="14"
                             fontWeight="600"
+                            textAnchor="middle"
                           >
                             {d.month}
                           </text>
                           <text
                             x={x}
                             y={tooltipY + 40}
-                            className={styles.tooltipValue}
-                            fill="#ff6b9d"
+                            fill="#0db4bc"
+                            fontSize="12"
+                            textAnchor="middle"
                           >
                             Proposals: {d.proposals}
                           </text>
                           <text
                             x={x}
                             y={tooltipY + 60}
-                            className={styles.tooltipValue}
-                            fill="#9b7fdb"
+                            fill="#8b5cf6"
+                            fontSize="12"
+                            textAnchor="middle"
                           >
                             Impressions: {d.impressions}
                           </text>
                           <text
                             x={x}
                             y={tooltipY + 80}
-                            className={styles.tooltipValue}
-                            fill="#5fd3f3"
+                            fill="#22c55e"
+                            fontSize="12"
+                            textAnchor="middle"
                           >
                             Clicks: {d.clicks}
                           </text>
@@ -300,7 +313,8 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
                 key={`label-${i}`}
                 x={x}
                 y={svgHeight - 20}
-                className={styles.monthLabel}
+                fill="#6b7280"
+                fontSize="12"
                 textAnchor="middle"
               >
                 {d.month}
@@ -308,30 +322,30 @@ const RevenueProposalsChart: React.FC<RevenueProposalsChartProps> = ({
             );
           })}
         </svg>
-      </div>
+      </Box>
 
       {/* Legend */}
-      <div className={styles.legend}>
-        <div className={styles.legendItem}>
-          <div className={`${styles.legendColor} ${styles.legendProposals}`}></div>
-          <span>Proposals</span>
-        </div>
-        <div className={styles.legendItem}>
-          <div className={`${styles.legendColor} ${styles.legendImpressions}`}></div>
-          <span>Impressions</span>
-        </div>
-        <div className={styles.legendItem}>
-          <div className={`${styles.legendColor} ${styles.legendClicks}`}></div>
-          <span>Clicks</span>
-        </div>
-      </div>
+      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 3, mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: '#0db4bc' }} />
+          <Typography sx={{ fontSize: '0.875rem', color: '#6b7280' }}>Proposals</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: '#8b5cf6' }} />
+          <Typography sx={{ fontSize: '0.875rem', color: '#6b7280' }}>Impressions</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: '#22c55e' }} />
+          <Typography sx={{ fontSize: '0.875rem', color: '#6b7280' }}>Clicks</Typography>
+        </Box>
+      </Box>
 
-      <div className={styles.chartFooter}>
-        <p className={styles.footerText}>
+      <Box sx={{ textAlign: 'center', mt: 2 }}>
+        <Typography sx={{ fontSize: '0.75rem', color: '#9ca3af' }}>
           Real-time data • Last updated: {new Date().toLocaleTimeString()}
-        </p>
-      </div>
-    </div>
+        </Typography>
+      </Box>
+    </Box>
   );
 };
 

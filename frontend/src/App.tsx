@@ -25,6 +25,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import ConsultantProposalsPage from './pages/ConsultantProposalsPage';
 import ConsultantProfileViewPage from './pages/ConsultantProfileViewPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
+import LogoutPage from './pages/LogoutPage';
 
 const App = () => {
   return (
@@ -122,6 +123,7 @@ const App = () => {
             <MessagingPage />
           </ProtectedRoute>
         } />
+        <Route path="/logout" element={<LogoutPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/404" element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to="/404" replace />} />

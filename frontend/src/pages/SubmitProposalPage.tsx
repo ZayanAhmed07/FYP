@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
+import { Box, Typography, TextField, Button } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
-import styles from './SubmitProposalPage.module.css';
 
 interface JobSummary {
   _id: string;
@@ -106,90 +106,320 @@ const SubmitProposalPage = () => {
   };
 
   return (
-    <div className={styles.pageContainer}>
-      <header className={styles.header}>
-        <button className={styles.backButton} onClick={() => navigate(-1)}>
-          ← Back
-        </button>
-        <h1 className={styles.title}>Submit Proposal</h1>
-      </header>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        py: 4,
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          maxWidth: '800px',
+          mx: 'auto',
+          px: 3,
+          mb: 3,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+        }}
+      >
+        <Button
+          onClick={() => navigate(-1)}
+          startIcon={<ArrowBack />}
+          sx={{
+            color: 'white',
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            px: 3,
+            py: 1,
+            borderRadius: 2,
+            textTransform: 'none',
+            fontSize: '16px',
+            '&:hover': {
+              background: 'rgba(255, 255, 255, 0.2)',
+              transform: 'translateY(-2px)',
+            },
+            transition: 'all 0.3s ease',
+          }}
+        >
+          Back
+        </Button>
+        <Typography
+          variant="h4"
+          sx={{
+            color: 'white',
+            fontWeight: 700,
+          }}
+        >
+          Submit Proposal
+        </Typography>
+      </Box>
 
-      <main className={styles.content}>
+      <Box
+        sx={{
+          maxWidth: '800px',
+          mx: 'auto',
+          px: 3,
+        }}
+      >
+        {/* Job Summary Card */}
         {job && (
-          <section className={styles.jobSummary}>
-            <h2 className={styles.jobTitle}>{job.title}</h2>
-            <p className={styles.jobMeta}>
-              <span className={styles.category}>{job.category}</span>
-              <span className={styles.location}>{job.location}</span>
-            </p>
-            <p className={styles.jobBudget}>
+          <Box
+            sx={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: 3,
+              p: 3,
+              mb: 3,
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 600,
+                color: '#1a1a1a',
+                mb: 2,
+              }}
+            >
+              {job.title}
+            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                mb: 2,
+              }}
+            >
+              <Typography
+                sx={{
+                  display: 'inline-block',
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: 2,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  fontSize: '14px',
+                }}
+              >
+                {job.category}
+              </Typography>
+              <Typography
+                sx={{
+                  display: 'inline-block',
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: 2,
+                  background: 'rgba(102, 126, 234, 0.1)',
+                  color: '#667eea',
+                  fontSize: '14px',
+                }}
+              >
+                {job.location}
+              </Typography>
+            </Box>
+            <Typography sx={{ color: '#666' }}>
               <strong>Buyer Budget:</strong> {formatBudget(job.budget)}
-            </p>
-          </section>
+            </Typography>
+          </Box>
         )}
 
-        <section className={styles.formCard}>
-          {error && <p className={styles.errorText}>{error}</p>}
-          {success && <p className={styles.successText}>{success}</p>}
+        {/* Proposal Form Card */}
+        <Box
+          sx={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: 3,
+            p: 4,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          {error && (
+            <Box
+              sx={{
+                p: 2,
+                mb: 3,
+                borderRadius: 2,
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+              }}
+            >
+              <Typography sx={{ color: '#ef4444' }}>{error}</Typography>
+            </Box>
+          )}
 
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Your Bid Amount (PKR)</label>
-              <input
+          {success && (
+            <Box
+              sx={{
+                p: 2,
+                mb: 3,
+                borderRadius: 2,
+                background: 'rgba(34, 197, 94, 0.1)',
+                border: '1px solid rgba(34, 197, 94, 0.3)',
+              }}
+            >
+              <Typography sx={{ color: '#22c55e' }}>{success}</Typography>
+            </Box>
+          )}
+
+          <Box component="form" onSubmit={handleSubmit}>
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  mb: 1,
+                  fontWeight: 600,
+                  color: '#1a1a1a',
+                }}
+              >
+                Your Bid Amount (PKR)
+              </Typography>
+              <TextField
                 type="number"
-                min={1}
-                className={styles.input}
+                inputProps={{ min: 1 }}
                 value={bidAmount}
                 onChange={(e) => setBidAmount(e.target.value)}
                 placeholder="e.g., 150000"
                 disabled={loading}
                 required
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
+                  },
+                }}
               />
-            </div>
+            </Box>
 
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Delivery Time</label>
-              <input
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  mb: 1,
+                  fontWeight: 600,
+                  color: '#1a1a1a',
+                }}
+              >
+                Delivery Time
+              </Typography>
+              <TextField
                 type="text"
-                className={styles.input}
                 value={deliveryTime}
                 onChange={(e) => setDeliveryTime(e.target.value)}
                 placeholder="e.g., 7 days"
                 disabled={loading}
                 required
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
+                  },
+                }}
               />
-            </div>
+            </Box>
 
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Cover Letter</label>
-              <textarea
-                className={styles.textarea}
+            <Box sx={{ mb: 4 }}>
+              <Typography
+                sx={{
+                  mb: 1,
+                  fontWeight: 600,
+                  color: '#1a1a1a',
+                }}
+              >
+                Cover Letter
+              </Typography>
+              <TextField
+                multiline
                 rows={6}
                 value={coverLetter}
                 onChange={(e) => setCoverLetter(e.target.value)}
                 placeholder="Explain why you're a great fit for this project..."
                 disabled={loading}
                 required
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
+                  },
+                }}
               />
-            </div>
+            </Box>
 
-            <div className={styles.actions}>
-              <button
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                justifyContent: 'flex-end',
+              }}
+            >
+              <Button
                 type="button"
-                className={styles.secondaryButton}
                 onClick={() => navigate(-1)}
                 disabled={loading}
+                sx={{
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: 2,
+                  border: '2px solid #667eea',
+                  color: '#667eea',
+                  textTransform: 'none',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  '&:hover': {
+                    background: 'rgba(102, 126, 234, 0.1)',
+                    transform: 'translateY(-2px)',
+                  },
+                  transition: 'all 0.3s ease',
+                }}
               >
                 Cancel
-              </button>
-              <button type="submit" className={styles.primaryButton} disabled={loading}>
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+                sx={{
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: 2,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  textTransform: 'none',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                  '&:hover': {
+                    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)',
+                    transform: 'translateY(-2px)',
+                  },
+                  transition: 'all 0.3s ease',
+                }}
+              >
                 {loading ? 'Submitting...' : 'Submit Proposal'}
-              </button>
-            </div>
-          </form>
-        </section>
-      </main>
-    </div>
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

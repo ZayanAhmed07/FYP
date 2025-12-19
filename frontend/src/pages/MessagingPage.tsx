@@ -11,9 +11,9 @@ import {
 } from 'react-icons/fa';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
+import { Box, Typography, TextField, IconButton, Avatar, Button, Chip } from '@mui/material';
 import { useSocket } from '../hooks/useSocket';
 import NotificationDropdown from '../components/layout/NotificationDropdown';
-import styles from './MessagingPage.module.css';
 
 interface User {
   _id: string;
@@ -110,7 +110,7 @@ const MessagingPage = () => {
         );
       }
     },
-    onUnreadCountUpdate: (data) => {
+    onUnreadCountUpdate: () => {
       // Refresh conversations to show updated counts
       fetchConversations();
     },
@@ -356,8 +356,8 @@ const MessagingPage = () => {
 
     return (
       conversation.participants.find((p) => {
-        const participantId = p._id || p.id;
-        return participantId !== currentUser.id && participantId !== currentUser._id;
+        const participantId = p._id || '';
+        return participantId !== currentUser._id && participantId !== currentUser._id;
       }) || null
     );
   };
@@ -371,7 +371,7 @@ const MessagingPage = () => {
 
   const selectedUserFromConversations = conversations
     .flatMap((c) => c.participants || [])
-    .find((p) => (p._id || p.id) === selectedUserId);
+    .find((p) => (p._id || '') === selectedUserId);
 
   useEffect(() => {
     if (selectedUserFromConversations) {
@@ -443,13 +443,42 @@ const MessagingPage = () => {
   };
 
   return (
-    <div className={styles.messagingPage}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+        display: 'flex',
+        py: 4,
+        px: { xs: 2, md: 4 },
+      }}
+    >
       {/* Conversations List */}
-      <aside className={`${styles.conversationsSidebar} ${selectedUserId ? styles.conversationsSidebarHidden : ''}`}>
-        <div className={styles.topBar}>
-          <div className={styles.logoSection}>
-            <button
-              className={styles.backToDashboardSidebar}
+      <Box
+        sx={{
+          display: selectedUserId ? { xs: 'none', md: 'flex' } : 'flex',
+          flexDirection: 'column',
+          width: { xs: '100%', md: '380px' },
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '24px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          overflow: 'hidden',
+          mr: { md: 3 },
+          height: 'calc(100vh - 64px)',
+        }}
+      >
+        <Box
+          sx={{
+            background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+            color: 'white',
+            p: 2,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Button
               onClick={() => {
                 const role = getAccountType(currentUser);
                 if (role === 'consultant') {
@@ -461,50 +490,106 @@ const MessagingPage = () => {
                 }
               }}
               title="Back to Dashboard"
+              sx={{
+                color: 'white',
+                minWidth: 'auto',
+                p: 0.5,
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
             >
               ← Back
-            </button>
-            <img src="/src/assets/logo.png" alt="Expert Raah" className={styles.logoImage} />
-            <h1 className={styles.logoText}>EXPERT RAAH</h1>
-          </div>
-          <div className={styles.topBarActions}>
+            </Button>
+            <Box
+              component="img"
+              src="/src/assets/logo.png"
+              alt="Expert Raah"
+              sx={{ width: 32, height: 32, borderRadius: '8px' }}
+            />
+            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
+              EXPERT RAAH
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <NotificationDropdown />
             {currentUser?.profileImage ? (
-              <img
+              <Avatar
                 src={currentUser.profileImage}
                 alt={currentUser.name}
-                className={styles.userAvatar}
+                sx={{ width: 36, height: 36 }}
               />
             ) : (
-              <FaUserCircle className={styles.userAvatar} />
+              <FaUserCircle style={{ fontSize: '36px' }} />
             )}
-          </div>
-        </div>
+          </Box>
+        </Box>
 
-        <div className={styles.conversationsHeader}>
-          <h2 className={styles.conversationsTitle}>
-            Messages{' '}
-            {getTotalUnread() > 0 && <span className={styles.unreadBadge}>{getTotalUnread()}</span>}
-          </h2>
-          <span className={styles.dropdownIcon}>▼</span>
-        </div>
+        <Box sx={{ p: 2.5, borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', flex: 1 }}>
+              Messages{' '}
+              {getTotalUnread() > 0 && (
+                <Chip
+                  label={getTotalUnread()}
+                  size="small"
+                  sx={{
+                    background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                    color: 'white',
+                    fontWeight: 700,
+                    height: 24,
+                    ml: 1,
+                  }}
+                />
+              )}
+            </Typography>
+          </Box>
+        </Box>
 
-        <div className={styles.searchContainer}>
-          <FaSearch className={styles.searchIcon} />
-          <input
-            type="text"
-            placeholder="Search Projects"
+        <Box sx={{ px: 2.5, py: 2 }}>
+          <TextField
+            fullWidth
+            placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={styles.searchInput}
+            InputProps={{
+              startAdornment: <FaSearch style={{ marginRight: '12px', color: '#9ca3af' }} />,
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '12px',
+                background: 'rgba(255, 255, 255, 0.8)',
+                '& fieldset': { border: '1px solid rgba(0, 0, 0, 0.08)' },
+                '&:hover fieldset': { borderColor: '#0db4bc' },
+                '&.Mui-focused fieldset': { borderColor: '#0db4bc' },
+              },
+            }}
           />
-        </div>
+        </Box>
 
-        <div className={styles.conversationsList}>
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            '&::-webkit-scrollbar': { width: '6px' },
+            '&::-webkit-scrollbar-thumb': {
+              background: 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '3px',
+            },
+          }}
+        >
           {filteredConversations.length === 0 ? (
-            <div className={styles.emptyConversations}>
-              <p>No conversations yet</p>
-            </div>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '200px',
+                color: '#9ca3af',
+              }}
+            >
+              <Typography>No conversations yet</Typography>
+            </Box>
           ) : (
             filteredConversations.map((conversation) => {
               const otherUser = getOtherUser(conversation);
@@ -514,64 +599,137 @@ const MessagingPage = () => {
               const isSelected = selectedUserId === otherUser._id;
 
               return (
-                <div
-                  key={`conversation-${conversation._id}-${otherUser._id || otherUser.id}`}
-                  className={`${styles.conversationItem} ${isSelected ? styles.activeConversation : ''}`}
+                <Box
+                  key={`conversation-${conversation._id}-${otherUser._id || otherUser._id}`}
                   onClick={() => {
-                    const otherUserId = otherUser._id || otherUser.id;
+                    const otherUserId = otherUser._id || otherUser._id;
                     setSelectedUserId(otherUserId);
                   }}
+                  sx={{
+                    display: 'flex',
+                    gap: 1.5,
+                    p: 2,
+                    cursor: 'pointer',
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+                    background: isSelected
+                      ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)'
+                      : 'transparent',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      background: isSelected
+                        ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%)'
+                        : 'rgba(0, 0, 0, 0.02)',
+                    },
+                  }}
                 >
-                  <div className={styles.conversationAvatar}>
+                  <Box sx={{ position: 'relative' }}>
                     {otherUser.profileImage ? (
-                      <img src={otherUser.profileImage} alt={otherUser.name} />
+                      <Avatar src={otherUser.profileImage} alt={otherUser.name} sx={{ width: 48, height: 48 }} />
                     ) : (
-                      <FaUserCircle className={styles.defaultAvatar} />
+                      <FaUserCircle style={{ fontSize: '48px', color: '#9ca3af' }} />
                     )}
-                    {otherUser.isOnline && <span className={styles.onlineIndicator}></span>}
-                  </div>
+                    {otherUser.isOnline && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          bottom: 2,
+                          right: 2,
+                          width: 10,
+                          height: 10,
+                          borderRadius: '50%',
+                          background: '#22c55e',
+                          border: '2px solid white',
+                        }}
+                      />
+                    )}
+                  </Box>
 
-                  <div className={styles.conversationContent}>
-                    <div className={styles.conversationTop}>
-                      <span
-                        className={`${styles.conversationName} ${unreadCount > 0 ? styles.unreadName : ''}`}
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                      <Typography
+                        sx={{
+                          fontWeight: unreadCount > 0 ? 700 : 500,
+                          color: '#1a1a1a',
+                          fontSize: '0.95rem',
+                        }}
                       >
                         {otherUser.name}
-                      </span>
-                      <span className={styles.conversationTime}>
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.75rem', color: '#9ca3af' }}>
                         {conversation.lastMessage?.createdAt
                           ? formatTime(conversation.lastMessage.createdAt)
                           : conversation.updatedAt
                             ? formatTime(conversation.updatedAt)
                             : ''}
-                      </span>
-                    </div>
-                    <div className={styles.conversationBottom}>
-                      <p
-                        className={`${styles.conversationPreview} ${unreadCount > 0 ? styles.unreadPreview : ''}`}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography
+                        sx={{
+                          fontSize: '0.85rem',
+                          color: unreadCount > 0 ? '#1a1a1a' : '#6b7280',
+                          fontWeight: unreadCount > 0 ? 600 : 400,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          flex: 1,
+                        }}
                       >
                         {conversation.lastMessage?.content ||
                           'Such a great consultation session it was. WI...'}
-                      </p>
-                      {unreadCount > 0 && <span className={styles.unreadCount}>{unreadCount}</span>}
-                    </div>
-                  </div>
-                </div>
+                      </Typography>
+                      {unreadCount > 0 && (
+                        <Chip
+                          label={unreadCount}
+                          size="small"
+                          sx={{
+                            background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                            color: 'white',
+                            fontWeight: 700,
+                            height: 20,
+                            minWidth: 20,
+                            '& .MuiChip-label': { px: 0.75, fontSize: '0.7rem' },
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </Box>
+                </Box>
               );
             })
           )}
-        </div>
-      </aside>
+        </Box>
+      </Box>
 
       {/* Right - Chat Area */}
-      <main className={`${styles.chatArea} ${selectedUserId ? styles.chatAreaActive : ''}`}>
+      <Box
+        sx={{
+          display: selectedUserId ? 'flex' : { xs: 'none', md: 'flex' },
+          flexDirection: 'column',
+          flex: 1,
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '24px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          overflow: 'hidden',
+          height: 'calc(100vh - 64px)',
+        }}
+      >
         {selectedUser ? (
           <>
             {/* Chat Header */}
-            <header className={styles.chatHeader}>
-              <div className={styles.chatHeaderLeft}>
-                <button
-                  className={styles.backToDashboard}
+            <Box
+              sx={{
+                background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                color: 'white',
+                p: 2,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Button
                   onClick={() => {
                     // On mobile, go back to conversations list
                     if (window.innerWidth <= 768) {
@@ -589,161 +747,328 @@ const MessagingPage = () => {
                     }
                   }}
                   title={window.innerWidth <= 768 ? "Back to conversations" : "Back to Dashboard"}
+                  sx={{
+                    color: 'white',
+                    minWidth: 'auto',
+                    p: 0.5,
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.1)',
+                    },
+                  }}
                 >
                   ← {window.innerWidth <= 768 ? 'Back' : 'Dashboard'}
-                </button>
-                <div className={styles.chatHeaderAvatar}>
-                  {selectedUser.profileImage ? (
-                    <img src={selectedUser.profileImage} alt={selectedUser.name} />
-                  ) : (
-                    <FaUserCircle className={styles.chatHeaderDefaultAvatar} />
-                  )}
-                </div>
-                <div className={styles.chatHeaderInfo}>
-                  <h3 className={styles.chatHeaderName}>{selectedUser.name}</h3>
-                  <span className={styles.chatHeaderStatus}>
+                </Button>
+                {selectedUser.profileImage ? (
+                  <Avatar src={selectedUser.profileImage} alt={selectedUser.name} sx={{ width: 40, height: 40 }} />
+                ) : (
+                  <FaUserCircle style={{ fontSize: '40px' }} />
+                )}
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>
+                    {selectedUser.name}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.85rem', opacity: 0.9 }}>
                     {selectedUser.isOnline ? (
-                      <span className={styles.activeStatus}>Active Now</span>
+                      <Box component="span" sx={{ color: '#22c55e', fontWeight: 600 }}>
+                        Active Now
+                      </Box>
                     ) : (
                       'Mon, 09:40 AM'
                     )}
-                  </span>
-                </div>
-              </div>
-              <div className={styles.chatHeaderActions}>
-                <button className={styles.headerActionBtn} title="Call">
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <IconButton
+                  title="Call"
+                  sx={{
+                    color: 'white',
+                    '&:hover': { background: 'rgba(255, 255, 255, 0.1)' },
+                  }}
+                >
                   <FaPhone />
-                </button>
-                <button className={styles.headerActionBtn} title="Video Call">
+                </IconButton>
+                <IconButton
+                  title="Video Call"
+                  sx={{
+                    color: 'white',
+                    '&:hover': { background: 'rgba(255, 255, 255, 0.1)' },
+                  }}
+                >
                   <FaVideo />
-                </button>
-                <button className={styles.headerActionBtn} title="More">
+                </IconButton>
+                <IconButton
+                  title="More"
+                  sx={{
+                    color: 'white',
+                    '&:hover': { background: 'rgba(255, 255, 255, 0.1)' },
+                  }}
+                >
                   <FaEllipsisV />
-                </button>
-              </div>
-            </header>
+                </IconButton>
+              </Box>
+            </Box>
 
             {/* Messages Container */}
-            <div className={styles.messagesContainer}>
+            <Box
+              sx={{
+                flex: 1,
+                overflowY: 'auto',
+                p: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                background: '#f9fafb',
+                '&::-webkit-scrollbar': { width: '6px' },
+                '&::-webkit-scrollbar-thumb': {
+                  background: 'rgba(0, 0, 0, 0.2)',
+                  borderRadius: '3px',
+                },
+              }}
+            >
               {loading && messages.length === 0 ? (
-                <div className={styles.loadingMessages}>Loading messages...</div>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%',
+                    color: '#9ca3af',
+                  }}
+                >
+                  <Typography>Loading messages...</Typography>
+                </Box>
               ) : messages.length === 0 ? (
-                <div className={styles.emptyMessages}>
-                  <FaUserCircle className={styles.emptyMessagesIcon} />
-                  <p>No messages yet</p>
-                  <span>Start the conversation by sending a message</span>
-                </div>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%',
+                    gap: 1.5,
+                    color: '#9ca3af',
+                  }}
+                >
+                  <FaUserCircle style={{ fontSize: '60px', opacity: 0.3 }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#6b7280' }}>
+                    No messages yet
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.9rem' }}>
+                    Start the conversation by sending a message
+                  </Typography>
+                </Box>
               ) : (
                 <>
                   {groupMessagesByDate(messages).map((group, groupIndex) => (
-                    <div key={`message-group-${groupIndex}-${group.date}`}>
-                      <div className={styles.dateDivider}>
-                        <span>{group.date}</span>
-                      </div>
+                    <Box key={`message-group-${groupIndex}-${group.date}`}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          my: 2,
+                        }}
+                      >
+                        <Chip
+                          label={group.date}
+                          size="small"
+                          sx={{
+                            background: 'rgba(0, 0, 0, 0.05)',
+                            color: '#6b7280',
+                            fontSize: '0.75rem',
+                          }}
+                        />
+                      </Box>
                       {group.messages.map((message) => {
                         const messageSender = message.sender || message.senderId;
 
                         const isSent =
-                          messageSender?._id === currentUser?.id ||
+                          messageSender?._id === currentUser?._id ||
                           messageSender?._id === currentUser?._id;
 
                         return (
-                          <div
+                          <Box
                             key={`message-${message._id}-${message.createdAt}`}
-                            className={`${styles.messageRow} ${isSent ? styles.sentMessage : styles.receivedMessage}`}
+                            sx={{
+                              display: 'flex',
+                              justifyContent: isSent ? 'flex-end' : 'flex-start',
+                              gap: 1,
+                              mb: 1,
+                            }}
                           >
                             {!isSent && (
-                              <div className={styles.messageAvatar}>
+                              <Box>
                                 {messageSender?.profileImage ? (
-                                  <img
+                                  <Avatar
                                     src={messageSender.profileImage}
                                     alt={messageSender?.name || 'User'}
+                                    sx={{ width: 32, height: 32 }}
                                   />
                                 ) : (
-                                  <FaUserCircle className={styles.messageDefaultAvatar} />
+                                  <FaUserCircle style={{ fontSize: '32px', color: '#9ca3af' }} />
                                 )}
-                              </div>
+                              </Box>
                             )}
-                            <div className={styles.messageBubble}>
-                              <div className={styles.messageText}>{message.content}</div>
+                            <Box
+                              sx={{
+                                maxWidth: '70%',
+                                background: isSent
+                                  ? 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)'
+                                  : 'white',
+                                color: isSent ? 'white' : '#1a1a1a',
+                                borderRadius: isSent ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                                p: 1.5,
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                              }}
+                            >
+                              <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.5 }}>
+                                {message.content}
+                              </Typography>
                               {message.attachments && message.attachments.length > 0 && (
-                                <div className={styles.attachmentContainer}>
+                                <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                                   {message.attachments.map((attachment, idx) => (
-                                    <a
+                                    <Button
                                       key={idx}
+                                      component="a"
                                       href={`data:application/octet-stream;base64,${attachment}`}
                                       download={`file-${idx}`}
-                                      className={styles.attachmentLink}
                                       title="Click to download"
+                                      startIcon={<span>📥</span>}
+                                      sx={{
+                                        color: isSent ? 'white' : '#0db4bc',
+                                        textTransform: 'none',
+                                        fontSize: '0.85rem',
+                                        justifyContent: 'flex-start',
+                                        '&:hover': {
+                                          background: isSent
+                                            ? 'rgba(255, 255, 255, 0.1)'
+                                            : 'rgba(102, 126, 234, 0.08)',
+                                        },
+                                      }}
                                     >
-                                      📥 Download
-                                    </a>
+                                      Download
+                                    </Button>
                                   ))}
-                                </div>
+                                </Box>
                               )}
-                            </div>
-                          </div>
+                            </Box>
+                          </Box>
                         );
                       })}
-                    </div>
+                    </Box>
                   ))}
                   <div ref={messagesEndRef} />
                 </>
               )}
-            </div>
+            </Box>
 
             {/* Message Input */}
-            <form onSubmit={sendMessage} className={styles.messageInputContainer}>
-              <div className={styles.inputWrapper}>
-                <input
-                  ref={inputRef}
-                  type="text"
+            <Box
+              component="form"
+              onSubmit={sendMessage}
+              sx={{
+                p: 2,
+                borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+                background: 'white',
+                display: 'flex',
+                gap: 1,
+                alignItems: 'flex-end',
+              }}
+            >
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  inputRef={inputRef}
+                  fullWidth
+                  multiline
+                  maxRows={4}
                   placeholder="Type a message"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className={styles.messageInput}
                   disabled={sending || uploadingFile}
+                  InputProps={{
+                    startAdornment: (
+                      <Box sx={{ display: 'flex', gap: 0.5, mr: 1 }}>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          style={{ display: 'none' }}
+                          onChange={handleFileSelect}
+                          disabled={uploadingFile}
+                        />
+                        <IconButton
+                          size="small"
+                          title="Attach file"
+                          onClick={handleAttachmentClick}
+                          disabled={uploadingFile}
+                          sx={{ color: '#0db4bc' }}
+                        >
+                          <FaPaperclip />
+                        </IconButton>
+                        <IconButton size="small" title="Add emoji" sx={{ color: '#0db4bc' }}>
+                          😊
+                        </IconButton>
+                      </Box>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '20px',
+                      background: '#f9fafb',
+                      '& fieldset': { border: '1px solid rgba(0, 0, 0, 0.08)' },
+                      '&:hover fieldset': { borderColor: '#0db4bc' },
+                      '&.Mui-focused fieldset': { borderColor: '#0db4bc' },
+                    },
+                  }}
                 />
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  style={{ display: 'none' }}
-                  onChange={handleFileSelect}
-                  disabled={uploadingFile}
-                />
-                <button 
-                  type="button" 
-                  className={styles.attachmentBtn} 
-                  title="Attach file"
-                  onClick={handleAttachmentClick}
-                  disabled={uploadingFile}
-                >
-                  <FaPaperclip />
-                </button>
-                <button type="button" className={styles.emojiBtn} title="Add emoji">
-                  😊
-                </button>
-              </div>
-              <button
+              </Box>
+              <IconButton
                 type="submit"
-                className={styles.sendBtn}
                 disabled={sending || !newMessage.trim() || uploadingFile}
                 title="Send message"
+                sx={{
+                  background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                  color: 'white',
+                  width: 48,
+                  height: 48,
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #0a8b91 0%, #2d5a5f 100%)',
+                    transform: 'scale(1.05)',
+                  },
+                  '&:disabled': {
+                    background: 'rgba(0, 0, 0, 0.12)',
+                    color: 'rgba(0, 0, 0, 0.26)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
               >
                 <FaPaperPlane />
-              </button>
-            </form>
+              </IconButton>
+            </Box>
           </>
         ) : (
-          <div className={styles.noConversationSelected}>
-            <FaUserCircle className={styles.noConversationIcon} />
-            <h3>Select a conversation</h3>
-            <p>Choose a conversation from the list to start messaging</p>
-          </div>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              color: '#9ca3af',
+              gap: 2,
+            }}
+          >
+            <FaUserCircle style={{ fontSize: '80px', opacity: 0.3 }} />
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#6b7280' }}>
+              Select a conversation
+            </Typography>
+            <Typography sx={{ color: '#9ca3af' }}>
+              Choose a conversation from the list to start messaging
+            </Typography>
+          </Box>
         )}
-      </main>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

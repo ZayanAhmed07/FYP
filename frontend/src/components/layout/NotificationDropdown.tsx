@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
-import { FaBell } from 'react-icons/fa';
+import { Badge, IconButton, Menu, MenuItem, Typography, Box, Button, Divider } from '@mui/material';
+import { Notifications as NotificationsIcon, MarkEmailRead, Delete, NotificationsNone } from '@mui/icons-material';
 import { httpClient } from '../../api/httpClient';
-import styles from './NotificationDropdown.module.css';
 
 interface Notification {
   _id: string;
@@ -79,84 +79,117 @@ const NotificationDropdown = () => {
     }
   };
 
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
   return (
-    <div className={styles.notificationDropdown} ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={styles.notificationButton}
+    <>
+      <IconButton
+        onClick={handleClick}
+        sx={{
+          color: 'inherit',
+          '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
+        }}
       >
-        <FaBell className={styles.notificationIcon} />
-        {unreadCount > 0 && (
-          <span className={styles.unreadBadge}>
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
+        <Badge badgeContent={unreadCount} color="error">
+          <NotificationsIcon />
+        </Badge>
+      </IconButton>
 
-      {isOpen && (
-        <div className={styles.dropdown}>
-          <div className={styles.dropdownHeader}>
-            <h3 className={styles.dropdownTitle}>Notifications</h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className={styles.markAllReadButton}
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        PaperProps={{
+          sx: {
+            mt: 1.5,
+            minWidth: 360,
+            maxWidth: 400,
+            maxHeight: 500,
+            borderRadius: 2,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+          },
+        }}
+      >
+        <Box sx={{ px: 2, py: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>Notifications</Typography>
+          {unreadCount > 0 && (
+            <Button
+              size="small"
+              startIcon={<MarkEmailRead />}
+              onClick={() => { markAllAsRead(); handleClose(); }}
+              sx={{ textTransform: 'none' }}
+            >
+              Mark all read
+            </Button>
+          )}
+        </Box>
+        <Divider />
+        <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+          {notifications.length === 0 ? (
+            <Box sx={{ py: 8, textAlign: 'center' }}>
+              <NotificationsNone sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+              <Typography variant="body2" color="text.secondary">No notifications</Typography>
+            </Box>
+          ) : (
+            notifications.map((notification) => (
+              <MenuItem
+                key={notification._id}
+                sx={{
+                  py: 1.5,
+                  px: 2,
+                  borderLeft: notification.isRead ? 'none' : '4px solid',
+                  borderColor: 'primary.main',
+                  backgroundColor: notification.isRead ? 'transparent' : 'action.hover',
+                  '&:hover': { backgroundColor: 'action.selected' },
+                  display: 'block',
+                }}
               >
-                Mark all read
-              </button>
-            )}
-          </div>
-
-          <div className={styles.notificationsList}>
-            {notifications.length === 0 ? (
-              <div className={styles.emptyState}>
-                <svg className={styles.emptyIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM15 17H9a2 2 0 01-2-2V5a2 2 0 012-2h6a2 2 0 012 2v10z" />
-                </svg>
-                <p className={styles.emptyText}>No notifications</p>
-              </div>
-            ) : (
-              notifications.map((notification) => (
-                <div
-                  key={notification._id}
-                  className={`${styles.notificationItem} ${!notification.isRead ? styles.notificationItemUnread : ''}`}
-                >
-                  <div className={styles.notificationContent}>
-                    <div className={styles.notificationText}>
-                      <p className={styles.notificationTitle}>
-                        {notification.title}
-                      </p>
-                      <p className={styles.notificationMessage}>
-                        {notification.message}
-                      </p>
-                      <p className={styles.notificationDate}>
-                        {new Date(notification.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className={styles.notificationActions}>
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                    {notification.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    {notification.message}
+                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="caption" color="text.disabled">
+                      {new Date(notification.createdAt).toLocaleDateString()}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
                       {!notification.isRead && (
-                        <button
-                          onClick={() => markAsRead(notification._id)}
-                          className={`${styles.actionButton} ${styles.markReadButton}`}
+                        <Button
+                          size="small"
+                          onClick={(e) => { e.stopPropagation(); markAsRead(notification._id); }}
+                          sx={{ minWidth: 'auto', px: 1, textTransform: 'none', fontSize: '0.75rem' }}
                         >
                           Mark read
-                        </button>
+                        </Button>
                       )}
-                      <button
-                        onClick={() => deleteNotification(notification._id)}
-                        className={`${styles.actionButton} ${styles.deleteButton}`}
+                      <IconButton
+                        size="small"
+                        onClick={(e) => { e.stopPropagation(); deleteNotification(notification._id); }}
+                        sx={{ color: 'error.main' }}
                       >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                </Box>
+              </MenuItem>
+            ))
+          )}
+        </Box>
+      </Menu>
+    </>
   );
 };
 

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaIdCard, FaUpload, FaTimesCircle, FaUser, FaBriefcase, FaDollarSign, FaClock } from 'react-icons/fa';
+import { Box, Typography, TextField, Button, Chip } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
+import { FaIdCard, FaUser, FaBriefcase, FaDollarSign, FaClock, FaUpload, FaTimesCircle } from 'react-icons/fa';
 import { httpClient } from '../api/httpClient';
-import styles from './VerifyIdentityPage.module.css';
 
 const VerifyIdentityPage = () => {
   const [frontIdImage, setFrontIdImage] = useState<File | null>(null);
@@ -154,121 +155,405 @@ const VerifyIdentityPage = () => {
   };
 
   return (
-    <div className={styles.pageContainer}>
-      <div className={styles.leftPanel}>
-        <div className={styles.content}>
-          <h1 className={styles.title}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      }}
+    >
+      {/* Left Panel */}
+      <Box
+        sx={{
+          width: '40%',
+          minHeight: '100vh',
+          display: { xs: 'none', md: 'flex' },
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          p: 6,
+          position: 'relative',
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: '400px',
+            textAlign: 'center',
+          }}
+        >
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: 700,
+              color: 'white',
+              mb: 3,
+              lineHeight: 1.2,
+            }}
+          >
             Step Into<br />Expert Raah
-          </h1>
-          <p className={styles.subtitle}>
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '18px',
+              color: 'rgba(255, 255, 255, 0.9)',
+              lineHeight: 1.6,
+            }}
+          >
             Join our platform to connect with clients seeking expert guidance in Education, Business, and Legal consultancy.
-          </p>
-          <button className={styles.backButton} onClick={() => navigate(-1)}>
-            <span className={styles.backArrow}>←</span>
-          </button>
-        </div>
-      </div>
+          </Typography>
+        </Box>
+        <Button
+          onClick={() => navigate(-1)}
+          startIcon={<ArrowBack />}
+          sx={{
+            position: 'absolute',
+            top: 32,
+            left: 32,
+            color: 'white',
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            px: 3,
+            py: 1,
+            borderRadius: 2,
+            textTransform: 'none',
+            fontSize: '16px',
+            '&:hover': {
+              background: 'rgba(255, 255, 255, 0.2)',
+            },
+          }}
+        >
+          Back
+        </Button>
+      </Box>
 
-      <div className={styles.rightPanel}>
-        <div className={styles.formCard}>
-          <h2 className={styles.welcomeTitle}>Verify Your Identity</h2>
-          <p className={styles.welcomeSubtitle}>Complete your consultant profile to help clients find the right expertise in Education, Business, or Legal services.</p>
+      {/* Right Panel */}
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: 'auto',
+          p: 4,
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: '700px',
+            mx: 'auto',
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: 3,
+            p: 5,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 700,
+              color: '#1a1a1a',
+              mb: 1,
+            }}
+          >
+            Verify Your Identity
+          </Typography>
+          <Typography
+            sx={{
+              color: '#666',
+              mb: 4,
+              fontSize: '16px',
+            }}
+          >
+            Complete your consultant profile to help clients find the right expertise in Education, Business, or Legal services.
+          </Typography>
 
-          <div className={styles.uploadSection}>
+          {/* Upload Section */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              gap: 3,
+              mb: 4,
+            }}
+          >
             {/* Front Side Upload */}
-            <div className={styles.uploadCard}>
+            <Box>
               <input
                 type="file"
                 id="frontId"
                 accept="image/jpeg,image/png,image/jpg,application/pdf"
                 onChange={(e) => handleFileUpload(e, 'front')}
-                className={styles.fileInput}
+                style={{ display: 'none' }}
               />
-              <label htmlFor="frontId" className={styles.uploadLabel}>
-                <div className={styles.uploadIcon}>
-                  <FaIdCard />
-                </div>
-                <p className={styles.uploadText}>
-                  {frontIdImage ? frontIdImage.name : 'Upload'}
-                </p>
+              <label htmlFor="frontId">
+                <Box
+                  sx={{
+                    border: '2px dashed #667eea',
+                    borderRadius: 2,
+                    p: 3,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: 'rgba(102, 126, 234, 0.05)',
+                      borderColor: '#764ba2',
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mx: 'auto',
+                      mb: 2,
+                    }}
+                  >
+                    <FaIdCard style={{ fontSize: 28, color: 'white' }} />
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      color: '#667eea',
+                      mb: 0.5,
+                    }}
+                  >
+                    {frontIdImage ? frontIdImage.name : 'Upload'}
+                  </Typography>
+                </Box>
               </label>
-              <p className={styles.uploadCaption}>Front Side of your Identity Card</p>
-            </div>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  color: '#666',
+                  textAlign: 'center',
+                  mt: 1,
+                }}
+              >
+                Front Side of your Identity Card
+              </Typography>
+            </Box>
 
             {/* Back Side Upload */}
-            <div className={styles.uploadCard}>
+            <Box>
               <input
                 type="file"
                 id="backId"
                 accept="image/jpeg,image/png,image/jpg,application/pdf"
                 onChange={(e) => handleFileUpload(e, 'back')}
-                className={styles.fileInput}
+                style={{ display: 'none' }}
               />
-              <label htmlFor="backId" className={styles.uploadLabel}>
-                <div className={styles.uploadIcon}>
-                  <FaIdCard />
-                </div>
-                <p className={styles.uploadText}>
-                  {backIdImage ? backIdImage.name : 'Upload'}
-                </p>
+              <label htmlFor="backId">
+                <Box
+                  sx={{
+                    border: '2px dashed #667eea',
+                    borderRadius: 2,
+                    p: 3,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: 'rgba(102, 126, 234, 0.05)',
+                      borderColor: '#764ba2',
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mx: 'auto',
+                      mb: 2,
+                    }}
+                  >
+                    <FaIdCard style={{ fontSize: 28, color: 'white' }} />
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      color: '#667eea',
+                      mb: 0.5,
+                    }}
+                  >
+                    {backIdImage ? backIdImage.name : 'Upload'}
+                  </Typography>
+                </Box>
               </label>
-              <p className={styles.uploadCaption}>Back Side of your Identity Card</p>
-            </div>
-          </div>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  color: '#666',
+                  textAlign: 'center',
+                  mt: 1,
+                }}
+              >
+                Back Side of your Identity Card
+              </Typography>
+            </Box>
+          </Box>
 
           {/* Instructions */}
-          <div className={styles.instructions}>
-            <h3 className={styles.instructionsTitle}>Instructions</h3>
-            <ul className={styles.instructionsList}>
+          <Box
+            sx={{
+              background: 'rgba(102, 126, 234, 0.05)',
+              border: '1px solid rgba(102, 126, 234, 0.2)',
+              borderRadius: 2,
+              p: 3,
+              mb: 4,
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                color: '#1a1a1a',
+                mb: 2,
+              }}
+            >
+              Instructions
+            </Typography>
+            <Box
+              component="ul"
+              sx={{
+                pl: 2,
+                m: 0,
+                '& li': {
+                  color: '#666',
+                  mb: 1,
+                  lineHeight: 1.6,
+                },
+              }}
+            >
               <li>Upload a clear image of your ID card's front side.</li>
               <li>Upload the back side of your ID card for complete verification.</li>
               <li>Ensure all details are visible and not blurred.</li>
               <li>Accepted formats: JPG, PNG, or PDF (max size: 5MB).</li>
-            </ul>
-          </div>
+            </Box>
+          </Box>
 
           {/* Profile Information Section */}
-          <div className={styles.profileSection}>
-            <h3 className={styles.sectionTitle}>
-              <FaUser className={styles.sectionIcon} />
-              Professional Profile
-            </h3>
+          <Box sx={{ mb: 4 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mb: 3,
+              }}
+            >
+              <FaUser style={{ fontSize: 24, color: '#667eea' }} />
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 600,
+                  color: '#1a1a1a',
+                }}
+              >
+                Professional Profile
+              </Typography>
+            </Box>
 
             {/* Title */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Professional Title *</label>
-              <input
-                type="text"
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  mb: 1,
+                  fontWeight: 600,
+                  color: '#1a1a1a',
+                }}
+              >
+                Professional Title *
+              </Typography>
+              <TextField
+                fullWidth
                 value={profileData.title}
                 onChange={(e) => setProfileData({ ...profileData, title: e.target.value })}
                 placeholder="e.g., Corporate Law Specialist, MBA Career Advisor, Business Strategy Consultant"
-                className={styles.input}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
+                  },
+                }}
               />
-            </div>
+            </Box>
 
             {/* Bio */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Bio *</label>
-              <textarea
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  mb: 1,
+                  fontWeight: 600,
+                  color: '#1a1a1a',
+                }}
+              >
+                Bio *
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
                 value={profileData.bio}
                 onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
                 placeholder="Describe your expertise in Education, Business, or Legal consultancy, your qualifications, and how you help clients achieve their goals..."
-                className={styles.textarea}
-                rows={4}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
+                  },
+                }}
               />
-            </div>
+            </Box>
 
             {/* Specialization */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                <FaBriefcase className={styles.labelIcon} />
-                Specialization *
-              </label>
-              <div className={styles.tagInputContainer}>
-                <select
+            <Box sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <FaBriefcase style={{ fontSize: 18, color: '#667eea' }} />
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    color: '#1a1a1a',
+                  }}
+                >
+                  Specialization *
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <TextField
+                  select
+                  fullWidth
                   value={selectedSpecialization}
                   onChange={(e) => setSelectedSpecialization(e.target.value)}
-                  className={styles.input}
+                  SelectProps={{ native: true }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      '&:hover fieldset': {
+                        borderColor: '#667eea',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#667eea',
+                      },
+                    },
+                  }}
                 >
                   <option value="">Select a specialization</option>
                   {specializationOptions.map((option) => (
@@ -276,165 +561,358 @@ const VerifyIdentityPage = () => {
                       {option}
                     </option>
                   ))}
-                </select>
-                <button
-                  type="button"
+                </TextField>
+                <Button
                   onClick={handleAddSpecialization}
-                  className={styles.addButton}
                   disabled={!selectedSpecialization}
+                  sx={{
+                    px: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    textTransform: 'none',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    '&:hover': {
+                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                    },
+                    '&:disabled': {
+                      background: '#ccc',
+                      color: '#666',
+                    },
+                  }}
                 >
                   Add
-                </button>
-              </div>
-              <div className={styles.tagsList}>
+                </Button>
+              </Box>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {profileData.specialization.map((spec, index) => (
-                  <span key={index} className={styles.tag}>
-                    {spec}
-                    <FaTimesCircle
-                      className={styles.tagRemove}
-                      onClick={() => handleRemoveSpecialization(spec)}
-                    />
-                  </span>
+                  <Chip
+                    key={index}
+                    label={spec}
+                    onDelete={() => handleRemoveSpecialization(spec)}
+                    deleteIcon={<FaTimesCircle />}
+                    sx={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      fontWeight: 600,
+                      '& .MuiChip-deleteIcon': {
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        '&:hover': {
+                          color: 'white',
+                        },
+                      },
+                    }}
+                  />
                 ))}
-              </div>
-            </div>
+              </Box>
+            </Box>
 
             {/* Hourly Rate */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                <FaDollarSign className={styles.labelIcon} />
-                Hourly Rate (PKR) *
-              </label>
-              <input
+            <Box sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <FaDollarSign style={{ fontSize: 18, color: '#667eea' }} />
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    color: '#1a1a1a',
+                  }}
+                >
+                  Hourly Rate (PKR) *
+                </Typography>
+              </Box>
+              <TextField
+                fullWidth
                 type="number"
+                inputProps={{ min: 0 }}
                 value={profileData.hourlyRate}
                 onChange={(e) => setProfileData({ ...profileData, hourlyRate: e.target.value })}
                 placeholder="e.g., 2000"
-                className={styles.input}
-                min="0"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
+                  },
+                }}
               />
-            </div>
+            </Box>
 
             {/* Experience */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                <FaClock className={styles.labelIcon} />
-                Years of Experience *
-              </label>
-              <input
-                type="text"
+            <Box sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <FaClock style={{ fontSize: 18, color: '#667eea' }} />
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    color: '#1a1a1a',
+                  }}
+                >
+                  Years of Experience *
+                </Typography>
+              </Box>
+              <TextField
+                fullWidth
                 value={profileData.experience}
                 onChange={(e) => setProfileData({ ...profileData, experience: e.target.value })}
                 placeholder="e.g., 5+ years"
-                className={styles.input}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
+                  },
+                }}
               />
-            </div>
+            </Box>
 
             {/* City */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>City *</label>
-              <select
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  mb: 1,
+                  fontWeight: 600,
+                  color: '#1a1a1a',
+                }}
+              >
+                City *
+              </Typography>
+              <TextField
+                select
+                fullWidth
                 value={profileData.city}
                 onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
-                className={styles.input}
+                SelectProps={{ native: true }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
+                  },
+                }}
               >
                 <option value="">Select your city</option>
                 <option value="Rawalpindi">Rawalpindi</option>
                 <option value="Islamabad">Islamabad</option>
                 <option value="Lahore">Lahore</option>
                 <option value="Karachi">Karachi</option>
-              </select>
-            </div>
+              </TextField>
+            </Box>
 
             {/* Skills */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Skills *</label>
-              <div className={styles.tagInputContainer}>
-                <input
-                  type="text"
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  mb: 1,
+                  fontWeight: 600,
+                  color: '#1a1a1a',
+                }}
+              >
+                Skills *
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <TextField
+                  fullWidth
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSkill())}
                   placeholder="e.g., Contract Drafting, Educational Planning, Financial Analysis"
-                  className={styles.input}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      '&:hover fieldset': {
+                        borderColor: '#667eea',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#667eea',
+                      },
+                    },
+                  }}
                 />
-                <button
-                  type="button"
+                <Button
                   onClick={handleAddSkill}
-                  className={styles.addButton}
+                  sx={{
+                    px: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    textTransform: 'none',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    '&:hover': {
+                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                    },
+                  }}
                 >
                   Add
-                </button>
-              </div>
-              <div className={styles.tagsList}>
+                </Button>
+              </Box>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {profileData.skills.map((skill, index) => (
-                  <span key={index} className={styles.tag}>
-                    {skill}
-                    <FaTimesCircle
-                      className={styles.tagRemove}
-                      onClick={() => handleRemoveSkill(skill)}
-                    />
-                  </span>
+                  <Chip
+                    key={index}
+                    label={skill}
+                    onDelete={() => handleRemoveSkill(skill)}
+                    deleteIcon={<FaTimesCircle />}
+                    sx={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      fontWeight: 600,
+                      '& .MuiChip-deleteIcon': {
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        '&:hover': {
+                          color: 'white',
+                        },
+                      },
+                    }}
+                  />
                 ))}
-              </div>
-            </div>
-          </div>
+              </Box>
+            </Box>
+          </Box>
 
           {/* Supporting Documents Section */}
-          <div className={styles.supportingDocs}>
-            <h3 className={styles.supportingDocsTitle}>Additional Supporting Documents</h3>
-            <p className={styles.supportingDocsSubtitle}>
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                color: '#1a1a1a',
+                mb: 1,
+              }}
+            >
+              Additional Supporting Documents
+            </Typography>
+            <Typography
+              sx={{
+                color: '#666',
+                mb: 3,
+                fontSize: '14px',
+              }}
+            >
               Upload certificates, licenses, or other credentials (optional)
-            </p>
+            </Typography>
 
-            <div className={styles.supportingDocsUpload}>
-              <input
-                type="file"
-                id="supportingDocs"
-                accept="image/jpeg,image/png,image/jpg,application/pdf"
-                multiple
-                onChange={(e) => handleFileUpload(e, 'supporting')}
-                className={styles.fileInput}
-              />
-              <label htmlFor="supportingDocs" className={styles.supportingUploadButton}>
-                <FaUpload className={styles.uploadButtonIcon} />
-                <span>Add Documents</span>
-              </label>
-            </div>
+            <input
+              type="file"
+              id="supportingDocs"
+              accept="image/jpeg,image/png,image/jpg,application/pdf"
+              multiple
+              onChange={(e) => handleFileUpload(e, 'supporting')}
+              style={{ display: 'none' }}
+            />
+            <label htmlFor="supportingDocs">
+              <Button
+                component="span"
+                startIcon={<FaUpload />}
+                sx={{
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: 2,
+                  border: '2px solid #667eea',
+                  color: '#667eea',
+                  textTransform: 'none',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  '&:hover': {
+                    background: 'rgba(102, 126, 234, 0.1)',
+                  },
+                }}
+              >
+                Add Documents
+              </Button>
+            </label>
 
             {/* Display uploaded supporting documents */}
             {supportingDocs.length > 0 && (
-              <div className={styles.uploadedDocsList}>
+              <Box sx={{ mt: 3 }}>
                 {supportingDocs.map((doc, index) => (
-                  <div key={index} className={styles.uploadedDocItem}>
-                    <span className={styles.docName}>{doc.name}</span>
-                    <button
-                      className={styles.removeDocButton}
+                  <Box
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      p: 2,
+                      mb: 1,
+                      background: 'rgba(102, 126, 234, 0.05)',
+                      borderRadius: 2,
+                      border: '1px solid rgba(102, 126, 234, 0.2)',
+                    }}
+                  >
+                    <Typography sx={{ color: '#1a1a1a' }}>{doc.name}</Typography>
+                    <Button
                       onClick={() => handleRemoveSupportingDoc(index)}
-                      type="button"
+                      sx={{
+                        minWidth: 'auto',
+                        p: 0.5,
+                        color: '#ef4444',
+                        '&:hover': {
+                          background: 'rgba(239, 68, 68, 0.1)',
+                        },
+                      }}
                     >
                       <FaTimesCircle />
-                    </button>
-                  </div>
+                    </Button>
+                  </Box>
                 ))}
-              </div>
+              </Box>
             )}
-          </div>
+          </Box>
 
           {/* Error Message */}
-          {error && <div className={styles.errorMessage}>{error}</div>}
+          {error && (
+            <Box
+              sx={{
+                p: 2,
+                mb: 3,
+                borderRadius: 2,
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+              }}
+            >
+              <Typography sx={{ color: '#ef4444' }}>{error}</Typography>
+            </Box>
+          )}
 
           {/* Verify Button */}
-          <button 
-            className={styles.verifyButton} 
+          <Button
+            fullWidth
             onClick={handleVerify}
             disabled={loading}
+            sx={{
+              py: 1.5,
+              borderRadius: 2,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              textTransform: 'none',
+              fontSize: '18px',
+              fontWeight: 600,
+              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+              '&:hover': {
+                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)',
+                transform: 'translateY(-2px)',
+              },
+              transition: 'all 0.3s ease',
+            }}
           >
             {loading ? 'Submitting...' : 'Submit for Verification'}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

@@ -16,15 +16,33 @@ import {
   FaChevronDown,
   FaChevronUp,
   FaComments,
+  FaSearch,
 } from 'react-icons/fa';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
 import { orderService } from '../services/orderService';
 import reviewService from '../services/reviewService';
 import { analyticsService } from '../services/analytics.service';
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Card, 
+  CardContent, 
+  Chip, 
+  Button,
+  IconButton,
+  Avatar,
+  TextField,
+  Select,
+  MenuItem,
+  CircularProgress,
+  LinearProgress,
+  Alert,
+} from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSocket } from '../hooks/useSocket';
 import { useNotification } from '../context/NotificationContext';
-import styles from './BuyerDashboardPage.module.css';
 
 // No mock data - fetching real data from backend
 
@@ -498,286 +516,730 @@ const BuyerDashboardPage = () => {
   };
 
   return (
-    <div className={styles.dashboardContainer}>
-      {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.logo}>
-          <img src="/src/assets/logo.png" alt="Expert Raah" className={styles.logoImage} />
-        </div>
-
-        <nav className={styles.nav}>
-          <button
-            className={`${styles.navItem} ${activeTab === 'browse' ? styles.navItemActive : ''}`}
-            onClick={() => setActiveTab('browse')}
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: (theme) => theme.palette.mode === 'dark'
+          ? 'linear-gradient(135deg, #0a0e0f 0%, #0f2729 30%, #1a1a1a 100%)'
+          : 'linear-gradient(135deg, #f0f9ff 0%, #e0f7f9 30%, #ffffff 100%)',
+      }}
+    >
+      {/* Premium Header */}
+      <Box
+        component="header"
+        sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 1100,
+          background: (theme) => theme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, rgba(18, 35, 37, 0.95) 0%, rgba(10, 25, 27, 0.95) 100%)'
+            : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.95) 100%)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: (theme) => theme.palette.mode === 'dark'
+            ? '1px solid rgba(13, 180, 188, 0.15)'
+            : '1px solid rgba(13, 180, 188, 0.1)',
+          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <Container maxWidth="xl">
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              py: 2,
+            }}
           >
-            Browse
-          </button>
-          <button
-            className={`${styles.navItem} ${activeTab === 'myJobs' ? styles.navItemActive : ''}`}
-            onClick={() => setActiveTab('myJobs')}
-          >
-            My Jobs
-          </button>
-          <button
-            className={`${styles.navItem} ${activeTab === 'proposals' ? styles.navItemActive : ''}`}
-            onClick={() => setActiveTab('proposals')}
-          >
-            Proposals
-          </button>
-          <button
-            className={`${styles.navItem} ${activeTab === 'orders' ? styles.navItemActive : ''}`}
-            onClick={() => setActiveTab('orders')}
-          >
-            Orders
-          </button>
-          <button
-            className={`${styles.navItem} ${activeTab === 'stats' ? styles.navItemActive : ''}`}
-            onClick={() => setActiveTab('stats')}
-          >
-            Stats
-          </button>
-        </nav>
-
-        <div className={styles.headerActions}>
-          <button className={styles.notificationButton} onClick={() => navigate('/messages')}>
-            <FaComments />
-            {unreadMessageCount > 0 && (
-              <span className={styles.notificationBadge}>{unreadMessageCount}</span>
-            )}
-          </button>
-          <div className={styles.userProfileContainer}>
-            <div
-              className={styles.userProfile}
-              onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-              style={{ cursor: 'pointer' }}
+            {/* Logo */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
             >
-              {currentUser?.profileImage ? (
-                <img
-                  src={currentUser.profileImage}
-                  alt={currentUser?.name || 'User'}
-                  className={styles.userAvatar}
-                />
-              ) : (
-                <FaUserCircle className={styles.defaultAvatar} />
-              )}
-              <span className={styles.userName}>{currentUser?.name || 'Loading...'}</span>
-              <span
-                className={`${styles.userDropdown} ${showProfileDropdown ? styles.dropdownOpen : ''}`}
-              >
-                ▼
-              </span>
-            </div>
+              <Box
+                component="img"
+                src="/src/assets/logo.png"
+                alt="Expert Raah"
+                sx={{
+                  height: 56,
+                  width: 'auto',
+                  cursor: 'pointer',
+                }}
+                onClick={() => navigate('/buyer-dashboard')}
+              />
+            </Box>
 
-            {showProfileDropdown && (
-              <div className={styles.profileDropdownMenu}>
-                <button
-                  className={styles.dropdownItem}
-                  onClick={() => {
-                    navigate('/profile');
-                    setShowProfileDropdown(false);
+            {/* Navigation Tabs */}
+            <Box
+              sx={{
+                display: { xs: 'none', md: 'flex' },
+                gap: 1,
+                background: (theme) => theme.palette.mode === 'dark'
+                  ? 'rgba(0, 0, 0, 0.3)'
+                  : 'rgba(0, 0, 0, 0.04)',
+                borderRadius: '16px',
+                p: 0.5,
+                position: 'absolute',
+                left: '50%',
+                transform: 'translateX(-50%)',
+              }}
+            >
+
+              {[
+                { value: 'browse', label: 'Browse' },
+                { value: 'myJobs', label: 'My Jobs' },
+                { value: 'proposals', label: 'Proposals' },
+                { value: 'orders', label: 'Orders' },
+                { value: 'stats', label: 'Stats' },
+              ].map((tab) => (
+                <Button
+                  key={tab.value}
+                  onClick={() => setActiveTab(tab.value as any)}
+                  sx={{
+                    px: 3,
+                    py: 1,
+                    borderRadius: '12px',
+                    fontSize: '0.95rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    background: activeTab === tab.value
+                      ? 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)'
+                      : 'transparent',
+                    color: activeTab === tab.value ? '#ffffff' : 'text.primary',
+                    boxShadow: activeTab === tab.value ? '0 4px 15px rgba(13, 180, 188, 0.3)' : 'none',
+                    '&:hover': {
+                      background: activeTab === tab.value
+                        ? 'linear-gradient(135deg, #0a8b91 0%, #08767b 100%)'
+                        : (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                    },
+                    transition: 'all 0.3s ease',
                   }}
                 >
-                  👤 My Profile
-                </button>
-                <button
-                  className={styles.dropdownItem}
-                  onClick={() => {
-                    navigate('/settings');
-                    setShowProfileDropdown(false);
+                  {tab.label}
+                </Button>
+              ))}
+            </Box>
+
+            {/* Actions */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {/* Messages Button */}
+              <IconButton
+                onClick={() => navigate('/messages')}
+                sx={{
+                  position: 'relative',
+                  background: (theme) => theme.palette.mode === 'dark'
+                    ? 'rgba(13, 180, 188, 0.1)'
+                    : 'rgba(13, 180, 188, 0.05)',
+                  color: '#0db4bc',
+                  '&:hover': {
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(13, 180, 188, 0.2)'
+                      : 'rgba(13, 180, 188, 0.1)',
+                  },
+                }}
+              >
+                <FaComments />
+                {unreadMessageCount > 0 && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 4,
+                      right: 4,
+                      width: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)',
+                      color: '#ffffff',
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '2px solid',
+                      borderColor: (theme) => theme.palette.mode === 'dark' ? '#12232 5' : '#ffffff',
+                    }}
+                  >
+                    {unreadMessageCount}
+                  </Box>
+                )}
+              </IconButton>
+
+              {/* User Profile Dropdown */}
+              <Box sx={{ position: 'relative' }}>
+                <Box
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    px: 2,
+                    py: 1,
+                    borderRadius: '12px',
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(13, 180, 188, 0.1)'
+                      : 'rgba(13, 180, 188, 0.05)',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      background: (theme) => theme.palette.mode === 'dark'
+                        ? 'rgba(13, 180, 188, 0.15)'
+                        : 'rgba(13, 180, 188, 0.08)',
+                    },
+                    transition: 'all 0.3s ease',
                   }}
                 >
-                  ⚙️ Settings
-                </button>
-                <div className={styles.dropdownDivider}></div>
-                <button
-                  className={`${styles.dropdownItem} ${styles.logoutItem}`}
-                  onClick={handleLogout}
-                >
-                  🚪 Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+                  {currentUser?.profileImage ? (
+                    <Box
+                      component="img"
+                      src={currentUser.profileImage}
+                      alt={currentUser?.name}
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '10px',
+                        objectFit: 'cover',
+                        border: '2px solid rgba(13, 180, 188, 0.3)',
+                      }}
+                    />
+                  ) : (
+                    <FaUserCircle style={{ fontSize: '36px', color: '#0db4bc' }} />
+                  )}
+                  <Typography
+                    sx={{
+                      fontSize: '0.95rem',
+                      fontWeight: 600,
+                      display: { xs: 'none', sm: 'block' },
+                      color: 'text.primary',
+                    }}
+                  >
+                    {currentUser?.name || 'Loading...'}
+                  </Typography>
+                  <FaChevronDown
+                    style={{
+                      fontSize: '12px',
+                      color: '#0db4bc',
+                      transform: showProfileDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.3s ease',
+                    }}
+                  />
+                </Box>
+
+                {/* Dropdown Menu */}
+                {showProfileDropdown && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: '120%',
+                      right: 0,
+                      minWidth: 200,
+                      borderRadius: '16px',
+                      background: (theme) => theme.palette.mode === 'dark'
+                        ? 'linear-gradient(145deg, rgba(20, 35, 37, 0.95) 0%, rgba(10, 25, 27, 0.95) 100%)'
+                        : 'linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.98) 100%)',
+                      backdropFilter: 'blur(20px)',
+                      border: (theme) => theme.palette.mode === 'dark'
+                        ? '1px solid rgba(13, 180, 188, 0.2)'
+                        : '1px solid rgba(13, 180, 188, 0.15)',
+                      boxShadow: '0 15px 45px rgba(0, 0, 0, 0.2)',
+                      p: 1,
+                      zIndex: 1200,
+                    }}
+                  >
+                    <Button
+                      fullWidth
+                      onClick={() => {
+                        navigate('/profile');
+                        setShowProfileDropdown(false);
+                      }}
+                      startIcon={<span>👤</span>}
+                      sx={{
+                        justifyContent: 'flex-start',
+                        px: 2,
+                        py: 1.25,
+                        borderRadius: '12px',
+                        fontSize: '0.95rem',
+                        fontWeight: 500,
+                        textTransform: 'none',
+                        color: 'text.primary',
+                        '&:hover': {
+                          background: (theme) => theme.palette.mode === 'dark'
+                            ? 'rgba(13, 180, 188, 0.1)'
+                            : 'rgba(13, 180, 188, 0.05)',
+                        },
+                      }}
+                    >
+                      My Profile
+                    </Button>
+                    <Button
+                      fullWidth
+                      onClick={() => {
+                        navigate('/settings');
+                        setShowProfileDropdown(false);
+                      }}
+                      startIcon={<span>⚙️</span>}
+                      sx={{
+                        justifyContent: 'flex-start',
+                        px: 2,
+                        py: 1.25,
+                        borderRadius: '12px',
+                        fontSize: '0.95rem',
+                        fontWeight: 500,
+                        textTransform: 'none',
+                        color: 'text.primary',
+                        '&:hover': {
+                          background: (theme) => theme.palette.mode === 'dark'
+                            ? 'rgba(13, 180, 188, 0.1)'
+                            : 'rgba(13, 180, 188, 0.05)',
+                        },
+                      }}
+                    >
+                      Settings
+                    </Button>
+                    <Box sx={{ height: '1px', background: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)', my: 1 }} />
+                    <Button
+                      fullWidth
+                      onClick={handleLogout}
+                      startIcon={<span>🚪</span>}
+                      sx={{
+                        justifyContent: 'flex-start',
+                        px: 2,
+                        py: 1.25,
+                        borderRadius: '12px',
+                        fontSize: '0.95rem',
+                        fontWeight: 500,
+                        textTransform: 'none',
+                        color: '#f44336',
+                        '&:hover': {
+                          background: 'rgba(244, 67, 54, 0.1)',
+                        },
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
 
       {/* Main Content */}
-      <div className={styles.mainContent}>
-        {activeTab === 'stats' ? (
-          <>
-            {/* Stats View */}
-            <main className={styles.comingSoonContent}>
-              <div className={styles.comingSoonCard}>
-                <div className={styles.comingSoonIcon}>📊</div>
-                <h2 className={styles.comingSoonTitle}>Statistics Dashboard</h2>
-                <p className={styles.comingSoonText}>Coming Soon</p>
-                <p className={styles.comingSoonDescription}>
-                  We're working on bringing you detailed analytics and insights about your projects,
-                  spending, and consultant performance.
-                </p>
-              </div>
-            </main>
-          </>
-        ) : activeTab === 'orders' ? (
-          <>
-            {/* Orders View */}
-            <main className={styles.ordersContent}>
-              <h2 className={styles.ordersTitle}>Active Orders</h2>
-              <p className={styles.ordersSubtitle}>Track your ongoing projects</p>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <AnimatePresence mode="wait">
+          {activeTab === 'stats' ? (
+            <motion.div
+              key="stats"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: '60vh',
+                }}
+              >
+                <Card
+                  sx={{
+                    maxWidth: 600,
+                    p: 6,
+                    textAlign: 'center',
+                    borderRadius: '32px',
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'linear-gradient(145deg, rgba(20, 35, 37, 0.7) 0%, rgba(10, 25, 27, 0.85) 100%)'
+                      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.95) 100%)',
+                    backdropFilter: 'blur(20px)',
+                    border: (theme) => theme.palette.mode === 'dark'
+                      ? '2px solid rgba(13, 180, 188, 0.15)'
+                      : '2px solid rgba(13, 180, 188, 0.1)',
+                    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.15)',
+                  }}
+                >
+                  <Typography variant="h1" sx={{ fontSize: '4rem', mb: 3 }}>📊</Typography>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 700,
+                      mb: 2,
+                      background: 'linear-gradient(135deg, #0db4bc 0%, #2d5a5f 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    }}
+                  >
+                    Statistics Dashboard
+                  </Typography>
+                  <Typography variant="h6" sx={{ color: '#0db4bc', mb: 3, fontWeight: 600 }}>
+                    Coming Soon
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
+                    We're working on bringing you detailed analytics and insights about your projects,
+                    spending, and consultant performance.
+                  </Typography>
+                </Card>
+              </Box>
+            </motion.div>
+          ) : activeTab === 'orders' ? (
+            <motion.div
+              key="orders"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Box sx={{ mb: 4 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 1,
+                    background: 'linear-gradient(135deg, #0db4bc 0%, #2d5a5f 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  Active Orders
+                </Typography>
+                <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                  Track your ongoing projects
+                </Typography>
+              </Box>
 
-              {ordersLoading && <p className={styles.myJobsInfoText}>Loading orders...</p>}
-              {ordersError && <p className={styles.myJobsErrorText}>{ordersError}</p>}
-
-              {!ordersLoading && !ordersError && orders.length === 0 && (
-                <div className={styles.myJobsEmpty}>
-                  <p className={styles.myJobsEmptyText}>No active orders yet.</p>
-                  <p className={styles.myJobsEmptySubtext}>
-                    Accept a proposal to start your first order.
-                  </p>
-                </div>
+              {ordersLoading && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                  <CircularProgress sx={{ color: '#0db4bc' }} />
+                </Box>
               )}
 
-              <div className={styles.ordersList}>
+              {ordersError && (
+                <Alert severity="error" sx={{ borderRadius: '16px', mb: 3 }}>
+                  {ordersError}
+                </Alert>
+              )}
+
+              {!ordersLoading && !ordersError && orders.length === 0 && (
+                <Card
+                  sx={{
+                    p: 6,
+                    textAlign: 'center',
+                    borderRadius: '24px',
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'linear-gradient(145deg, rgba(20, 35, 37, 0.5) 0%, rgba(10, 25, 27, 0.7) 100%)'
+                      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 249, 255, 0.9) 100%)',
+                    backdropFilter: 'blur(10px)',
+                    border: (theme) => theme.palette.mode === 'dark'
+                      ? '1px solid rgba(13, 180, 188, 0.1)'
+                      : '1px solid rgba(13, 180, 188, 0.08)',
+                  }}
+                >
+                  <Typography variant="h6" sx={{ color: 'text.primary', mb: 1, fontWeight: 600 }}>
+                    No active orders yet
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    Accept a proposal to start your first order
+                  </Typography>
+                </Card>
+              )}
+
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: {
+                    xs: '1fr',
+                    md: 'repeat(2, 1fr)',
+                    lg: 'repeat(3, 1fr)',
+                  },
+                  gap: 3,
+                }}
+              >
                 {!ordersLoading &&
                   !ordersError &&
                   orders.map((order) => (
-                    <div key={order._id} className={styles.orderCard}>
-                      <div className={styles.orderHeader}>
-                        <div className={styles.orderTitleSection}>
-                          <h3 className={styles.orderJobTitle}>
-                            {order.jobId?.title || 'Untitled Job'}
-                          </h3>
-                          <span className={styles.orderIdBadge}>
-                            {order._id.slice(-8).toUpperCase()}
-                          </span>
-                        </div>
-                        <span className={`${styles.orderStatus} ${styles[order.status]}`}>
-                          {order.status === 'in_progress'
-                            ? 'In Progress'
-                            : order.status === 'completed'
-                              ? 'Completed'
-                              : order.status === 'cancelled'
-                                ? 'Cancelled'
-                                : order.status}
-                        </span>
-                      </div>
+                      <Card
+                        component={motion.div}
+                        whileHover={{ y: -8 }}
+                        sx={{
+                          height: '100%',
+                          borderRadius: '24px',
+                          background: (theme) => theme.palette.mode === 'dark'
+                            ? 'linear-gradient(145deg, rgba(20, 35, 37, 0.7) 0%, rgba(10, 25, 27, 0.85) 100%)'
+                            : 'linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.95) 100%)',
+                          backdropFilter: 'blur(20px)',
+                          border: (theme) => theme.palette.mode === 'dark'
+                            ? '2px solid rgba(13, 180, 188, 0.15)'
+                            : '2px solid rgba(13, 180, 188, 0.1)',
+                          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.1)',
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            boxShadow: '0 15px 50px rgba(13, 180, 188, 0.2)',
+                            borderColor: '#0db4bc',
+                          },
+                        }}
+                      >
+                        <CardContent sx={{ p: 3 }}>
+                          {/* Header */}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                            <Box sx={{ flex: 1, mr: 2 }}>
+                              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: 'text.primary' }}>
+                                {order.jobId?.title || 'Untitled Job'}
+                              </Typography>
+                              <Chip
+                                label={`#${order._id.slice(-8).toUpperCase()}`}
+                                size="small"
+                                sx={{
+                                  height: 24,
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600,
+                                  background: (theme) => theme.palette.mode === 'dark'
+                                    ? 'rgba(13, 180, 188, 0.15)'
+                                    : 'rgba(13, 180, 188, 0.1)',
+                                  color: '#0db4bc',
+                                }}
+                              />
+                            </Box>
+                            <Chip
+                              label={
+                                order.status === 'in_progress'
+                                  ? 'In Progress'
+                                  : order.status === 'completed'
+                                  ? 'Completed'
+                                  : order.status === 'cancelled'
+                                  ? 'Cancelled'
+                                  : order.status
+                              }
+                              sx={{
+                                fontWeight: 600,
+                                background: order.status === 'completed'
+                                  ? 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)'
+                                  : order.status === 'in_progress'
+                                  ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
+                                  : 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)',
+                                color: '#ffffff',
+                              }}
+                            />
+                          </Box>
 
-                      <div className={styles.orderConsultant}>
-                        <img
-                          src={
-                            order.consultantId?.userId?.profileImage ||
-                            'https://i.pravatar.cc/150?img=1'
-                          }
-                          alt={order.consultantId?.userId?.name || 'Consultant'}
-                          className={styles.orderConsultantAvatar}
-                        />
-                        <div className={styles.orderConsultantInfo}>
-                          <h4 className={styles.orderConsultantName}>
-                            {order.consultantId?.userId?.name || 'Unknown Consultant'}
-                          </h4>
-                          <p className={styles.orderConsultantTitle}>
-                            {order.consultantId?.title || 'Consultant'}
-                          </p>
-                        </div>
-                      </div>
+                          {/* Consultant Info */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, p: 2, borderRadius: '16px', background: (theme) => theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.02)' }}>
+                            <Avatar
+                              src={order.consultantId?.userId?.profileImage || 'https://i.pravatar.cc/150?img=1'}
+                              alt={order.consultantId?.userId?.name}
+                              sx={{ width: 50, height: 50, border: '2px solid rgba(13, 180, 188, 0.3)' }}
+                            />
+                            <Box>
+                              <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                {order.consultantId?.userId?.name || 'Unknown Consultant'}
+                              </Typography>
+                              <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
+                                {order.consultantId?.title || 'Consultant'}
+                              </Typography>
+                            </Box>
+                          </Box>
 
-                      <div className={styles.orderDetails}>
-                        <div className={styles.orderDetailItem}>
-                          <span className={styles.detailLabel}>Total Amount</span>
-                          <span className={styles.detailValue}>
-                            Rs {order.totalAmount?.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className={styles.orderDetailItem}>
-                          <span className={styles.detailLabel}>Paid</span>
-                          <span className={styles.detailValue}>
-                            Rs {order.amountPaid?.toLocaleString() || 0}
-                          </span>
-                        </div>
-                        <div className={styles.orderDetailItem}>
-                          <span className={styles.detailLabel}>Pending</span>
-                          <span className={styles.detailValue}>
-                            Rs {order.amountPending?.toLocaleString() || 0}
-                          </span>
-                        </div>
-                        <div className={styles.orderDetailItem}>
-                          <span className={styles.detailLabel}>Progress</span>
-                          <span className={styles.detailValue}>{order.progress || 0}%</span>
-                        </div>
-                      </div>
-
-                      <div className={styles.orderProgressBar}>
-                        <div
-                          className={styles.orderProgressFill}
-                          style={{ width: `${order.progress || 0}%` }}
-                        ></div>
-                      </div>
-
-                      {order.completionRequestedAt && order.status === 'in_progress' && (
-                        <div className={styles.completionAlert}>
-                          <strong>🔔 Completion Request</strong>
-                          <p>
-                            The consultant has requested to mark this order as complete. Please
-                            review and confirm.
-                          </p>
-                        </div>
-                      )}
-
-                      <div className={styles.orderActions}>
-                        <button
-                          className={styles.viewProfileButton}
-                          onClick={() =>
-                            order.consultantId?._id &&
-                            navigate(`/consultant/${order.consultantId._id}`)
-                          }
-                        >
-                          View Profile
-                        </button>
-                        <button
-                          className={styles.messageConsultantButton}
-                          onClick={() =>
-                            order.consultantId?.userId?._id &&
-                            navigate(`/messages/${order.consultantId.userId._id}`)
-                          }
-                        >
-                          <FaEnvelope /> Message
-                        </button>
-                        {order.completionRequestedAt && order.status === 'in_progress' && (
-                          <button
-                            className={styles.confirmCompletionButton}
-                            onClick={() => handleConfirmCompletion(order)}
+                          {/* Financial Details */}
+                          <Box
+                            sx={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(2, 1fr)',
+                              gap: 2,
+                              mb: 3,
+                            }}
                           >
-                            Confirm Completion
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </main>
-          </>
-        ) : activeTab === 'proposals' ? (
-          <>
-            {/* Proposals View */}
-            <main className={styles.proposalsContent}>
-              <h2 className={styles.proposalsTitle}>Proposals Received</h2>
-              <p className={styles.proposalsSubtitle}>
-                Review and accept proposals from consultants
-              </p>
+                            <Box>
+                              <Box sx={{ textAlign: 'center', p: 1.5, borderRadius: '12px', background: (theme) => theme.palette.mode === 'dark' ? 'rgba(13, 180, 188, 0.1)' : 'rgba(13, 180, 188, 0.05)' }}>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                                  Total Amount
+                                </Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: '#0db4bc' }}>
+                                  Rs {order.totalAmount?.toLocaleString()}
+                                </Typography>
+                              </Box>
+                            </Box>
+                            <Box>
+                              <Box sx={{ textAlign: 'center', p: 1.5, borderRadius: '12px', background: (theme) => theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(76, 175, 80, 0.05)' }}>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                                  Paid
+                                </Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: '#4caf50' }}>
+                                  Rs {order.amountPaid?.toLocaleString() || 0}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </Box>
 
-              {proposalsLoading && <p className={styles.myJobsInfoText}>Loading proposals...</p>}
-              {proposalsError && <p className={styles.myJobsErrorText}>{proposalsError}</p>}
+                          {/* Progress */}
+                          <Box sx={{ mb: 3 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                                Progress
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#0db4bc', fontWeight: 700 }}>
+                                {order.progress || 0}%
+                              </Typography>
+                            </Box>
+                            <LinearProgress
+                              variant="determinate"
+                              value={order.progress || 0}
+                              sx={{
+                                height: 8,
+                                borderRadius: '4px',
+                                background: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                                '& .MuiLinearProgress-bar': {
+                                  borderRadius: '4px',
+                                  background: 'linear-gradient(90deg, #0db4bc 0%, #0a8b91 100%)',
+                                },
+                              }}
+                            />
+                          </Box>
+
+                          {/* Completion Alert */}
+                          {order.completionRequestedAt && order.status === 'in_progress' && (
+                            <Alert
+                              severity="info"
+                              sx={{
+                                mb: 2,
+                                borderRadius: '12px',
+                                background: (theme) => theme.palette.mode === 'dark'
+                                  ? 'rgba(33, 150, 243, 0.1)'
+                                  : 'rgba(33, 150, 243, 0.05)',
+                              }}
+                            >
+                              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                🔔 Completion Request
+                              </Typography>
+                              <Typography variant="caption">
+                                The consultant has requested to mark this order as complete. Please review and confirm.
+                              </Typography>
+                            </Alert>
+                          )}
+
+                          {/* Actions */}
+                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => order.consultantId?._id && navigate(`/consultant/${order.consultantId._id}`)}
+                              sx={{
+                                flex: 1,
+                                minWidth: '120px',
+                                borderRadius: '10px',
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(13, 180, 188, 0.3)' : 'rgba(13, 180, 188, 0.2)',
+                                color: '#0db4bc',
+                                '&:hover': {
+                                  borderColor: '#0db4bc',
+                                  background: 'rgba(13, 180, 188, 0.05)',
+                                },
+                              }}
+                            >
+                              View Profile
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              startIcon={<FaEnvelope />}
+                              onClick={() => order.consultantId?.userId?._id && navigate(`/messages/${order.consultantId.userId._id}`)}
+                              sx={{
+                                flex: 1,
+                                minWidth: '120px',
+                                borderRadius: '10px',
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                                '&:hover': {
+                                  background: 'linear-gradient(135deg, #0a8b91 0%, #08767b 100%)',
+                                },
+                              }}
+                            >
+                              Message
+                            </Button>
+                            {order.completionRequestedAt && order.status === 'in_progress' && (
+                              <Button
+                                fullWidth
+                                size="small"
+                                variant="contained"
+                                onClick={() => handleConfirmCompletion(order)}
+                                sx={{
+                                  borderRadius: '10px',
+                                  textTransform: 'none',
+                                  fontWeight: 600,
+                                  background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
+                                  '&:hover': {
+                                    background: 'linear-gradient(135deg, #388e3c 0%, #2e7d32 100%)',
+                                  },
+                                }}
+                              >
+                                Confirm Completion
+                              </Button>
+                            )}
+                          </Box>
+                        </CardContent>
+                      </Card>
+                  ))}
+              </Box>
+            </motion.div>
+          ) : activeTab === 'proposals' ? (
+            <motion.div
+              key="proposals"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Box sx={{ mb: 4 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 1,
+                    background: 'linear-gradient(135deg, #0db4bc 0%, #2d5a5f 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  Proposals Received
+                </Typography>
+                <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                  Review and accept proposals from consultants
+                </Typography>
+              </Box>
+
+              {proposalsLoading && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                  <CircularProgress sx={{ color: '#0db4bc' }} />
+                </Box>
+              )}
+
+              {proposalsError && (
+                <Alert severity="error" sx={{ borderRadius: '16px', mb: 3 }}>
+                  {proposalsError}
+                </Alert>
+              )}
 
               {!proposalsLoading && !proposalsError && proposals.length === 0 && (
-                <div className={styles.myJobsEmpty}>
-                  <p>
+                <Card
+                  sx={{
+                    p: 6,
+                    textAlign: 'center',
+                    borderRadius: '24px',
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'linear-gradient(145deg, rgba(20, 35, 37, 0.5) 0%, rgba(10, 25, 27, 0.7) 100%)'
+                      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 249, 255, 0.9) 100%)',
+                    backdropFilter: 'blur(10px)',
+                  }}
+                >
+                  <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                     No proposals received yet. Post a job to receive proposals from consultants.
-                  </p>
-                </div>
+                  </Typography>
+                </Card>
               )}
 
               {!proposalsLoading && !proposalsError && proposals.length > 0 && (
-                <div className={styles.proposalsList}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   {proposals.map((proposal) => {
                     // Safely access nested properties
                     const jobTitle = proposal.jobId?.title || 'Untitled Job';
@@ -796,607 +1258,1272 @@ const BuyerDashboardPage = () => {
                     const consultantExperience = proposal.consultantId?.experience || 'N/A';
 
                     return (
-                      <div key={proposal._id} className={styles.proposalCard}>
-                        <div className={styles.proposalHeader}>
-                          <div className={styles.jobTitleSection}>
-                            <div className={styles.jobTitleWrapper}>
-                              <FaBriefcase className={styles.jobIcon} />
-                              <button
-                                type="button"
-                                className={styles.proposalJobTitleButton}
+                      <Card
+                        key={proposal._id}
+                        component={motion.div}
+                        whileHover={{ y: -4 }}
+                        sx={{
+                          p: 3,
+                          borderRadius: '24px',
+                          background: (theme) =>
+                            theme.palette.mode === 'dark'
+                              ? 'rgba(20, 35, 37, 0.7)'
+                              : 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          border: '2px solid',
+                          borderColor: 'rgba(13, 180, 188, 0.15)',
+                          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.2)',
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            boxShadow: '0 15px 50px rgba(13, 180, 188, 0.25)',
+                            borderColor: 'rgba(13, 180, 188, 0.3)',
+                          },
+                        }}
+                      >
+                        {/* Proposal Header */}
+                        <Box sx={{ mb: 3 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+                              <FaBriefcase style={{ fontSize: '1.2rem', color: '#0db4bc' }} />
+                              <Button
                                 onClick={() => {
-                                  // Track proposal click for analytics
                                   analyticsService.recordProposalClick(
                                     proposal.consultantId._id,
                                     proposal._id,
                                   );
-
                                   setExpandedProposalId(
                                     expandedProposalId === proposal._id ? null : proposal._id,
                                   );
                                 }}
+                                endIcon={
+                                  expandedProposalId === proposal._id ? (
+                                    <FaChevronUp />
+                                  ) : (
+                                    <FaChevronDown />
+                                  )
+                                }
+                                sx={{
+                                  textAlign: 'left',
+                                  textTransform: 'none',
+                                  fontWeight: 700,
+                                  fontSize: '1.1rem',
+                                  color: 'text.primary',
+                                  '&:hover': {
+                                    background: 'transparent',
+                                    color: '#0db4bc',
+                                  },
+                                }}
                               >
                                 {jobTitle}
-                                {expandedProposalId === proposal._id ? (
-                                  <FaChevronUp className={styles.chevronIcon} />
-                                ) : (
-                                  <FaChevronDown className={styles.chevronIcon} />
-                                )}
-                              </button>
-                            </div>
-                            <span
-                              className={`${styles.categoryBadge} ${styles[jobCategory.toLowerCase()]}`}
-                            >
-                              {jobCategory}
-                            </span>
-                          </div>
-                        </div>
+                              </Button>
+                            </Box>
+                            <Chip
+                              label={jobCategory}
+                              sx={{
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                color: 'white',
+                                fontWeight: 600,
+                              }}
+                            />
+                          </Box>
+                        </Box>
 
-                        <div className={styles.proposalContent}>
-                          <div className={styles.consultantSection}>
+                        {/* Proposal Content */}
+                        <Box>
+                          {/* Consultant Section */}
+                          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
                             {consultantImage ? (
-                              <img
+                              <Avatar
                                 src={consultantImage}
                                 alt={consultantName}
-                                className={styles.proposalAvatar}
+                                sx={{
+                                  width: 60,
+                                  height: 60,
+                                  border: '2px solid #0db4bc',
+                                }}
                               />
                             ) : (
-                              <FaUserCircle className={styles.proposalAvatarDefault} />
+                              <FaUserCircle style={{ fontSize: '60px', color: '#ccc' }} />
                             )}
-                            <div className={styles.consultantDetails}>
-                              <h4 className={styles.proposalConsultantName}>{consultantName}</h4>
-                              <p className={styles.proposalConsultantTitle}>{consultantTitle}</p>
-                              <div className={styles.consultantMeta}>
-                                <div className={styles.rating}>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                                {consultantName}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                {consultantTitle}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                   {[...Array(5)].map((_, i) => (
                                     <FaStar
                                       key={i}
-                                      className={
-                                        i < Math.floor(consultantRating)
-                                          ? styles.starFilled
-                                          : styles.starEmpty
-                                      }
+                                      style={{
+                                        fontSize: '0.9rem',
+                                        color: i < Math.floor(consultantRating) ? '#fbbf24' : '#d1d5db',
+                                      }}
                                     />
                                   ))}
-                                  <span className={styles.ratingValue}>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, ml: 0.5 }}>
                                     {consultantRating.toFixed(1)}
-                                  </span>
-                                  <span className={styles.reviewCount}>
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
                                     ({consultantTotalReviews}{' '}
                                     {consultantTotalReviews === 1 ? 'review' : 'reviews'})
-                                  </span>
-                                </div>
-                                <div className={styles.experienceWrapper}>
-                                  <FaAward className={styles.experienceIcon} />
-                                  <span className={styles.experience}>{consultantExperience}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                                  </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <FaAward style={{ fontSize: '0.9rem', color: '#fbbf24' }} />
+                                  <Typography variant="body2" color="text.secondary">
+                                    {consultantExperience}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Box>
+                          </Box>
 
-                          <div className={styles.proposalDetails}>
-                            <div className={styles.proposalBid}>
-                              <div className={styles.bidItem}>
-                                <div className={styles.bidIconLabel}>
-                                  <FaDollarSign className={styles.bidIcon} />
-                                  <span className={styles.bidLabel}>Bid Amount</span>
-                                </div>
-                                <span className={styles.bidValue}>
-                                  Rs {proposal.bidAmount.toLocaleString()}
-                                </span>
-                              </div>
-                              <div className={styles.bidItem}>
-                                <div className={styles.bidIconLabel}>
-                                  <FaClock className={styles.bidIcon} />
-                                  <span className={styles.bidLabel}>Delivery Time</span>
-                                </div>
-                                <span className={styles.bidValue}>{proposal.deliveryTime}</span>
-                              </div>
-                              <div className={styles.bidItem}>
-                                <div className={styles.bidIconLabel}>
-                                  {proposal.status === 'accepted' ? (
-                                    <FaCheckCircle className={styles.bidIcon} />
-                                  ) : proposal.status === 'rejected' ? (
-                                    <FaTimesCircle className={styles.bidIcon} />
-                                  ) : (
-                                    <FaFileAlt className={styles.bidIcon} />
-                                  )}
-                                  <span className={styles.bidLabel}>Status</span>
-                                </div>
-                                <span
-                                  className={`${styles.bidValue} ${styles[`status_${proposal.status}`]}`}
-                                >
-                                  {proposal.status.charAt(0).toUpperCase() +
-                                    proposal.status.slice(1)}
-                                </span>
-                              </div>
-                            </div>
-
-                            {expandedProposalId === proposal._id && (
-                              <div className={styles.jobDescriptionBlock}>
-                                <h5 className={styles.jobDescriptionTitle}>Job Description</h5>
-                                <p className={styles.jobDescriptionText}>{jobDescription}</p>
-                                <div className={styles.jobBudgetInfo}>
-                                  <span className={styles.bidLabel}>Job Budget:</span>
-                                  <span className={styles.bidValue}>{formatBudget(jobBudget)}</span>
-                                </div>
-                              </div>
-                            )}
-
-                            <div className={styles.coverLetter}>
-                              <div className={styles.sectionTitleWrapper}>
-                                <FaFileAlt className={styles.sectionIcon} />
-                                <h5 className={styles.coverLetterTitle}>Cover Letter</h5>
-                              </div>
-                              <p className={styles.coverLetterText}>{proposal.coverLetter}</p>
-                            </div>
-
-                            <div className={styles.proposalActions}>
-                              <button
-                                className={styles.viewProfileButton}
-                                onClick={() =>
-                                  proposal.consultantId?._id &&
-                                  navigate(`/consultant/${proposal.consultantId._id}`)
-                                }
-                              >
-                                View Profile
-                              </button>
-                              {proposal.status === 'pending' && (
-                                <>
-                                  <button
-                                    className={styles.acceptButton}
-                                    onClick={() =>
-                                      handleAcceptProposal(proposal._id, proposal.bidAmount)
-                                    }
-                                  >
-                                    Accept & Pay
-                                  </button>
-                                  <button
-                                    className={styles.rejectButton}
-                                    onClick={() => handleRejectProposal(proposal._id)}
-                                  >
-                                    Decline
-                                  </button>
-                                </>
-                              )}
-                            </div>
-
-                            {proposal.status === 'accepted' && (
-                              <div className={styles.proposalStatusMessage}>
-                                <FaCheckCircle className={styles.statusIcon} />
-                                <span className={styles.acceptedMessage}>
-                                  Proposal Accepted - Order Created
-                                </span>
-                              </div>
-                            )}
-
-                            {proposal.status === 'rejected' && (
-                              <div className={styles.proposalStatusMessage}>
-                                <FaTimesCircle className={styles.statusIcon} />
-                                <span className={styles.rejectedMessage}>Proposal Declined</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </main>
-          </>
-        ) : activeTab === 'myJobs' ? (
-          <>
-            {/* My Jobs View */}
-            <main className={styles.myJobsContent}>
-              <h2 className={styles.myJobsTitle}>My Posted Jobs</h2>
-              <p className={styles.myJobsSubtitle}>Manage jobs you have posted for consultants</p>
-
-              {jobsLoading && <p className={styles.myJobsInfoText}>Loading your jobs...</p>}
-              {jobsError && <p className={styles.myJobsErrorText}>{jobsError}</p>}
-
-              {!jobsLoading && !jobsError && myJobs.length === 0 && (
-                <div className={styles.myJobsEmpty}>
-                  <p>You haven't posted any jobs yet.</p>
-                  <button className={styles.postJobButton} onClick={() => navigate('/post-job')}>
-                    <FaPlus /> Post your first Job
-                  </button>
-                </div>
-              )}
-
-              {!jobsLoading && !jobsError && myJobs.length > 0 && (
-                <div className={styles.myJobsList}>
-                  {myJobs.map((job) => (
-                    <div key={job._id} className={styles.myJobCard}>
-                      <div className={styles.myJobHeader}>
-                        <div>
-                          <h3 className={styles.myJobTitle}>{job.title}</h3>
-                          <div className={styles.myJobMeta}>
-                            <span className={styles.myJobCategory}>{job.category}</span>
-                            <span className={styles.myJobLocation}>{job.location}</span>
-                            <span className={styles.myJobDate}>
-                              Posted on {new Date(job.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                        <span className={`${styles.myJobStatus} ${styles[job.status]}`}>
-                          {job.status === 'open' ? 'Open' : job.status.replace('_', ' ')}
-                        </span>
-                      </div>
-
-                      <p className={styles.myJobDescription}>{job.description}</p>
-
-                      <div className={styles.myJobFooter}>
-                        <span className={styles.myJobBudgetLabel}>Budget:</span>
-                        <span className={styles.myJobBudgetValue}>{formatBudget(job.budget)}</span>
-
-                        <div className={styles.myJobActions}>
-                          <button
-                            className={styles.editJobButton}
-                            onClick={() => navigate(`/post-job/${job._id}`)}
+                          {/* Proposal Details */}
+                          <Box
+                            sx={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                              gap: 2,
+                              mb: 3,
+                            }}
                           >
-                            Edit
-                          </button>
-                          <button
-                            className={styles.deleteJobButton}
-                            onClick={() => handleDeleteJob(job._id)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </main>
-          </>
-        ) : (
-          <>
-            {/* Sidebar Filters */}
-            <aside className={styles.sidebar}>
-              <div className={styles.sidebarSection}>
-                <h3 className={styles.sidebarTitle}>▼ Filters</h3>
-
-                <div className={styles.filterGroup}>
-                  <h4 className={styles.filterTitle}>Consultancy Type</h4>
-                  <select
-                    className={styles.select}
-                    value={filters.specialization}
-                    onChange={(e) => setFilters({ ...filters, specialization: e.target.value })}
-                  >
-                    <option value="">All Types</option>
-                    <option value="LEGAL">Legal</option>
-                    <option value="EDUCATION">Education</option>
-                    <option value="BUSINESS">Business</option>
-                  </select>
-                </div>
-
-                <div className={styles.filterGroup}>
-                  <h4 className={styles.filterTitle}>Location</h4>
-                  <select
-                    className={styles.select}
-                    value={filters.city}
-                    onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-                  >
-                    <option value="">All Cities</option>
-                    <option value="Rawalpindi">Rawalpindi</option>
-                    <option value="Islamabad">Islamabad</option>
-                    <option value="Lahore">Lahore</option>
-                    <option value="Karachi">Karachi</option>
-                  </select>
-                </div>
-              </div>
-            </aside>
-
-            {/* Center Content */}
-            <main className={styles.centerContent}>
-              {/* Search Bar */}
-              <div className={styles.searchBar}>
-                <input
-                  type="text"
-                  placeholder="Search Consultants"
-                  className={styles.searchInput}
-                />
-              </div>
-
-              {/* Post Job Button */}
-              <button className={styles.postJobButton} onClick={() => navigate('/post-job')}>
-                <FaPlus /> Post a Job
-              </button>
-
-              {/* Consultant Listings */}
-              <div className={styles.projectList}>
-                {consultantsLoading ? (
-                  <div className={styles.loadingState}>Loading consultants...</div>
-                ) : consultants.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <p>No consultants available at the moment.</p>
-                  </div>
-                ) : (
-                  consultants
-                    .filter((consultant) => {
-                      // Filter by city
-                      if (filters.city && consultant.city !== filters.city) {
-                        return false;
-                      }
-                      // Filter by specialization
-                      if (
-                        filters.specialization &&
-                        !consultant.specializationArray?.includes(filters.specialization)
-                      ) {
-                        return false;
-                      }
-                      return true;
-                    })
-                    .map((consultant) => (
-                      <div key={consultant.id} className={styles.projectCard}>
-                        {/* Card Header with Avatar and Basic Info */}
-                        <div className={styles.consultantCardHeader}>
-                          <div className={styles.avatarSection}>
-                            {consultant.avatar ? (
-                              <img
-                                src={consultant.avatar}
-                                alt={consultant.name}
-                                className={styles.consultantAvatarLarge}
-                              />
-                            ) : (
-                              <FaUserCircle
-                                className={styles.consultantAvatarDefault}
-                                style={{ fontSize: '70px', color: '#ccc' }}
-                              />
-                            )}
-                            {consultant.isOnline && <div className={styles.onlineIndicator}></div>}
-                          </div>
-
-                          <div className={styles.headerInfoSection}>
-                            <div className={styles.nameAndBadge}>
-                              <h3 className={styles.consultantNameLarge}>{consultant.name}</h3>
-                              <span
-                                className={`${styles.categoryBadge} ${styles[consultant.category.toLowerCase()]}`}
-                              >
-                                {consultant.category}
-                              </span>
-                            </div>
-                            <p className={styles.consultantTitleLarge}>{consultant.title}</p>
-
-                            {/* Location Display */}
-                            <div className={styles.locationSection}>
-                              <FaMapMarkerAlt className={styles.locationIconSmall} />
-                              <span className={styles.locationText}>{consultant.location}</span>
-                            </div>
-
-                            {/* Rating Display */}
-                            <div className={styles.ratingSection}>
-                              <div className={styles.ratingStars}>
-                                {[...Array(5)].map((_, i) => (
-                                  <FaStar
-                                    key={i}
-                                    className={
-                                      i < Math.floor(consultant.rating)
-                                        ? styles.starFilled
-                                        : styles.starEmpty
-                                    }
-                                  />
-                                ))}
-                              </div>
-                              <span className={styles.ratingValueLarge}>
-                                {consultant.rating.toFixed(1)}/5
-                              </span>
-                              <span className={styles.reviewCount}>
-                                ({consultant.totalReviews || 0}{' '}
-                                {consultant.totalReviews === 1 ? 'review' : 'reviews'})
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Specialization Section */}
-                        <div className={styles.consultantSpecializationEnhanced}>
-                          <strong>Specialization:</strong> {consultant.specialization}
-                        </div>
-
-                        {/* Bio/Description */}
-                        <p className={styles.projectDescription}>{consultant.bio}</p>
-
-                        {/* Footer with Rate and Actions */}
-                        <div className={styles.projectFooter}>
-                          <div className={styles.rateAndAvailability}>
-                            <div className={styles.rateDisplay}>
-                              <FaDollarSign className={styles.rateIcon} />
-                              <span className={styles.rateValue}>{consultant.hourlyRate}</span>
-                            </div>
-                            <span className={styles.availability}>{consultant.availability}</span>
-                          </div>
-                          <div className={styles.projectActions}>
-                            <button
-                              className={styles.messageButton}
-                              disabled={!consultant.userId}
-                              onClick={() =>
-                                consultant.userId &&
-                                navigate(`/messages/${consultant.userId}`, {
-                                  state: {
-                                    user: {
-                                      _id: consultant.userId,
-                                      name: consultant.name,
-                                      profileImage: consultant.avatar,
-                                      isOnline: consultant.isOnline,
-                                    },
-                                  },
-                                })
-                              }
-                              title={
-                                consultant.userId
-                                  ? 'Message Consultant'
-                                  : 'Consultant profile incomplete'
-                              }
+                            <Box
+                              sx={{
+                                p: 2,
+                                borderRadius: '12px',
+                                background: (theme) =>
+                                  theme.palette.mode === 'dark'
+                                    ? 'rgba(34, 197, 94, 0.1)'
+                                    : 'rgba(34, 197, 94, 0.05)',
+                                border: '1px solid rgba(34, 197, 94, 0.2)',
+                              }}
                             >
-                              <FaEnvelope /> Message
-                            </button>
-                            <Link
-                              to={`/consultant/${consultant.id}`}
-                              className={styles.viewProfileButton}
-                              style={{
-                                textDecoration: 'none',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                <FaDollarSign style={{ fontSize: '1rem', color: '#22c55e' }} />
+                                <Typography variant="caption" color="text.secondary">
+                                  Bid Amount
+                                </Typography>
+                              </Box>
+                              <Typography variant="h6" sx={{ fontWeight: 700, color: '#22c55e' }}>
+                                Rs {proposal.bidAmount.toLocaleString()}
+                              </Typography>
+                            </Box>
+                            <Box
+                              sx={{
+                                p: 2,
+                                borderRadius: '12px',
+                                background: (theme) =>
+                                  theme.palette.mode === 'dark'
+                                    ? 'rgba(13, 180, 188, 0.1)'
+                                    : 'rgba(13, 180, 188, 0.05)',
+                                border: '1px solid rgba(13, 180, 188, 0.2)',
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                <FaClock style={{ fontSize: '1rem', color: '#0db4bc' }} />
+                                <Typography variant="caption" color="text.secondary">
+                                  Delivery Time
+                                </Typography>
+                              </Box>
+                              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                                {proposal.deliveryTime}
+                              </Typography>
+                            </Box>
+                            <Box
+                              sx={{
+                                p: 2,
+                                borderRadius: '12px',
+                                background: (theme) =>
+                                  theme.palette.mode === 'dark'
+                                    ? proposal.status === 'accepted'
+                                      ? 'rgba(34, 197, 94, 0.1)'
+                                      : proposal.status === 'rejected'
+                                        ? 'rgba(239, 68, 68, 0.1)'
+                                        : 'rgba(251, 191, 36, 0.1)'
+                                    : proposal.status === 'accepted'
+                                      ? 'rgba(34, 197, 94, 0.05)'
+                                      : proposal.status === 'rejected'
+                                        ? 'rgba(239, 68, 68, 0.05)'
+                                        : 'rgba(251, 191, 36, 0.05)',
+                                border: `1px solid ${
+                                  proposal.status === 'accepted'
+                                    ? 'rgba(34, 197, 94, 0.2)'
+                                    : proposal.status === 'rejected'
+                                      ? 'rgba(239, 68, 68, 0.2)'
+                                      : 'rgba(251, 191, 36, 0.2)'
+                                }`,
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                {proposal.status === 'accepted' ? (
+                                  <FaCheckCircle style={{ fontSize: '1rem', color: '#22c55e' }} />
+                                ) : proposal.status === 'rejected' ? (
+                                  <FaTimesCircle style={{ fontSize: '1rem', color: '#ef4444' }} />
+                                ) : (
+                                  <FaFileAlt style={{ fontSize: '1rem', color: '#fbbf24' }} />
+                                )}
+                                <Typography variant="caption" color="text.secondary">
+                                  Status
+                                </Typography>
+                              </Box>
+                              <Typography
+                                variant="h6"
+                                sx={{
+                                  fontWeight: 700,
+                                  color:
+                                    proposal.status === 'accepted'
+                                      ? '#22c55e'
+                                      : proposal.status === 'rejected'
+                                        ? '#ef4444'
+                                        : '#fbbf24',
+                                }}
+                              >
+                                {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          {/* Expanded Job Description */}
+                          {expandedProposalId === proposal._id && (
+                            <Box
+                              sx={{
+                                mb: 3,
+                                p: 2,
+                                borderRadius: '12px',
+                                background: (theme) =>
+                                  theme.palette.mode === 'dark'
+                                    ? 'rgba(13, 180, 188, 0.1)'
+                                    : 'rgba(13, 180, 188, 0.05)',
+                                border: '1px solid rgba(13, 180, 188, 0.2)',
+                              }}
+                            >
+                              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                                Job Description
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                {jobDescription}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  Job Budget:
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: '#22c55e', fontWeight: 700 }}>
+                                  {formatBudget(jobBudget)}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          )}
+
+                          {/* Cover Letter */}
+                          <Box sx={{ mb: 3 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                              <FaFileAlt style={{ fontSize: '1rem', color: '#0db4bc' }} />
+                              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                                Cover Letter
+                              </Typography>
+                            </Box>
+                            <Typography variant="body2" color="text.secondary">
+                              {proposal.coverLetter}
+                            </Typography>
+                          </Box>
+
+                          {/* Proposal Actions */}
+                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                            <Button
+                              variant="outlined"
+                              onClick={() =>
+                                proposal.consultantId?._id &&
+                                navigate(`/consultant/${proposal.consultantId._id}`)
+                              }
+                              sx={{
+                                borderRadius: '10px',
+                                borderColor: '#0db4bc',
+                                color: '#0db4bc',
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                '&:hover': {
+                                  borderColor: '#0a8b91',
+                                  backgroundColor: 'rgba(13, 180, 188, 0.1)',
+                                },
                               }}
                             >
                               View Profile
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                )}
-              </div>
-            </main>
-          </>
-        )}
+                            </Button>
+                            {proposal.status === 'pending' && (
+                              <>
+                                <Button
+                                  variant="contained"
+                                  onClick={() =>
+                                    handleAcceptProposal(proposal._id, proposal.bidAmount)
+                                  }
+                                  sx={{
+                                    borderRadius: '10px',
+                                    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                                    textTransform: 'none',
+                                    fontWeight: 700,
+                                    '&:hover': {
+                                      background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+                                    },
+                                  }}
+                                >
+                                  Accept & Pay
+                                </Button>
+                                <Button
+                                  variant="outlined"
+                                  onClick={() => handleRejectProposal(proposal._id)}
+                                  sx={{
+                                    borderRadius: '10px',
+                                    borderColor: '#ef4444',
+                                    color: '#ef4444',
+                                    textTransform: 'none',
+                                    fontWeight: 600,
+                                    '&:hover': {
+                                      borderColor: '#dc2626',
+                                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    },
+                                  }}
+                                >
+                                  Decline
+                                </Button>
+                              </>
+                            )}
+                          </Box>
 
-        {/* Right Sidebar - Messages */}
-        {activeTab !== 'proposals' && activeTab !== 'orders' && (
-          <aside className={styles.rightSidebar}>
-            <div className={styles.messagesSection}>
-              <div className={styles.messagesSectionHeader}>
-                <h3 className={styles.messagesTitle}>Messages</h3>
-              </div>
-              <p className={styles.messagesDescription}>
-                Your conversations with consultants now live in the dedicated Messaging Center.
-              </p>
-              <button
-                className={styles.openMessagesButton}
-                onClick={() =>
-                  navigate('/messages', {
-                    state: currentUser
-                      ? {
-                          user: {
-                            _id: currentUser.id,
-                            name: currentUser.name,
-                            profileImage: currentUser.profileImage,
-                            accountType: currentUser.accountType,
+                          {/* Status Messages */}
+                          {proposal.status === 'accepted' && (
+                            <Alert
+                              severity="success"
+                              icon={<FaCheckCircle />}
+                              sx={{
+                                mt: 2,
+                                borderRadius: '12px',
+                                fontWeight: 600,
+                              }}
+                            >
+                              Proposal Accepted - Order Created
+                            </Alert>
+                          )}
+
+                          {proposal.status === 'rejected' && (
+                            <Alert
+                              severity="error"
+                              icon={<FaTimesCircle />}
+                              sx={{
+                                mt: 2,
+                                borderRadius: '12px',
+                                fontWeight: 600,
+                              }}
+                            >
+                              Proposal Declined
+                            </Alert>
+                          )}
+                        </Box>
+                      </Card>
+                    );
+                  })}
+                </Box>
+              )}
+            </motion.div>
+          ) : activeTab === 'myJobs' ? (
+            <motion.div
+              key="myJobs"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* My Jobs View */}
+              <Box>
+                <Typography variant="h4" sx={{ mb: 1, fontWeight: 700 }}>
+                  My Posted Jobs
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                  Manage jobs you have posted for consultants
+                </Typography>
+
+                {jobsLoading && (
+                  <Box sx={{ textAlign: 'center', py: 8 }}>
+                    <CircularProgress sx={{ color: '#0db4bc' }} />
+                    <Typography sx={{ mt: 2, color: 'text.secondary' }}>
+                      Loading your jobs...
+                    </Typography>
+                  </Box>
+                )}
+                {jobsError && (
+                  <Alert severity="error" sx={{ borderRadius: '16px', mb: 3 }}>
+                    {jobsError}
+                  </Alert>
+                )}
+
+                {!jobsLoading && !jobsError && myJobs.length === 0 && (
+                  <Card
+                    sx={{
+                      p: 6,
+                      textAlign: 'center',
+                      borderRadius: '24px',
+                      background: (theme) =>
+                        theme.palette.mode === 'dark'
+                          ? 'rgba(20, 35, 37, 0.7)'
+                          : 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(20px)',
+                      border: '2px solid',
+                      borderColor: 'rgba(13, 180, 188, 0.15)',
+                    }}
+                  >
+                    <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
+                      You haven't posted any jobs yet.
+                    </Typography>
+                    <Button
+                      onClick={() => navigate('/post-job')}
+                      startIcon={<FaPlus />}
+                      sx={{
+                        py: 1.5,
+                        px: 4,
+                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                        color: 'white',
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #0a8b91 0%, #086f75 100%)',
+                        },
+                      }}
+                    >
+                      Post your first Job
+                    </Button>
+                  </Card>
+                )}
+
+                {!jobsLoading && !jobsError && myJobs.length > 0 && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {myJobs.map((job) => (
+                      <Card
+                        key={job._id}
+                        component={motion.div}
+                        whileHover={{ y: -4 }}
+                        sx={{
+                          p: 3,
+                          borderRadius: '24px',
+                          background: (theme) =>
+                            theme.palette.mode === 'dark'
+                              ? 'rgba(20, 35, 37, 0.7)'
+                              : 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          border: '2px solid',
+                          borderColor: 'rgba(13, 180, 188, 0.15)',
+                          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.2)',
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            boxShadow: '0 15px 50px rgba(13, 180, 188, 0.25)',
+                            borderColor: 'rgba(13, 180, 188, 0.3)',
                           },
-                        }
-                      : undefined,
-                  })
-                }
-              >
-                Open Messaging Center
-              </button>
-              <p className={styles.messagesHint}>
-                Connect with consultants, discuss project details, and manage all communications in
-                one place.
-              </p>
-            </div>
-          </aside>
-        )}
-      </div>
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                              {job.title}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                              <Chip label={job.category} size="small" sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }} />
+                              <Chip label={job.location} size="small" icon={<FaMapMarkerAlt />} />
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                                Posted on {new Date(job.createdAt).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Chip
+                            label={job.status === 'open' ? 'Open' : job.status.replace('_', ' ')}
+                            sx={{
+                              background: job.status === 'open' ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' : 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+                              color: 'white',
+                              fontWeight: 600,
+                            }}
+                          />
+                        </Box>
+
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                          {job.description}
+                        </Typography>
+
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            pt: 2,
+                            borderTop: '1px solid',
+                            borderColor: (theme) =>
+                              theme.palette.mode === 'dark'
+                                ? 'rgba(255, 255, 255, 0.1)'
+                                : 'rgba(0, 0, 0, 0.1)',
+                          }}
+                        >
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">
+                              Budget:
+                            </Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#22c55e' }}>
+                              {formatBudget(job.budget)}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            <Button
+                              variant="outlined"
+                              onClick={() => navigate(`/post-job/${job._id}`)}
+                              sx={{
+                                borderRadius: '10px',
+                                borderColor: '#0db4bc',
+                                color: '#0db4bc',
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                '&:hover': {
+                                  borderColor: '#0a8b91',
+                                  backgroundColor: 'rgba(13, 180, 188, 0.1)',
+                                },
+                              }}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              onClick={() => handleDeleteJob(job._id)}
+                              sx={{
+                                borderRadius: '10px',
+                                borderColor: '#ef4444',
+                                color: '#ef4444',
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                '&:hover': {
+                                  borderColor: '#dc2626',
+                                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                },
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          </Box>
+                        </Box>
+                      </Card>
+                    ))}
+                  </Box>
+                )}
+              </Box>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="browse"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Box sx={{ display: 'flex', gap: 3 }}>
+                {/* Sidebar Filters */}
+                <Box
+                  sx={{
+                    width: 280,
+                    flexShrink: 0,
+                    display: { xs: 'none', md: 'block' },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      p: 3,
+                      borderRadius: '24px',
+                      background: (theme) =>
+                        theme.palette.mode === 'dark'
+                          ? 'rgba(20, 35, 37, 0.7)'
+                          : 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(20px)',
+                      border: '2px solid',
+                      borderColor: (theme) =>
+                        theme.palette.mode === 'dark'
+                          ? 'rgba(13, 180, 188, 0.15)'
+                          : 'rgba(13, 180, 188, 0.2)',
+                      boxShadow: (theme) =>
+                        theme.palette.mode === 'dark'
+                          ? '0 8px 30px rgba(0, 0, 0, 0.4)'
+                          : '0 8px 30px rgba(13, 180, 188, 0.15)',
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        mb: 3,
+                        fontWeight: 700,
+                        color: 'text.primary',
+                      }}
+                    >
+                      ▼ Filters
+                    </Typography>
+
+                    <Box sx={{ mb: 3 }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          mb: 1,
+                          fontWeight: 600,
+                          color: 'text.primary',
+                        }}
+                      >
+                        Consultancy Type
+                      </Typography>
+                      <Select
+                        fullWidth
+                        value={filters.specialization}
+                        onChange={(e) => setFilters({ ...filters, specialization: e.target.value })}
+                        sx={{
+                          borderRadius: '12px',
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'rgba(13, 180, 188, 0.3)',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#0db4bc',
+                          },
+                        }}
+                      >
+                        <MenuItem value="">All Types</MenuItem>
+                        <MenuItem value="LEGAL">Legal</MenuItem>
+                        <MenuItem value="EDUCATION">Education</MenuItem>
+                        <MenuItem value="BUSINESS">Business</MenuItem>
+                      </Select>
+                    </Box>
+
+                    <Box>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          mb: 1,
+                          fontWeight: 600,
+                          color: 'text.primary',
+                        }}
+                      >
+                        Location
+                      </Typography>
+                      <Select
+                        fullWidth
+                        value={filters.city}
+                        onChange={(e) => setFilters({ ...filters, city: e.target.value })}
+                        sx={{
+                          borderRadius: '12px',
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'rgba(13, 180, 188, 0.3)',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#0db4bc',
+                          },
+                        }}
+                      >
+                        <MenuItem value="">All Cities</MenuItem>
+                        <MenuItem value="Rawalpindi">Rawalpindi</MenuItem>
+                        <MenuItem value="Islamabad">Islamabad</MenuItem>
+                        <MenuItem value="Lahore">Lahore</MenuItem>
+                        <MenuItem value="Karachi">Karachi</MenuItem>
+                      </Select>
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* Center Content */}
+                <Box sx={{ flex: 1 }}>
+                  {/* Search Bar */}
+                  <Box sx={{ mb: 3 }}>
+                    <TextField
+                      fullWidth
+                      placeholder="Search Consultants"
+                      InputProps={{
+                        startAdornment: (
+                          <Box component="span" sx={{ mr: 1, display: 'flex', color: '#0db4bc' }}>
+                            <FaSearch />
+                          </Box>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '16px',
+                          background: (theme) =>
+                            theme.palette.mode === 'dark'
+                              ? 'rgba(20, 35, 37, 0.6)'
+                              : 'rgba(255, 255, 255, 0.9)',
+                          backdropFilter: 'blur(10px)',
+                          '& fieldset': {
+                            borderColor: 'rgba(13, 180, 188, 0.3)',
+                          },
+                          '&:hover fieldset': {
+                            borderColor: '#0db4bc',
+                          },
+                        },
+                      }}
+                    />
+                  </Box>
+
+                  {/* Post Job Button */}
+                  <Button
+                    fullWidth
+                    onClick={() => navigate('/post-job')}
+                    startIcon={<FaPlus />}
+                    sx={{
+                      mb: 3,
+                      py: 1.5,
+                      borderRadius: '16px',
+                      background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                      color: 'white',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      fontSize: '1rem',
+                      boxShadow: '0 4px 20px rgba(13, 180, 188, 0.4)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #0a8b91 0%, #086f75 100%)',
+                        boxShadow: '0 6px 30px rgba(13, 180, 188, 0.5)',
+                      },
+                    }}
+                  >
+                    Post a Job
+                  </Button>
+
+                  {/* Consultant Listings */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {consultantsLoading ? (
+                      <Box sx={{ textAlign: 'center', py: 8 }}>
+                        <CircularProgress sx={{ color: '#0db4bc' }} />
+                        <Typography sx={{ mt: 2, color: 'text.secondary' }}>
+                          Loading consultants...
+                        </Typography>
+                      </Box>
+                    ) : consultants.length === 0 ? (
+                      <Card
+                        sx={{
+                          p: 6,
+                          textAlign: 'center',
+                          borderRadius: '24px',
+                          background: (theme) =>
+                            theme.palette.mode === 'dark'
+                              ? 'rgba(20, 35, 37, 0.7)'
+                              : 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          border: '2px solid',
+                          borderColor: 'rgba(13, 180, 188, 0.15)',
+                        }}
+                      >
+                        <Typography variant="h6" color="text.secondary">
+                          No consultants available at the moment.
+                        </Typography>
+                      </Card>
+                    ) : (
+                      consultants
+                        .filter((consultant) => {
+                          if (filters.city && consultant.city !== filters.city) {
+                            return false;
+                          }
+                          if (
+                            filters.specialization &&
+                            !consultant.specializationArray?.includes(filters.specialization)
+                          ) {
+                            return false;
+                          }
+                          return true;
+                        })
+                        .map((consultant) => (
+                          <Card
+                            key={consultant.id}
+                            component={motion.div}
+                            whileHover={{ y: -4 }}
+                            sx={{
+                              p: 3,
+                              borderRadius: '24px',
+                              background: (theme) =>
+                                theme.palette.mode === 'dark'
+                                  ? 'rgba(20, 35, 37, 0.7)'
+                                  : 'rgba(255, 255, 255, 0.95)',
+                              backdropFilter: 'blur(20px)',
+                              border: '2px solid',
+                              borderColor: 'rgba(13, 180, 188, 0.15)',
+                              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.2)',
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                boxShadow: '0 15px 50px rgba(13, 180, 188, 0.25)',
+                                borderColor: 'rgba(13, 180, 188, 0.3)',
+                              },
+                            }}
+                          >
+                            {/* Card Header with Avatar and Basic Info */}
+                            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                              <Box sx={{ position: 'relative' }}>
+                                {consultant.avatar ? (
+                                  <Avatar
+                                    src={consultant.avatar}
+                                    alt={consultant.name}
+                                    sx={{
+                                      width: 70,
+                                      height: 70,
+                                      border: '2px solid #0db4bc',
+                                    }}
+                                  />
+                                ) : (
+                                  <FaUserCircle style={{ fontSize: '70px', color: '#ccc' }} />
+                                )}
+                                {consultant.isOnline && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      bottom: 2,
+                                      right: 2,
+                                      width: 14,
+                                      height: 14,
+                                      borderRadius: '50%',
+                                      backgroundColor: '#22c55e',
+                                      border: '2px solid',
+                                      borderColor: (theme) =>
+                                        theme.palette.mode === 'dark' ? '#142325' : '#fff',
+                                    }}
+                                  />
+                                )}
+                              </Box>
+
+                              <Box sx={{ flex: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                                    {consultant.name}
+                                  </Typography>
+                                  <Chip
+                                    label={consultant.category}
+                                    size="small"
+                                    sx={{
+                                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                      color: 'white',
+                                      fontWeight: 600,
+                                      fontSize: '0.7rem',
+                                    }}
+                                  />
+                                </Box>
+
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                  {consultant.title}
+                                </Typography>
+
+                                {/* Location Display */}
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+                                  <FaMapMarkerAlt style={{ fontSize: '0.9rem', color: '#0db4bc' }} />
+                                  <Typography variant="body2" color="text.secondary">
+                                    {consultant.location}
+                                  </Typography>
+                                </Box>
+
+                                {/* Rating Display */}
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Box sx={{ display: 'flex', gap: 0.25 }}>
+                                    {[...Array(5)].map((_, i) => (
+                                      <FaStar
+                                        key={i}
+                                        style={{
+                                          fontSize: '0.9rem',
+                                          color:
+                                            i < Math.floor(consultant.rating) ? '#fbbf24' : '#d1d5db',
+                                        }}
+                                      />
+                                    ))}
+                                  </Box>
+                                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                    {consultant.rating.toFixed(1)}/5
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    ({consultant.totalReviews || 0}{' '}
+                                    {consultant.totalReviews === 1 ? 'review' : 'reviews'})
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Box>
+
+                            {/* Specialization Section */}
+                            <Box
+                              sx={{
+                                mb: 2,
+                                p: 1.5,
+                                borderRadius: '12px',
+                                background: (theme) =>
+                                  theme.palette.mode === 'dark'
+                                    ? 'rgba(13, 180, 188, 0.1)'
+                                    : 'rgba(13, 180, 188, 0.05)',
+                                border: '1px solid rgba(13, 180, 188, 0.2)',
+                              }}
+                            >
+                              <Typography variant="body2">
+                                <strong>Specialization:</strong> {consultant.specialization}
+                              </Typography>
+                            </Box>
+
+                            {/* Bio/Description */}
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                              {consultant.bio}
+                            </Typography>
+
+                            {/* Footer with Rate and Actions */}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                pt: 2,
+                                borderTop: '1px solid',
+                                borderColor: (theme) =>
+                                  theme.palette.mode === 'dark'
+                                    ? 'rgba(255, 255, 255, 0.1)'
+                                    : 'rgba(0, 0, 0, 0.1)',
+                              }}
+                            >
+                              <Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                  <FaDollarSign style={{ fontSize: '1.1rem', color: '#22c55e' }} />
+                                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#22c55e' }}>
+                                    {consultant.hourlyRate}
+                                  </Typography>
+                                </Box>
+                                <Typography variant="caption" color="text.secondary">
+                                  {consultant.availability}
+                                </Typography>
+                              </Box>
+
+                              <Box sx={{ display: 'flex', gap: 1 }}>
+                                <Button
+                                  variant="contained"
+                                  disabled={!consultant.userId}
+                                  onClick={() =>
+                                    consultant.userId &&
+                                    navigate(`/messages/${consultant.userId}`, {
+                                      state: {
+                                        user: {
+                                          _id: consultant.userId,
+                                          name: consultant.name,
+                                          profileImage: consultant.avatar,
+                                          isOnline: consultant.isOnline,
+                                        },
+                                      },
+                                    })
+                                  }
+                                  startIcon={<FaEnvelope />}
+                                  sx={{
+                                    borderRadius: '10px',
+                                    background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                                    textTransform: 'none',
+                                    fontWeight: 600,
+                                    px: 2,
+                                    '&:hover': {
+                                      background: 'linear-gradient(135deg, #0a8b91 0%, #086f75 100%)',
+                                    },
+                                  }}
+                                  title={
+                                    consultant.userId
+                                      ? 'Message Consultant'
+                                      : 'Consultant profile incomplete'
+                                  }
+                                >
+                                  Message
+                                </Button>
+                                <Button
+                                  component={Link}
+                                  to={`/consultant/${consultant.id}`}
+                                  variant="outlined"
+                                  sx={{
+                                    borderRadius: '10px',
+                                    borderColor: '#0db4bc',
+                                    color: '#0db4bc',
+                                    textTransform: 'none',
+                                    fontWeight: 600,
+                                    px: 2,
+                                    '&:hover': {
+                                      borderColor: '#0a8b91',
+                                      backgroundColor: 'rgba(13, 180, 188, 0.1)',
+                                    },
+                                  }}
+                                >
+                                  View Profile
+                                </Button>
+                              </Box>
+                            </Box>
+                          </Card>
+                        ))
+                    )}
+                  </Box>
+                </Box>
+              </Box>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Container>
 
       {/* Confirm Completion Modal */}
       {showConfirmCompletionModal && (
-        <div
-          className={styles.modalOverlay}
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+          }}
           onClick={() => !confirmationLoading && setShowConfirmCompletionModal(false)}
         >
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <h3 className={styles.modalTitle}>Confirm Order Completion</h3>
-            <p className={styles.modalMessage}>
+          <Box
+            sx={{
+              width: '90%',
+              maxWidth: 500,
+              p: 4,
+              borderRadius: '24px',
+              background: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? 'rgba(20, 35, 37, 0.95)'
+                  : 'rgba(255, 255, 255, 0.98)',
+              backdropFilter: 'blur(20px)',
+              border: '2px solid',
+              borderColor: 'rgba(13, 180, 188, 0.2)',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
+              Confirm Order Completion
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
               The consultant has requested to mark this order as complete.
-            </p>
-            <div className={styles.modalOrderInfo}>
-              <strong>{selectedOrderForConfirmation?.jobId?.title}</strong>
-              <p>By confirming, you acknowledge that the work has been completed satisfactorily.</p>
-            </div>
-            <div className={styles.modalActions}>
-              <button
-                className={styles.modalCancelButton}
+            </Typography>
+            <Box
+              sx={{
+                mb: 3,
+                p: 2,
+                borderRadius: '12px',
+                background: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? 'rgba(13, 180, 188, 0.1)'
+                    : 'rgba(13, 180, 188, 0.05)',
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                {selectedOrderForConfirmation?.jobId?.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                By confirming, you acknowledge that the work has been completed satisfactorily.
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                fullWidth
+                variant="outlined"
                 onClick={() => setShowConfirmCompletionModal(false)}
                 disabled={confirmationLoading}
+                sx={{
+                  py: 1.5,
+                  borderRadius: '12px',
+                  borderColor: 'rgba(255, 255, 255, 0.12)',
+                  color: 'text.secondary',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': {
+                    borderColor: 'text.primary',
+                  },
+                }}
               >
                 Not Yet
-              </button>
-              <button
-                className={styles.modalConfirmButton}
+              </Button>
+              <Button
+                fullWidth
+                variant="contained"
                 onClick={confirmOrderCompletion}
                 disabled={confirmationLoading}
+                sx={{
+                  py: 1.5,
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+                  },
+                }}
               >
                 {confirmationLoading ? 'Confirming...' : 'Yes, Mark as Complete'}
-              </button>
-            </div>
-          </div>
-        </div>
+              </Button>
+            </Box>
+          </Box>
+        </Box>
       )}
 
       {/* Review Modal */}
       {showReviewModal && (
-        <div className={styles.modalOverlay} onClick={() => !reviewLoading && skipReview()}>
-          <div className={styles.reviewModalContent} onClick={(e) => e.stopPropagation()}>
-            <h3 className={styles.modalTitle}>Rate Your Experience</h3>
-            <p className={styles.modalMessage}>How was your experience with this consultant?</p>
-            <div className={styles.modalOrderInfo}>
-              <strong>{reviewOrderData?.jobId?.title || 'Project'}</strong>
-              <p>Consultant: {reviewOrderData?.consultantId?.userId?.name || 'Unknown'}</p>
-            </div>
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+          }}
+          onClick={() => !reviewLoading && skipReview()}
+        >
+          <Box
+            sx={{
+              width: '90%',
+              maxWidth: 550,
+              p: 4,
+              borderRadius: '24px',
+              background: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? 'rgba(20, 35, 37, 0.95)'
+                  : 'rgba(255, 255, 255, 0.98)',
+              backdropFilter: 'blur(20px)',
+              border: '2px solid',
+              borderColor: 'rgba(13, 180, 188, 0.2)',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
+              Rate Your Experience
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              How was your experience with this consultant?
+            </Typography>
+            <Box
+              sx={{
+                mb: 3,
+                p: 2,
+                borderRadius: '12px',
+                background: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? 'rgba(13, 180, 188, 0.1)'
+                    : 'rgba(13, 180, 188, 0.05)',
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                {reviewOrderData?.jobId?.title || 'Project'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Consultant: {reviewOrderData?.consultantId?.userId?.name || 'Unknown'}
+              </Typography>
+            </Box>
 
             {/* Star Rating */}
-            <div className={styles.reviewRating}>
-              <label>Rating:</label>
-              <div className={styles.stars}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <FaStar
-                    key={star}
-                    className={star <= reviewRating ? styles.starFilled : styles.starEmpty}
-                    onClick={() => setReviewRating(star)}
-                    style={{ cursor: 'pointer', fontSize: '28px' }}
-                  />
-                ))}
-              </div>
-              <span
-                style={{
-                  display: 'inline-block',
-                  marginLeft: '16px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: '#014751',
-                }}
-              >
-                {reviewRating}/5
-              </span>
-            </div>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: 'text.primary' }}>
+                Rating:
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <FaStar
+                      key={star}
+                      onClick={() => setReviewRating(star)}
+                      style={{
+                        cursor: 'pointer',
+                        fontSize: '28px',
+                        color: star <= reviewRating ? '#fbbf24' : '#d1d5db',
+                        transition: 'all 0.2s ease',
+                      }}
+                    />
+                  ))}
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: '#fbbf24' }}>
+                  {reviewRating}/5
+                </Typography>
+              </Box>
+            </Box>
 
             {/* Comment */}
-            <div className={styles.reviewComment}>
-              <label>Your Review:</label>
-              <textarea
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: 'text.primary' }}>
+                Your Review:
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={5}
                 value={reviewComment}
                 onChange={(e) => setReviewComment(e.target.value)}
                 placeholder="Share your experience working with this consultant..."
-                rows={5}
                 disabled={reviewLoading}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '14px',
+                    background: (theme) =>
+                      theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.02)'
+                        : 'rgba(255, 255, 255, 0.7)',
+                    backdropFilter: 'blur(10px)',
+                  },
+                }}
               />
-            </div>
+            </Box>
 
-            <div className={styles.modalActions}>
-              <button
-                className={styles.modalCancelButton}
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                fullWidth
+                variant="outlined"
                 onClick={skipReview}
                 disabled={reviewLoading}
+                sx={{
+                  py: 1.5,
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderColor: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.12)'
+                      : 'rgba(0, 0, 0, 0.12)',
+                  color: 'text.secondary',
+                  '&:hover': {
+                    borderColor: 'text.primary',
+                    background: 'rgba(0, 0, 0, 0.04)',
+                  },
+                }}
               >
                 Skip for Now
-              </button>
-              <button
-                className={styles.modalConfirmButton}
+              </Button>
+              <Button
+                fullWidth
+                variant="contained"
                 onClick={submitReview}
                 disabled={reviewLoading || !reviewComment.trim()}
+                sx={{
+                  py: 1.5,
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                  color: '#ffffff',
+                  boxShadow: '0 8px 25px rgba(13, 180, 188, 0.35)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #0a8b91 0%, #08767b 100%)',
+                    transform: 'translateY(-2px)',
+                  },
+                  '&:disabled': {
+                    opacity: 0.6,
+                  },
+                }}
               >
                 {reviewLoading ? 'Submitting...' : 'Submit Review'}
-              </button>
-            </div>
-          </div>
-        </div>
+              </Button>
+            </Box>
+          </Box>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

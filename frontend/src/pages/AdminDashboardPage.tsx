@@ -1,11 +1,42 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaUserTie, FaCheckCircle, FaTimesCircle, FaBan, FaEye, FaFileAlt, FaUserCircle, FaStar, FaTrash, FaEnvelope } from 'react-icons/fa';
+import { 
+  Box, 
+  Typography, 
+  Button, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Avatar, 
+  Chip,
+  Modal,
+  IconButton,
+  Tabs,
+  Tab,
+  CircularProgress
+} from '@mui/material';
+import { 
+  FaUser, 
+  FaUserTie, 
+  FaCheckCircle, 
+  FaTimesCircle, 
+  FaBan, 
+  FaEye, 
+  FaFileAlt, 
+  FaUserCircle, 
+  FaStar, 
+  FaTrash, 
+  FaEnvelope,
+  FaSignOutAlt,
+  FaTimes
+} from 'react-icons/fa';
 import { httpClient } from '../api/httpClient';
 import reviewService from '../services/reviewService';
 import ContactManagement from '../components/admin/ContactManagement';
 import { authService } from '../services/authService';
-import styles from './AdminDashboardPage.module.css';
 
 const AdminDashboardPage = () => {
   const navigate = useNavigate();
@@ -25,7 +56,6 @@ const AdminDashboardPage = () => {
   const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
 
   useEffect(() => {
-    // Admin dashboard can be accessed without login
     fetchConsultants();
     fetchBuyers();
   }, []);
@@ -41,21 +71,14 @@ const AdminDashboardPage = () => {
       setLoading(true);
       setError('');
       const response = await httpClient.get('/consultants');
-      console.log('Consultants API Response:', response);
       
-      // Handle both paginated and non-paginated responses
       let consultantsData = [];
       if (response.data?.data?.consultants) {
-        // Paginated response
         consultantsData = response.data.data.consultants;
       } else if (response.data?.data) {
-        // Direct array response
         consultantsData = Array.isArray(response.data.data) ? response.data.data : [];
       }
       
-      console.log('Consultants Data:', consultantsData);
-      
-      // Transform data to match component structure
       const transformedConsultants = consultantsData.map((c: any) => ({
         id: c._id,
         name: c.userId?.name || 'Unknown',
@@ -75,10 +98,8 @@ const AdminDashboardPage = () => {
         userId: c.userId?._id,
       }));
       
-      console.log('Transformed Consultants:', transformedConsultants);
       setConsultants(transformedConsultants);
     } catch (err: any) {
-      console.error('Failed to fetch consultants', err);
       const errorMsg = err.response?.data?.message || err.message || 'Failed to load consultants';
       setError(errorMsg);
     } finally {
@@ -90,25 +111,16 @@ const AdminDashboardPage = () => {
     try {
       setBuyersLoading(true);
       const response = await httpClient.get('/admin/users');
-      console.log('Users API Response:', response);
       
-      // Handle paginated response
       let usersData = [];
       if (response.data?.data?.users) {
-        // Paginated response
         usersData = response.data.data.users;
       } else if (response.data?.data) {
-        // Direct array response
         usersData = Array.isArray(response.data.data) ? response.data.data : [];
       }
       
-      console.log('All Users Data:', usersData);
-      
-      // Filter only buyers
       const buyersData = usersData.filter((u: any) => u.accountType === 'buyer');
-      console.log('Buyers Data:', buyersData);
       
-      // Get job counts for each buyer
       const transformedBuyers = await Promise.all(
         buyersData.map(async (b: any) => {
           try {
@@ -121,13 +133,12 @@ const AdminDashboardPage = () => {
               email: b.email || 'N/A',
               phone: b.phone || 'N/A',
               totalJobsPosted: jobs.length,
-              totalSpent: 0, // Can be calculated from orders if needed
+              totalSpent: 0,
               avatar: b.profileImage || null,
               joinedDate: b.createdAt ? new Date(b.createdAt).toLocaleDateString() : 'N/A',
               isBanned: b.isBanned || false,
             };
-          } catch (jobErr) {
-            console.error(`Failed to fetch jobs for buyer ${b._id}`, jobErr);
+          } catch {
             return {
               id: b._id,
               name: b.name || 'Unknown',
@@ -143,13 +154,9 @@ const AdminDashboardPage = () => {
         })
       );
       
-      console.log('Transformed Buyers:', transformedBuyers);
       setBuyers(transformedBuyers);
     } catch (err: any) {
-      console.error('Failed to fetch buyers', err);
-      const errorMsg = err.response?.data?.message || err.message || 'Failed to load buyers';
-      // Don't set error state for buyers, just log it
-      console.error('Buyers error:', errorMsg);
+      console.error('Buyers error:', err.response?.data?.message || err.message);
     } finally {
       setBuyersLoading(false);
     }
@@ -161,7 +168,7 @@ const AdminDashboardPage = () => {
       alert('Consultant approved successfully!');
       setShowDocuments(false);
       setSelectedConsultant(null);
-      await fetchConsultants(); // Refresh list
+      await fetchConsultants();
     } catch (err) {
       console.error('Failed to approve consultant', err);
       alert('Failed to approve consultant');
@@ -174,7 +181,7 @@ const AdminDashboardPage = () => {
       alert('Consultant declined!');
       setShowDocuments(false);
       setSelectedConsultant(null);
-      await fetchConsultants(); // Refresh list
+      await fetchConsultants();
     } catch (err) {
       console.error('Failed to decline consultant', err);
       alert('Failed to decline consultant');
@@ -186,7 +193,7 @@ const AdminDashboardPage = () => {
       try {
         await httpClient.patch(`/admin/users/${userId}/ban`);
         alert('Consultant banned successfully!');
-        await fetchConsultants(); // Refresh list
+        await fetchConsultants();
       } catch (err) {
         console.error('Failed to ban consultant', err);
         alert('Failed to ban consultant');
@@ -198,7 +205,7 @@ const AdminDashboardPage = () => {
     try {
       await httpClient.patch(`/admin/users/${userId}/unban`);
       alert('Consultant unbanned successfully!');
-      await fetchConsultants(); // Refresh list
+      await fetchConsultants();
     } catch (err) {
       console.error('Failed to unban consultant', err);
       alert('Failed to unban consultant');
@@ -210,7 +217,7 @@ const AdminDashboardPage = () => {
       try {
         await httpClient.patch(`/admin/users/${id}/ban`);
         alert('Buyer banned successfully!');
-        await fetchBuyers(); // Refresh list
+        await fetchBuyers();
       } catch (err) {
         console.error('Failed to ban buyer', err);
         alert('Failed to ban buyer');
@@ -222,7 +229,7 @@ const AdminDashboardPage = () => {
     try {
       await httpClient.patch(`/admin/users/${id}/unban`);
       alert('Buyer unbanned successfully!');
-      await fetchBuyers(); // Refresh list
+      await fetchBuyers();
     } catch (err) {
       console.error('Failed to unban buyer', err);
       alert('Failed to unban buyer');
@@ -247,7 +254,7 @@ const AdminDashboardPage = () => {
       try {
         await reviewService.deleteReview(reviewId);
         alert('Review deleted successfully!');
-        await fetchReviews(); // Refresh list
+        await fetchReviews();
       } catch (err) {
         console.error('Failed to delete review', err);
         alert('Failed to delete review');
@@ -258,589 +265,729 @@ const AdminDashboardPage = () => {
   const pendingConsultants = consultants.filter(c => c.status === 'pending');
 
   return (
-    <div className={styles.pageContainer}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+      }}
+    >
       {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.logo}>
-          <img src="/src/assets/logo.png" alt="Expert Raah" className={styles.logoImage} />
-          <span className={styles.logoText}>Admin Panel</span>
-        </div>
+      <Box
+        sx={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+          px: 4,
+          py: 2,
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: '1400px',
+            mx: 'auto',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #0db4bc 0%, #2d5a5f 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              EXPERT RAAH
+            </Typography>
+            <Chip 
+              label="Admin Panel" 
+              sx={{ 
+                background: 'linear-gradient(135deg, #0db4bc 0%, #2d5a5f 100%)',
+                color: 'white',
+                fontWeight: 600
+              }} 
+            />
+          </Box>
 
-        <button className={styles.logoutButton} onClick={() => {
-          authService.logout();
-          navigate('/');
-        }}>
-          Logout
-        </button>
-      </header>
+          <Button
+            onClick={() => {
+              authService.logout();
+              navigate('/');
+            }}
+            startIcon={<FaSignOutAlt />}
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              border: '2px solid #0db4bc',
+              color: '#0db4bc',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                background: 'rgba(102, 126, 234, 0.1)',
+              },
+            }}
+          >
+            Logout
+          </Button>
+        </Box>
+      </Box>
 
       {/* Main Content */}
-      <div className={styles.mainContent}>
+      <Box
+        sx={{
+          maxWidth: '1400px',
+          mx: 'auto',
+          px: 4,
+          py: 4,
+        }}
+      >
         {/* Tabs */}
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${activeTab === 'consultants' ? styles.tabActive : ''}`}
-            onClick={() => setActiveTab('consultants')}
+        <Box
+          sx={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: 3,
+            p: 1,
+            mb: 3,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <Tabs
+            value={activeTab}
+            onChange={(_, newValue) => setActiveTab(newValue)}
+            sx={{
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontSize: '16px',
+                fontWeight: 600,
+                minHeight: 60,
+                '&.Mui-selected': {
+                  color: '#0db4bc',
+                },
+              },
+              '& .MuiTabs-indicator': {
+                background: 'linear-gradient(135deg, #0db4bc 0%, #2d5a5f 100%)',
+                height: 3,
+              },
+            }}
           >
-            <FaUserTie /> Consultants
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === 'buyers' ? styles.tabActive : ''}`}
-            onClick={() => setActiveTab('buyers')}
-          >
-            <FaUser /> Buyers
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === 'reviews' ? styles.tabActive : ''}`}
-            onClick={() => setActiveTab('reviews')}
-          >
-            <FaStar /> Reviews & Ratings
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === 'contacts' ? styles.tabActive : ''}`}
-            onClick={() => setActiveTab('contacts')}
-          >
-            <FaEnvelope /> Contact Forms
-          </button>
-        </div>
+            <Tab 
+              value="consultants" 
+              icon={<FaUserTie style={{ fontSize: 20 }} />} 
+              iconPosition="start" 
+              label="Consultants" 
+            />
+            <Tab 
+              value="buyers" 
+              icon={<FaUser style={{ fontSize: 20 }} />} 
+              iconPosition="start" 
+              label="Buyers" 
+            />
+            <Tab 
+              value="reviews" 
+              icon={<FaStar style={{ fontSize: 20 }} />} 
+              iconPosition="start" 
+              label="Reviews & Ratings" 
+            />
+            <Tab 
+              value="contacts" 
+              icon={<FaEnvelope style={{ fontSize: 20 }} />} 
+              iconPosition="start" 
+              label="Contact Forms" 
+            />
+          </Tabs>
+        </Box>
 
         {/* Loading State */}
         {loading && (
-          <div className={styles.loadingContainer}>
-            <div className={styles.loadingSpinner}></div>
-            <p>Loading data...</p>
-          </div>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              py: 8,
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: 3,
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <CircularProgress sx={{ color: '#667eea', mb: 2 }} />
+            <Typography sx={{ color: '#666', fontSize: '16px' }}>Loading data...</Typography>
+          </Box>
         )}
 
         {/* Error State */}
         {error && (
-          <div className={styles.errorContainer}>
-            <p className={styles.errorText}>{error}</p>
-            <button onClick={() => { fetchConsultants(); fetchBuyers(); }} className={styles.retryButton}>
+          <Box
+            sx={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '2px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: 3,
+              p: 4,
+              textAlign: 'center',
+            }}
+          >
+            <Typography sx={{ color: '#ef4444', mb: 2 }}>{error}</Typography>
+            <Button
+              onClick={() => { fetchConsultants(); fetchBuyers(); }}
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, #0db4bc 0%, #2d5a5f 100%)',
+                color: 'white',
+                textTransform: 'none',
+                fontWeight: 600,
+              }}
+            >
               Retry
-            </button>
-          </div>
+            </Button>
+          </Box>
         )}
 
         {/* Consultants Tab */}
         {!loading && activeTab === 'consultants' && (
-          <div className={styles.content}>
-            {/* Empty State */}
+          <Box>
             {consultants.length === 0 && (
-              <div className={styles.emptyState}>
-                <FaUserTie className={styles.emptyIcon} />
-                <h3>No Consultants Yet</h3>
-                <p>Consultants will appear here once they sign up and create their profiles.</p>
-              </div>
+              <Box
+                sx={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  borderRadius: 3,
+                  p: 8,
+                  textAlign: 'center',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                <FaUserTie style={{ fontSize: 64, color: '#0db4bc', marginBottom: 16 }} />
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
+                  No Consultants Yet
+                </Typography>
+                <Typography sx={{ color: '#666' }}>
+                  Consultants will appear here once they sign up and create their profiles.
+                </Typography>
+              </Box>
             )}
 
-            {/* Pending Approvals Section */}
             {pendingConsultants.length > 0 && (
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'white', mb: 3 }}>
                   Awaiting Verification - {pendingConsultants.length} {pendingConsultants.length === 1 ? 'Consultant' : 'Consultants'}
-                </h2>
-                <div className={styles.cardGrid}>
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {pendingConsultants.map((consultant) => (
-                    <div key={consultant.id} className={styles.card}>
-                      <div className={styles.cardHeader}>
+                    <Box
+                      key={consultant.id}
+                      sx={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        borderRadius: 3,
+                        p: 3,
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                        border: '2px solid rgba(255, 152, 0, 0.3)',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3 }}>
                         {consultant.avatar ? (
-                          <img src={consultant.avatar} alt={consultant.name} className={styles.avatar} />
+                          <Avatar src={consultant.avatar} alt={consultant.name} sx={{ width: 80, height: 80 }} />
                         ) : (
-                          <FaUserCircle className={styles.avatar} style={{ fontSize: '60px', color: '#ccc' }} />
+                          <FaUserCircle style={{ fontSize: '80px', color: '#ccc' }} />
                         )}
-                        <div className={styles.cardInfo}>
-                          <h3 className={styles.cardName}>{consultant.name}</h3>
-                          <p className={styles.cardTitle}>{consultant.title}</p>
-                          <p className={styles.cardEmail}>{consultant.email}</p>
-                        </div>
-                        <span className={styles.badgePending}>Pending</span>
-                      </div>
-
-                      <div className={styles.cardBody}>
-                        <div className={styles.infoRow}>
-                          <span className={styles.label}>Experience:</span>
-                          <span className={styles.value}>{consultant.experience}</span>
-                        </div>
-                        <div className={styles.infoRow}>
-                          <span className={styles.label}>Hourly Rate:</span>
-                          <span className={styles.value}>PKR{consultant.hourlyRate}/hr</span>
-                        </div>
-                        <div className={styles.infoRow}>
-                          <span className={styles.label}>Specialization:</span>
-                          <span className={styles.value}>{consultant.specialization.join(', ')}</span>
-                        </div>
-                      </div>
-
-                      <div className={styles.cardActions}>
-                        <button
-                          className={styles.viewDocsButton}
-                          onClick={() => {
-                            setSelectedConsultant(consultant);
-                            setShowDocuments(true);
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                            {consultant.name}
+                          </Typography>
+                          <Typography sx={{ color: '#0db4bc', mb: 0.5 }}>{consultant.title}</Typography>
+                          <Typography sx={{ color: '#666', fontSize: '14px' }}>{consultant.email}</Typography>
+                        </Box>
+                        <Chip
+                          label="Pending"
+                          sx={{
+                            background: 'rgba(255, 152, 0, 0.1)',
+                            color: '#ff9800',
+                            fontWeight: 600,
+                            border: '1px solid rgba(255, 152, 0, 0.3)',
                           }}
-                        >
-                          <FaFileAlt /> View Documents
-                        </button>
-                      </div>
-                    </div>
+                        />
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(3, 1fr)',
+                          gap: 2,
+                          mb: 3,
+                          p: 2,
+                          background: 'rgba(102, 126, 234, 0.05)',
+                          borderRadius: 2,
+                        }}
+                      >
+                        <Box>
+                          <Typography sx={{ fontSize: '12px', color: '#666', mb: 0.5 }}>Experience:</Typography>
+                          <Typography sx={{ fontWeight: 600, color: '#1a1a1a' }}>{consultant.experience}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography sx={{ fontSize: '12px', color: '#666', mb: 0.5 }}>Hourly Rate:</Typography>
+                          <Typography sx={{ fontWeight: 600, color: '#1a1a1a' }}>PKR {consultant.hourlyRate}/hr</Typography>
+                        </Box>
+                        <Box>
+                          <Typography sx={{ fontSize: '12px', color: '#666', mb: 0.5 }}>Specialization:</Typography>
+                          <Typography sx={{ fontWeight: 600, color: '#1a1a1a' }}>{consultant.specialization.join(', ')}</Typography>
+                        </Box>
+                      </Box>
+
+                      <Button
+                        onClick={() => { setSelectedConsultant(consultant); setShowDocuments(true); }}
+                        startIcon={<FaFileAlt />}
+                        sx={{
+                          px: 3,
+                          py: 1,
+                          borderRadius: 2,
+                          background: 'linear-gradient(135deg, #0db4bc 0%, #2d5a5f 100%)',
+                          color: 'white',
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          boxShadow: '0 4px 12px rgba(13, 180, 188, 0.4)',
+                          '&:hover': {
+                            boxShadow: '0 6px 16px rgba(13, 180, 188, 0.6)',
+                            transform: 'translateY(-2px)',
+                          },
+                          transition: 'all 0.3s ease',
+                        }}
+                      >
+                        View Documents
+                      </Button>
+                    </Box>
                   ))}
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
 
-            {/* All Consultants Section */}
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>
-                All Consultants
-              </h2>
-              <div className={styles.table}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Consultant</th>
-                      <th>Email</th>
-                      <th>Title</th>
-                      <th>Rate</th>
-                      <th>Status</th>
-                      <th>Joined</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {consultants.map((consultant) => (
-                      <tr key={consultant.id} className={consultant.isBanned ? styles.banned : ''}>
-                        <td>
-                          <div className={styles.userCell}>
-                            {consultant.avatar ? (
-                              <img src={consultant.avatar} alt={consultant.name} className={styles.smallAvatar} />
-                            ) : (
-                              <FaUserCircle className={styles.smallAvatar} style={{ fontSize: '32px', color: '#ccc' }} />
-                            )}
-                            <span>{consultant.name}</span>
-                          </div>
-                        </td>
-                        <td>{consultant.email}</td>
-                        <td>{consultant.title}</td>
-                        <td>PKR{consultant.hourlyRate}/hr</td>
-                        <td>
-                          {consultant.isBanned ? (
-                            <span className={styles.badgeBanned}>Banned</span>
-                          ) : consultant.isVerified ? (
-                            <span className={styles.badgeVerified}>Verified</span>
-                          ) : (
-                            <span className={styles.badgePending}>Pending</span>
-                          )}
-                        </td>
-                        <td>{consultant.joinedDate}</td>
-                        <td>
-                          <div className={styles.actionButtons}>
-                            <button
-                              className={styles.viewButton}
-                              onClick={() => {
-                                setSelectedConsultant(consultant);
-                                setShowDocuments(true);
-                              }}
-                              title="View Details"
-                            >
-                              <FaEye />
-                            </button>
+            {consultants.length > 0 && (
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'white', mb: 3 }}>
+                  All Consultants
+                </Typography>
+                <TableContainer
+                  component={Box}
+                  sx={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: 3,
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Consultant</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Email</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Title</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Rate</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Status</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Joined</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {consultants.map((consultant) => (
+                        <TableRow key={consultant.id} sx={{ '&:hover': { background: 'rgba(102, 126, 234, 0.05)' } }}>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              {consultant.avatar ? (
+                                <Avatar src={consultant.avatar} sx={{ width: 40, height: 40 }} />
+                              ) : (
+                                <FaUserCircle style={{ fontSize: '40px', color: '#ccc' }} />
+                              )}
+                              <Typography sx={{ fontWeight: 600, color: '#1a1a1a' }}>{consultant.name}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ color: '#666' }}>{consultant.email}</TableCell>
+                          <TableCell sx={{ color: '#666' }}>{consultant.title}</TableCell>
+                          <TableCell sx={{ color: '#666' }}>PKR {consultant.hourlyRate}/hr</TableCell>
+                          <TableCell>
                             {consultant.isBanned ? (
-                              <button
-                                className={styles.unbanButton}
-                                onClick={() => handleUnbanConsultant(consultant.userId)}
-                                title="Unban"
-                              >
-                                <FaCheckCircle />
-                              </button>
+                              <Chip label="Banned" size="small" sx={{ background: '#ef4444', color: 'white', fontWeight: 600 }} />
+                            ) : consultant.isVerified ? (
+                              <Chip label="Verified" size="small" sx={{ background: '#22c55e', color: 'white', fontWeight: 600 }} />
                             ) : (
-                              <button
-                                className={styles.banButton}
-                                onClick={() => handleBanConsultant(consultant.userId)}
-                                title="Ban"
-                              >
-                                <FaBan />
-                              </button>
+                              <Chip label="Pending" size="small" sx={{ background: '#ff9800', color: 'white', fontWeight: 600 }} />
                             )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+                          </TableCell>
+                          <TableCell sx={{ color: '#666' }}>{consultant.joinedDate}</TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <IconButton
+                                onClick={() => { setSelectedConsultant(consultant); setShowDocuments(true); }}
+                                sx={{ color: '#0db4bc', '&:hover': { background: 'rgba(13, 180, 188, 0.1)' } }}
+                              >
+                                <FaEye />
+                              </IconButton>
+                              {consultant.isBanned ? (
+                                <IconButton
+                                  onClick={() => handleUnbanConsultant(consultant.userId)}
+                                  sx={{ color: '#22c55e', '&:hover': { background: 'rgba(34, 197, 94, 0.1)' } }}
+                                >
+                                  <FaCheckCircle />
+                                </IconButton>
+                              ) : (
+                                <IconButton
+                                  onClick={() => handleBanConsultant(consultant.userId)}
+                                  sx={{ color: '#ef4444', '&:hover': { background: 'rgba(239, 68, 68, 0.1)' } }}
+                                >
+                                  <FaBan />
+                                </IconButton>
+                              )}
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )}
+          </Box>
         )}
 
         {/* Buyers Tab */}
         {activeTab === 'buyers' && (
-          <div className={styles.content}>
-            {/* Loading State for Buyers */}
+          <Box>
             {buyersLoading && (
-              <div className={styles.loadingContainer}>
-                <div className={styles.loadingSpinner}></div>
-                <p>Loading buyers...</p>
-              </div>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 8, background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(20px)', borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)' }}>
+                <CircularProgress sx={{ color: '#667eea', mb: 2 }} />
+                <Typography sx={{ color: '#666' }}>Loading buyers...</Typography>
+              </Box>
             )}
 
-            {/* Empty State */}
             {!buyersLoading && buyers.length === 0 && (
-              <div className={styles.emptyState}>
-                <FaUser className={styles.emptyIcon} />
-                <h3>No Buyers Yet</h3>
-                <p>Buyers will appear here once they sign up.</p>
-              </div>
+              <Box sx={{ background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(20px)', borderRadius: 3, p: 8, textAlign: 'center', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)' }}>
+                <FaUser style={{ fontSize: 64, color: '#0db4bc', marginBottom: 16 }} />
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>No Buyers Yet</Typography>
+                <Typography sx={{ color: '#666' }}>Buyers will appear here once they sign up.</Typography>
+              </Box>
             )}
 
             {!buyersLoading && buyers.length > 0 && (
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>All Buyers</h2>
-              <div className={styles.table}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Buyer</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>Jobs Posted</th>
-                      <th>Total Spent</th>
-                      <th>Joined</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {buyers.map((buyer) => (
-                      <tr key={buyer.id} className={buyer.isBanned ? styles.banned : ''}>
-                        <td>
-                          <div className={styles.userCell}>
-                            {buyer.avatar ? (
-                              <img src={buyer.avatar} alt={buyer.name} className={styles.smallAvatar} />
-                            ) : (
-                              <FaUserCircle className={styles.smallAvatar} style={{ fontSize: '32px', color: '#ccc' }} />
-                            )}
-                            <span>{buyer.name}</span>
-                          </div>
-                        </td>
-                        <td>{buyer.email}</td>
-                        <td>{buyer.phone}</td>
-                        <td>{buyer.totalJobsPosted}</td>
-                        <td>${buyer.totalSpent.toLocaleString()}</td>
-                        <td>{buyer.joinedDate}</td>
-                        <td>
-                          <div className={styles.actionButtons}>
-                            {buyer.isBanned ? (
-                              <>
-                                <span className={styles.badgeBanned}>Banned</span>
-                                <button
-                                  className={styles.unbanButton}
-                                  onClick={() => handleUnbanBuyer(buyer.id)}
-                                  title="Unban"
-                                >
-                                  <FaCheckCircle />
-                                </button>
-                              </>
-                            ) : (
-                              <button
-                                className={styles.banButton}
-                                onClick={() => handleBanBuyer(buyer.id)}
-                                title="Ban"
-                              >
-                                <FaBan />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'white', mb: 3 }}>All Buyers</Typography>
+                <TableContainer component={Box} sx={{ background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(20px)', borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Buyer</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Email</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Phone</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Jobs Posted</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Total Spent</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Joined</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 600 }}>Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {buyers.map((buyer) => (
+                        <TableRow key={buyer.id} sx={{ '&:hover': { background: 'rgba(102, 126, 234, 0.05)' } }}>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              {buyer.avatar ? (
+                                <Avatar src={buyer.avatar} sx={{ width: 40, height: 40 }} />
+                              ) : (
+                                <FaUserCircle style={{ fontSize: '40px', color: '#ccc' }} />
+                              )}
+                              <Typography sx={{ fontWeight: 600, color: '#1a1a1a' }}>{buyer.name}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ color: '#666' }}>{buyer.email}</TableCell>
+                          <TableCell sx={{ color: '#666' }}>{buyer.phone}</TableCell>
+                          <TableCell sx={{ color: '#666' }}>{buyer.totalJobsPosted}</TableCell>
+                          <TableCell sx={{ color: '#666' }}>PKR {buyer.totalSpent.toLocaleString()}</TableCell>
+                          <TableCell sx={{ color: '#666' }}>{buyer.joinedDate}</TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                              {buyer.isBanned ? (
+                                <>
+                                  <Chip label="Banned" size="small" sx={{ background: '#ef4444', color: 'white', fontWeight: 600 }} />
+                                  <IconButton onClick={() => handleUnbanBuyer(buyer.id)} sx={{ color: '#22c55e', '&:hover': { background: 'rgba(34, 197, 94, 0.1)' } }}>
+                                    <FaCheckCircle />
+                                  </IconButton>
+                                </>
+                              ) : (
+                                <IconButton onClick={() => handleBanBuyer(buyer.id)} sx={{ color: '#ef4444', '&:hover': { background: 'rgba(239, 68, 68, 0.1)' } }}>
+                                  <FaBan />
+                                </IconButton>
+                              )}
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
             )}
-          </div>
+          </Box>
         )}
 
         {/* Reviews Tab */}
         {activeTab === 'reviews' && (
-          <div className={styles.content}>
-            {/* Loading State */}
+          <Box>
             {reviewsLoading && (
-              <div className={styles.loadingContainer}>
-                <div className={styles.loadingSpinner}></div>
-                <p>Loading reviews...</p>
-              </div>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 8, background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(20px)', borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)' }}>
+                <CircularProgress sx={{ color: '#667eea', mb: 2 }} />
+                <Typography sx={{ color: '#666' }}>Loading reviews...</Typography>
+              </Box>
             )}
 
-            {/* Empty State */}
             {!reviewsLoading && reviews.length === 0 && (
-              <div className={styles.emptyState}>
-                <FaStar className={styles.emptyIcon} />
-                <h3>No Reviews Yet</h3>
-                <p>Reviews will appear here once buyers submit them.</p>
-              </div>
+              <Box sx={{ background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(20px)', borderRadius: 3, p: 8, textAlign: 'center', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)' }}>
+                <FaStar style={{ fontSize: 64, color: '#0db4bc', marginBottom: 16 }} />
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>No Reviews Yet</Typography>
+                <Typography sx={{ color: '#666' }}>Reviews will appear here once buyers submit them.</Typography>
+              </Box>
             )}
 
-            {/* Reviews List */}
             {!reviewsLoading && reviews.length > 0 && (
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>All Reviews & Ratings</h2>
-                <div className={styles.reviewsGrid}>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'white', mb: 3 }}>All Reviews & Ratings</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {reviews.map((review) => (
-                    <div key={review._id} className={styles.reviewCard}>
-                      <div className={styles.reviewHeader}>
-                        <div className={styles.reviewRatingStars}>
+                    <Box
+                      key={review._id}
+                      sx={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        borderRadius: 3,
+                        p: 3,
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           {[1, 2, 3, 4, 5].map((star) => (
-                            <FaStar
-                              key={star}
-                              className={star <= review.rating ? styles.starFilled : styles.starEmpty}
-                            />
+                            <FaStar key={star} style={{ color: star <= review.rating ? '#ffc107' : '#e0e0e0' }} />
                           ))}
-                          <span className={styles.reviewRatingNumber}>({review.rating}/5)</span>
-                        </div>
-                        <button
-                          className={styles.deleteReviewButton}
-                          onClick={() => handleDeleteReview(review._id)}
-                          title="Delete Review"
-                        >
+                          <Typography sx={{ fontWeight: 600, color: '#1a1a1a', ml: 1 }}>({review.rating}/5)</Typography>
+                        </Box>
+                        <IconButton onClick={() => handleDeleteReview(review._id)} sx={{ color: '#ef4444' }}>
                           <FaTrash />
-                        </button>
-                      </div>
+                        </IconButton>
+                      </Box>
 
-                      <div className={styles.reviewContent}>
-                        <p className={styles.reviewComment}>{review.comment}</p>
-                      </div>
+                      <Typography sx={{ color: '#666', mb: 2, fontStyle: 'italic' }}>{review.comment}</Typography>
 
-                      <div className={styles.reviewFooter}>
-                        <div className={styles.reviewUser}>
-                          <strong>Buyer:</strong> {review.buyerId?.firstName} {review.buyerId?.lastName}
-                          <br />
-                          <small>{review.buyerId?.email}</small>
-                        </div>
-                        <div className={styles.reviewConsultant}>
-                          <strong>Consultant:</strong> {review.consultantId?.firstName} {review.consultantId?.lastName}
-                          <br />
-                          <small>{review.consultantId?.email}</small>
-                        </div>
-                        <div className={styles.reviewJob}>
-                          <strong>Job:</strong> {review.jobId?.title || 'N/A'}
-                        </div>
-                        <div className={styles.reviewDate}>
-                          {new Date(review.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </div>
-                      </div>
-                    </div>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, p: 2, background: 'rgba(102, 126, 234, 0.05)', borderRadius: 2 }}>
+                        <Box>
+                          <Typography sx={{ fontSize: '12px', color: '#666', mb: 0.5 }}>Buyer:</Typography>
+                          <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '14px' }}>
+                            {review.buyerId?.firstName} {review.buyerId?.lastName}
+                          </Typography>
+                          <Typography sx={{ fontSize: '12px', color: '#666' }}>{review.buyerId?.email}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography sx={{ fontSize: '12px', color: '#666', mb: 0.5 }}>Consultant:</Typography>
+                          <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '14px' }}>
+                            {review.consultantId?.firstName} {review.consultantId?.lastName}
+                          </Typography>
+                          <Typography sx={{ fontSize: '12px', color: '#666' }}>{review.consultantId?.email}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography sx={{ fontSize: '12px', color: '#666', mb: 0.5 }}>Job:</Typography>
+                          <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '14px' }}>
+                            {review.jobId?.title || 'N/A'}
+                          </Typography>
+                          <Typography sx={{ fontSize: '12px', color: '#666' }}>
+                            {new Date(review.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
                   ))}
-                </div>
+                </Box>
 
-                {/* Pagination */}
                 {reviewsTotalPages > 1 && (
-                  <div className={styles.pagination}>
-                    <button
-                      className={styles.paginationButton}
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, mt: 3 }}>
+                    <Button
                       disabled={reviewsPage === 1}
                       onClick={() => setReviewsPage((prev) => prev - 1)}
+                      sx={{ px: 3, py: 1, borderRadius: 2, border: '2px solid white', color: 'white', textTransform: 'none', fontWeight: 600 }}
                     >
                       Previous
-                    </button>
-                    <span className={styles.paginationInfo}>
+                    </Button>
+                    <Typography sx={{ color: 'white', fontWeight: 600 }}>
                       Page {reviewsPage} of {reviewsTotalPages}
-                    </span>
-                    <button
-                      className={styles.paginationButton}
+                    </Typography>
+                    <Button
                       disabled={reviewsPage === reviewsTotalPages}
                       onClick={() => setReviewsPage((prev) => prev + 1)}
+                      sx={{ px: 3, py: 1, borderRadius: 2, border: '2px solid white', color: 'white', textTransform: 'none', fontWeight: 600 }}
                     >
                       Next
-                    </button>
-                  </div>
+                    </Button>
+                  </Box>
                 )}
-              </div>
+              </Box>
             )}
-          </div>
+          </Box>
         )}
 
         {/* Contacts Tab */}
         {activeTab === 'contacts' && (
-          <ContactManagement />
+          <Box sx={{ background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(20px)', borderRadius: 3, p: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)' }}>
+            <ContactManagement />
+          </Box>
         )}
-      </div>
+      </Box>
 
       {/* Documents Modal */}
-      {showDocuments && selectedConsultant && (
-        <>
-          <div className={styles.overlay} onClick={() => {
-            setShowDocuments(false);
-            setSelectedConsultant(null);
-          }}></div>
-          <div className={styles.modal}>
-            <div className={styles.modalHeader}>
-              <h2>Consultant Details & Documents</h2>
-              <button
-                className={styles.closeButton}
-                onClick={() => {
-                  setShowDocuments(false);
-                  setSelectedConsultant(null);
-                }}
-              >
-                ✕
-              </button>
-            </div>
+      <Modal
+        open={showDocuments && selectedConsultant !== null}
+        onClose={() => { setShowDocuments(false); setSelectedConsultant(null); }}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '90%',
+            maxWidth: '900px',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            background: 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+            p: 4,
+          }}
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+              Consultant Details & Documents
+            </Typography>
+            <IconButton onClick={() => { setShowDocuments(false); setSelectedConsultant(null); }} sx={{ color: '#666' }}>
+              <FaTimes />
+            </IconButton>
+          </Box>
 
-            <div className={styles.modalBody}>
-              <div className={styles.consultantDetails}>
+          {selectedConsultant && (
+            <>
+              <Box sx={{ display: 'flex', gap: 3, mb: 4, p: 3, background: 'rgba(102, 126, 234, 0.05)', borderRadius: 2 }}>
                 {selectedConsultant.avatar ? (
-                  <img src={selectedConsultant.avatar} alt={selectedConsultant.name} className={styles.largeAvatar} />
+                  <Avatar src={selectedConsultant.avatar} sx={{ width: 100, height: 100 }} />
                 ) : (
-                  <FaUserCircle className={styles.largeAvatar} style={{ fontSize: '100px', color: '#ccc' }} />
+                  <FaUserCircle style={{ fontSize: '100px', color: '#ccc' }} />
                 )}
-                <div className={styles.detailsInfo}>
-                  <h3>{selectedConsultant.name}</h3>
-                  <p className={styles.detailTitle}>{selectedConsultant.title}</p>
-                  <p className={styles.detailEmail}>{selectedConsultant.email}</p>
-                  <div className={styles.detailsGrid}>
-                    <div>
-                      <span className={styles.detailLabel}>Experience:</span>
-                      <span className={styles.detailValue}>{selectedConsultant.experience}</span>
-                    </div>
-                    <div>
-                      <span className={styles.detailLabel}>Rate:</span>
-                      <span className={styles.detailValue}>${selectedConsultant.hourlyRate}/hr</span>
-                    </div>
-                    <div>
-                      <span className={styles.detailLabel}>Status:</span>
-                      <span className={styles.detailValue}>{selectedConsultant.status}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
+                    {selectedConsultant.name}
+                  </Typography>
+                  <Typography sx={{ color: '#0db4bc', mb: 1 }}>{selectedConsultant.title}</Typography>
+                  <Typography sx={{ color: '#666', mb: 2 }}>{selectedConsultant.email}</Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+                    <Box>
+                      <Typography sx={{ fontSize: '12px', color: '#666' }}>Experience:</Typography>
+                      <Typography sx={{ fontWeight: 600 }}>{selectedConsultant.experience}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontSize: '12px', color: '#666' }}>Rate:</Typography>
+                      <Typography sx={{ fontWeight: 600 }}>PKR {selectedConsultant.hourlyRate}/hr</Typography>
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontSize: '12px', color: '#666' }}>Status:</Typography>
+                      <Typography sx={{ fontWeight: 600 }}>{selectedConsultant.status}</Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
 
-              <div className={styles.documentsSection}>
-                <h3>Identity Documents</h3>
-                <div className={styles.documentsGrid}>
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
+                  Identity Documents
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
                   {selectedConsultant.idCardFront && (
-                    <div className={styles.docCard}>
-                      <span className={styles.docLabel}>ID Card (Front)</span>
-                      <div className={styles.docPreview}>
-                        {selectedConsultant.idCardFront.startsWith('data:') ? (
-                          <img 
-                            src={selectedConsultant.idCardFront} 
-                            alt="ID Card Front" 
-                            className={styles.docImage}
-                          />
-                        ) : (
-                          <>
-                            <FaFileAlt className={styles.docIcon} />
-                            <p>id-card-front.jpg</p>
-                          </>
-                        )}
-                      </div>
+                    <Box sx={{ border: '2px solid rgba(102, 126, 234, 0.2)', borderRadius: 2, p: 2 }}>
+                      <Typography sx={{ fontWeight: 600, mb: 1 }}>ID Card (Front)</Typography>
                       {selectedConsultant.idCardFront.startsWith('data:') && (
-                        <a 
-                          href={selectedConsultant.idCardFront} 
-                          download="id-card-front.jpg"
-                          className={styles.downloadButton}
-                        >
-                          Download
-                        </a>
+                        <Box
+                          component="img"
+                          src={selectedConsultant.idCardFront}
+                          alt="ID Card Front"
+                          sx={{ width: '100%', borderRadius: 1 }}
+                        />
                       )}
-                    </div>
+                    </Box>
                   )}
                   {selectedConsultant.idCardBack && (
-                    <div className={styles.docCard}>
-                      <span className={styles.docLabel}>ID Card (Back)</span>
-                      <div className={styles.docPreview}>
-                        {selectedConsultant.idCardBack.startsWith('data:') ? (
-                          <img 
-                            src={selectedConsultant.idCardBack} 
-                            alt="ID Card Back" 
-                            className={styles.docImage}
-                          />
-                        ) : (
-                          <>
-                            <FaFileAlt className={styles.docIcon} />
-                            <p>id-card-back.jpg</p>
-                          </>
-                        )}
-                      </div>
+                    <Box sx={{ border: '2px solid rgba(102, 126, 234, 0.2)', borderRadius: 2, p: 2 }}>
+                      <Typography sx={{ fontWeight: 600, mb: 1 }}>ID Card (Back)</Typography>
                       {selectedConsultant.idCardBack.startsWith('data:') && (
-                        <a 
-                          href={selectedConsultant.idCardBack} 
-                          download="id-card-back.jpg"
-                          className={styles.downloadButton}
-                        >
-                          Download
-                        </a>
+                        <Box
+                          component="img"
+                          src={selectedConsultant.idCardBack}
+                          alt="ID Card Back"
+                          sx={{ width: '100%', borderRadius: 1 }}
+                        />
                       )}
-                    </div>
+                    </Box>
                   )}
-                </div>
+                </Box>
+              </Box>
 
-                {selectedConsultant.supportingDocs && selectedConsultant.supportingDocs.length > 0 && (
-                  <>
-                    <h3>Supporting Documents</h3>
-                    <div className={styles.docsList}>
-                      {selectedConsultant.supportingDocs.map((doc: string, index: number) => (
-                        <div key={index} className={styles.docItem}>
-                          {doc.startsWith('data:') ? (
-                            <>
-                              <div className={styles.docImageWrapper}>
-                                <img 
-                                  src={doc} 
-                                  alt={`Supporting Document ${index + 1}`}
-                                  className={styles.docThumbnail}
-                                />
-                              </div>
-                              <span>Document {index + 1}</span>
-                              <a 
-                                href={doc} 
-                                download={`supporting-doc-${index + 1}.jpg`}
-                                className={styles.downloadButton}
-                              >
-                                Download
-                              </a>
-                            </>
-                          ) : (
-                            <>
-                              <FaFileAlt className={styles.docItemIcon} />
-                              <span>Document {index + 1}</span>
-                              <button className={styles.downloadButton}>View/Download</button>
-                            </>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {selectedConsultant.status === 'pending' && (
-              <div className={styles.modalFooter}>
-                <button
-                  className={styles.declineButton}
-                  onClick={() => handleDeclineConsultant(selectedConsultant.id)}
-                >
-                  <FaTimesCircle /> Decline
-                </button>
-                <button
-                  className={styles.approveButton}
-                  onClick={() => handleApproveConsultant(selectedConsultant.id)}
-                >
-                  <FaCheckCircle /> Approve Consultant
-                </button>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-    </div>
+              {selectedConsultant.status === 'pending' && (
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                  <Button
+                    onClick={() => handleDeclineConsultant(selectedConsultant.id)}
+                    startIcon={<FaTimesCircle />}
+                    sx={{
+                      px: 4,
+                      py: 1.5,
+                      borderRadius: 2,
+                      border: '2px solid #ef4444',
+                      color: '#ef4444',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      '&:hover': { background: 'rgba(239, 68, 68, 0.1)' },
+                    }}
+                  >
+                    Decline
+                  </Button>
+                  <Button
+                    onClick={() => handleApproveConsultant(selectedConsultant.id)}
+                    startIcon={<FaCheckCircle />}
+                    sx={{
+                      px: 4,
+                      py: 1.5,
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, #0db4bc 0%, #2d5a5f 100%)',
+                      color: 'white',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      boxShadow: '0 4px 12px rgba(13, 180, 188, 0.4)',
+                      '&:hover': { boxShadow: '0 6px 16px rgba(13, 180, 188, 0.6)' },
+                    }}
+                  >
+                    Approve Consultant
+                  </Button>
+                </Box>
+              )}
+            </>
+          )}
+        </Box>
+      </Modal>
+    </Box>
   );
 };
 
 export default AdminDashboardPage;
-

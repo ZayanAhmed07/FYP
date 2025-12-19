@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUserCircle, FaCamera } from 'react-icons/fa';
+import { Box, Typography, TextField, Button, Avatar, Chip, IconButton } from '@mui/material';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
-import styles from './ProfilePage.module.css';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -90,13 +90,6 @@ const ProfilePage = () => {
         });
       }
     }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setError('');
-    setSuccess('');
   };
 
   const handleConsultantInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -305,261 +298,500 @@ const ProfilePage = () => {
 
   if (!currentUser) {
     return (
-      <div className={styles.container}>
-        <div className={styles.content}>
-          <p>Loading...</p>
-        </div>
-      </div>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Typography sx={{ color: 'white', fontSize: '1.2rem' }}>Loading...</Typography>
+      </Box>
     );
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.wrapper}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+        py: 4,
+        px: { xs: 2, md: 4 },
+      }}
+    >
+      <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         {/* Header */}
-        <div className={styles.header}>
-          <h1 className={styles.title}>Account Settings</h1>
-          <button className={styles.backButton} onClick={() => navigate(-1)}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 4,
+          }}
+        >
+          <Typography variant="h3" sx={{ fontWeight: 700, color: 'white' }}>
+            Account Settings
+          </Typography>
+          <Button
+            onClick={() => navigate(-1)}
+            sx={{
+              color: 'white',
+              border: '2px solid white',
+              '&:hover': {
+                background: 'rgba(255, 255, 255, 0.1)',
+              },
+            }}
+          >
             ← Back to Dashboard
-          </button>
-        </div>
+          </Button>
+        </Box>
 
         {/* Main Content Grid */}
-        <div className={styles.mainContent}>
+        <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
           {/* Sidebar */}
-          <div className={styles.sidebar}>
-            <div className={styles.profileCard}>
-              <div className={styles.profileImageContainer}>
+          <Box sx={{ width: { md: '280px' }, flexShrink: 0 }}>
+            <Box
+              sx={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: '24px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                p: 4,
+                textAlign: 'center',
+              }}
+            >
+              <Box sx={{ position: 'relative', display: 'inline-block', mb: 3 }}>
                 {previewUrl ? (
-                  <img src={previewUrl} alt="Profile" className={styles.profileImage} />
+                  <Avatar
+                    src={previewUrl}
+                    alt="Profile"
+                    sx={{ width: 120, height: 120, border: '4px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  />
                 ) : (
-                  <FaUserCircle className={styles.defaultIcon} />
+                  <FaUserCircle style={{ fontSize: '120px', color: '#9ca3af' }} />
                 )}
-                <label className={styles.uploadLabel} title="Click to change profile picture">
-                  <FaCamera className={styles.cameraIcon} />
+                <IconButton
+                  component="label"
+                  title="Click to change profile picture"
+                  sx={{
+                    position: 'absolute',
+                    bottom: 0,
+                    right: 0,
+                    background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                    color: 'white',
+                    width: 40,
+                    height: 40,
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #0a8b91 0%, #2d5a5f 100%)',
+                    },
+                  }}
+                >
+                  <FaCamera />
                   <input 
                     type="file" 
                     accept="image/*" 
                     onChange={handleImageChange}
                     style={{ display: 'none' }}
                   />
-                </label>
-              </div>
-              <h3 className={styles.userName}>{currentUser.name}</h3>
-              <p className={styles.userEmail}>{currentUser.email}</p>
-            </div>
-          </div>
+                </IconButton>
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a' }}>
+                {currentUser.name}
+              </Typography>
+              <Typography sx={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                {currentUser.email}
+              </Typography>
+            </Box>
+          </Box>
 
           {/* Main Content */}
-          <div className={styles.content}>
+          <Box sx={{ flex: 1 }}>
             {/* Messages */}
             {(success || error) && (
-              <div className={styles.messages}>
-                {success && <div className={styles.successMessage}>{success}</div>}
-                {error && <div className={styles.errorMessage}>{error}</div>}
-              </div>
+              <Box sx={{ mb: 3 }}>
+                {success && (
+                  <Box
+                    sx={{
+                      p: 2,
+                      background: '#f0fdf4',
+                      border: '1px solid #86efac',
+                      borderRadius: '12px',
+                      color: '#166534',
+                      mb: 2,
+                    }}
+                  >
+                    {success}
+                  </Box>
+                )}
+                {error && (
+                  <Box
+                    sx={{
+                      p: 2,
+                      background: '#fef2f2',
+                      border: '1px solid #fecaca',
+                      borderRadius: '12px',
+                      color: '#dc2626',
+                    }}
+                  >
+                    {error}
+                  </Box>
+                )}
+              </Box>
             )}
 
             {/* Personal Information Card */}
-            <div className={styles.card}>
-              <h2 className={styles.cardTitle}>Personal Information</h2>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Full Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className={styles.input}
-                  placeholder="Enter your full name"
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Email Address</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className={styles.input}
-                  placeholder="Enter your email address"
-                />
-              </div>
-            </div>
+            <Box
+              sx={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: '24px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                p: 4,
+                mb: 3,
+              }}
+            >
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: '#1a1a1a' }}>
+                Personal Information
+              </Typography>
+              <TextField
+                fullWidth
+                label="Full Name"
+                name="name"
+                value={formData.name}
+                disabled
+                placeholder="Enter your full name"
+                sx={{
+                  mb: 3,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    backgroundColor: '#f9fafb',
+                    '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                  },
+                }}
+              />
+              <TextField
+                fullWidth
+                label="Email Address"
+                name="email"
+                type="email"
+                value={formData.email}
+                disabled
+                placeholder="Enter your email address"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    backgroundColor: '#f9fafb',
+                    '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                  },
+                }}
+              />
+            </Box>
 
             {/* Consultant Professional Profile - Only for consultants */}
             {currentUser.accountType === 'consultant' && (
               <>
                 {!consultantProfile && (
-                  <div className={styles.infoCard}>
-                    <h3 className={styles.infoTitle}>📝 Complete Your Professional Profile</h3>
-                    <p className={styles.infoText}>
+                  <Box
+                    sx={{
+                      background: 'linear-gradient(135deg, rgba(13, 180, 188, 0.1) 0%, rgba(10, 139, 145, 0.1) 100%)',
+                      border: '2px solid #0db4bc',
+                      borderRadius: '16px',
+                      p: 3,
+                      mb: 3,
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, color: '#0db4bc' }}>
+                      📝 Complete Your Professional Profile
+                    </Typography>
+                    <Typography sx={{ color: '#6b7280' }}>
                       To submit proposals and attract clients, please complete your professional profile below. 
                       All fields marked with * are required.
-                    </p>
-                  </div>
+                    </Typography>
+                  </Box>
                 )}
                 
-                <div className={styles.card}>
-                  <h2 className={styles.cardTitle}>Professional Profile</h2>
-                  <p className={styles.cardSubtitle}>Build your consultant portfolio to attract clients</p>
+                <Box
+                  sx={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: '24px',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                    p: 4,
+                    mb: 3,
+                  }}
+                >
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
+                    Professional Profile
+                  </Typography>
+                  <Typography sx={{ color: '#6b7280', mb: 3 }}>
+                    Build your consultant portfolio to attract clients
+                  </Typography>
                   
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Professional Title *</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={consultantData.title}
-                      onChange={handleConsultantInputChange}
-                      className={styles.input}
-                      placeholder="e.g., Senior Legal Consultant, Business Strategy Expert"
-                    />
-                  </div>
+                  <TextField
+                    fullWidth
+                    label="Professional Title *"
+                    name="title"
+                    value={consultantData.title}
+                    onChange={handleConsultantInputChange}
+                    placeholder="e.g., Senior Legal Consultant, Business Strategy Expert"
+                    sx={{
+                      mb: 3,
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                        '&:hover fieldset': { borderColor: '#0db4bc' },
+                        '&.Mui-focused fieldset': { borderColor: '#0db4bc' },
+                      },
+                    }}
+                  />
 
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Professional Bio / Description *</label>
-                    <textarea
-                      name="bio"
-                      value={consultantData.bio}
-                      onChange={handleConsultantInputChange}
-                      className={styles.textarea}
-                      rows={6}
-                      placeholder="Write a compelling description of your expertise, experience, and what makes you unique..."
-                    />
-                    <span className={styles.hint}>
-                      {consultantData.bio.length} characters (Recommended: 200-500 characters)
-                    </span>
-                  </div>
+                  <TextField
+                    fullWidth
+                    label="Professional Bio / Description *"
+                    name="bio"
+                    value={consultantData.bio}
+                    onChange={handleConsultantInputChange}
+                    multiline
+                    rows={6}
+                    placeholder="Write a compelling description of your expertise, experience, and what makes you unique..."
+                    helperText={`${consultantData.bio.length} characters (Recommended: 200-500 characters)`}
+                    sx={{
+                      mb: 3,
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                        '&:hover fieldset': { borderColor: '#0db4bc' },
+                        '&.Mui-focused fieldset': { borderColor: '#0db4bc' },
+                      },
+                    }}
+                  />
 
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Specialization / Areas of Expertise *</label>
-                    <div className={styles.tagInput}>
-                      <input
-                        type="text"
+                  <Box sx={{ mb: 3 }}>
+                    <Typography sx={{ fontWeight: 600, mb: 1.5, color: '#1a1a1a' }}>
+                      Specialization / Areas of Expertise *
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                      <TextField
+                        fullWidth
                         value={newSpecialization}
                         onChange={(e) => setNewSpecialization(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecialization())}
-                        className={styles.input}
                         placeholder="e.g., Education, Business, Legal"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '12px',
+                            '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                            '&:hover fieldset': { borderColor: '#667eea' },
+                            '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                          },
+                        }}
                       />
-                      <button 
-                        type="button" 
+                      <Button
                         onClick={addSpecialization}
-                        className={styles.addButton}
+                        variant="contained"
+                        sx={{
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          color: 'white',
+                          px: 3,
+                          borderRadius: '12px',
+                          textTransform: 'none',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
+                          },
+                        }}
                       >
                         Add
-                      </button>
-                    </div>
-                    <div className={styles.tagList}>
+                      </Button>
+                    </Box>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                       {consultantData.specialization.map((spec) => (
-                        <span key={spec} className={styles.tag}>
-                          {spec}
-                          <button 
-                            type="button" 
-                            onClick={() => removeSpecialization(spec)}
-                            className={styles.tagRemove}
-                          >
-                            ×
-                          </button>
-                        </span>
+                        <Chip
+                          key={spec}
+                          label={spec}
+                          onDelete={() => removeSpecialization(spec)}
+                          sx={{
+                            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                            color: '#667eea',
+                            fontWeight: 600,
+                            '& .MuiChip-deleteIcon': {
+                              color: '#667eea',
+                              '&:hover': { color: '#5568d3' },
+                            },
+                          }}
+                        />
                       ))}
-                    </div>
-                  </div>
+                    </Box>
+                  </Box>
 
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Years of Experience *</label>
-                    <input
-                      type="text"
-                      name="experience"
-                      value={consultantData.experience}
-                      onChange={handleConsultantInputChange}
-                      className={styles.input}
-                      placeholder="e.g., 10 years, 5+ years"
-                    />
-                  </div>
+                  <TextField
+                    fullWidth
+                    label="Years of Experience *"
+                    name="experience"
+                    value={consultantData.experience}
+                    onChange={handleConsultantInputChange}
+                    placeholder="e.g., 10 years, 5+ years"
+                    sx={{
+                      mb: 3,
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                        '&:hover fieldset': { borderColor: '#667eea' },
+                        '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                      },
+                    }}
+                  />
 
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Hourly Rate (PKR) *</label>
-                    <input
-                      type="number"
-                      name="hourlyRate"
-                      value={consultantData.hourlyRate}
-                      onChange={handleConsultantInputChange}
-                      className={styles.input}
-                      placeholder="e.g., 5000"
-                      min="0"
-                    />
-                  </div>
-                </div>
+                  <TextField
+                    fullWidth
+                    label="Hourly Rate (PKR) *"
+                    name="hourlyRate"
+                    type="number"
+                    value={consultantData.hourlyRate}
+                    onChange={handleConsultantInputChange}
+                    placeholder="e.g., 5000"
+                    inputProps={{ min: 0 }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                        '&:hover fieldset': { borderColor: '#667eea' },
+                        '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                      },
+                    }}
+                  />
+                </Box>
 
-                <div className={styles.card}>
-                  <h2 className={styles.cardTitle}>Skills & Expertise</h2>
-                  <p className={styles.cardSubtitle}>Add relevant skills to showcase your capabilities</p>
+                <Box
+                  sx={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: '24px',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                    p: 4,
+                    mb: 3,
+                  }}
+                >
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
+                    Skills & Expertise
+                  </Typography>
+                  <Typography sx={{ color: '#6b7280', mb: 3 }}>
+                    Add relevant skills to showcase your capabilities
+                  </Typography>
                   
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Skills</label>
-                    <div className={styles.tagInput}>
-                      <input
-                        type="text"
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, mb: 1.5, color: '#1a1a1a' }}>
+                      Skills
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                      <TextField
+                        fullWidth
                         value={newSkill}
                         onChange={(e) => setNewSkill(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                        className={styles.input}
                         placeholder="e.g., Contract Law, Market Research, Curriculum Design"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '12px',
+                            '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                            '&:hover fieldset': { borderColor: '#667eea' },
+                            '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                          },
+                        }}
                       />
-                      <button 
-                        type="button" 
+                      <Button
                         onClick={addSkill}
-                        className={styles.addButton}
+                        variant="contained"
+                        sx={{
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          color: 'white',
+                          px: 3,
+                          borderRadius: '12px',
+                          textTransform: 'none',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
+                          },
+                        }}
                       >
                         Add Skill
-                      </button>
-                    </div>
-                    <div className={styles.tagList}>
+                      </Button>
+                    </Box>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                       {consultantData.skills.map((skill) => (
-                        <span key={skill} className={styles.tag}>
-                          {skill}
-                          <button 
-                            type="button" 
-                            onClick={() => removeSkill(skill)}
-                            className={styles.tagRemove}
-                          >
-                            ×
-                          </button>
-                        </span>
+                        <Chip
+                          key={skill}
+                          label={skill}
+                          onDelete={() => removeSkill(skill)}
+                          sx={{
+                            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                            color: '#667eea',
+                            fontWeight: 600,
+                            '& .MuiChip-deleteIcon': {
+                              color: '#667eea',
+                              '&:hover': { color: '#5568d3' },
+                            },
+                          }}
+                        />
                       ))}
-                    </div>
-                  </div>
-                </div>
+                    </Box>
+                  </Box>
+                </Box>
               </>
             )}
 
             {/* Save All Changes Button - Single button for entire profile */}
-            <div className={styles.saveAllSection}>
-              <div className={styles.actions}>
-                <button 
-                  type="button" 
-                  className={styles.cancelButton}
-                  onClick={() => navigate(-1)}
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="button"
-                  onClick={handleSubmit}
-                  className={styles.saveButton}
-                  disabled={loading}
-                >
-                  {loading ? 'Saving Changes...' : 'Save All Changes'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+              <Button
+                onClick={() => navigate(-1)}
+                disabled={loading}
+                sx={{
+                  color: '#6b7280',
+                  border: '2px solid #e5e7eb',
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': {
+                    borderColor: '#d1d5db',
+                    background: '#f9fafb',
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={loading}
+                variant="contained"
+                sx={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 16px rgba(102, 126, 234, 0.3)',
+                  },
+                  '&:disabled': {
+                    background: 'rgba(0, 0, 0, 0.12)',
+                    color: 'rgba(0, 0, 0, 0.26)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {loading ? 'Saving Changes...' : 'Save All Changes'}
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

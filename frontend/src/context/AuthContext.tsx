@@ -47,53 +47,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         try {
           const profile = await authService.getProfile();
           setUser(profile);
-          
+
           // Update localStorage with fresh data
           localStorage.setItem('expert_raah_user', JSON.stringify(profile));
-          
-          // Handle redirection for authenticated users
-          if (!profile.accountType) {
-            // Only redirect to account-type if on auth pages
-            const currentPath = window.location.pathname;
-            const isOnAuthPage = currentPath === '/login' || currentPath === '/signup' || currentPath === '/';
-            if (isOnAuthPage) {
-              navigate('/account-type', { replace: true });
-            }
-            return;
-          }
-          
-          // Only redirect if on auth pages (login/signup/home) and not already on correct dashboard
-          const currentPath = window.location.pathname;
-          const isOnAuthPage = currentPath === '/login' || currentPath === '/signup' || currentPath === '/';
-          
-          // Don't redirect from common pages that all users can access
-          const commonPages = ['/messages', '/profile', '/settings', '/notifications', '/consultant/', '/payment'];
-          const isOnCommonPage = commonPages.some(page => currentPath.startsWith(page));
-          
-          // Don't redirect from consultant profile pages (viewing profiles should be allowed for all)
-          const isViewingConsultantProfile = /^\/consultant\/[a-zA-Z0-9]+$/.test(currentPath);
-          
-          const isOnWrongDashboard = (
-            (profile.accountType === 'consultant' && currentPath.startsWith('/buyer')) ||
-            ((profile.accountType === 'admin' || profile.roles?.includes('admin')) && 
-             (currentPath.startsWith('/buyer') || currentPath.startsWith('/consultant'))) ||
-            (profile.accountType === 'buyer' && (currentPath.startsWith('/consultant-dashboard') || currentPath.startsWith('/admin')))
-          );
-          
-          if ((isOnAuthPage || isOnWrongDashboard) && !isOnCommonPage && !isViewingConsultantProfile) {
-            if (profile.accountType === 'consultant') {
-              navigate('/consultant-dashboard', { replace: true });
-            } else if (profile.accountType === 'admin' || profile.roles?.includes('admin')) {
-              navigate('/admin', { replace: true });
-            } else {
-              navigate('/buyer-dashboard', { replace: true });
-            }
-          }
         } catch (profileError) {
           // Only use cached data as last resort for network errors, not for auth errors
-          if (!(profileError instanceof Error) || 
-              (!profileError.message.includes('401') && !profileError.message.includes('403') && 
-               !profileError.message.includes('Unauthorized') && !profileError.message.includes('Forbidden'))) {
+          if (!(profileError instanceof Error) ||
+            (!profileError.message.includes('401') && !profileError.message.includes('403') &&
+              !profileError.message.includes('Unauthorized') && !profileError.message.includes('Forbidden'))) {
             const cachedUser = localStorage.getItem('expert_raah_user');
             if (cachedUser) {
               try {
@@ -109,15 +70,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
       } catch (error) {
         // Only clear token for authentication errors (401/403), not for network errors
-        if (error instanceof Error && 
-            (error.message.includes('401') || error.message.includes('403') || 
-             error.message.includes('Unauthorized') || error.message.includes('Forbidden'))) {
+        if (error instanceof Error &&
+          (error.message.includes('401') || error.message.includes('403') ||
+            error.message.includes('Unauthorized') || error.message.includes('Forbidden'))) {
           storage.clearToken(TOKEN_KEY);
           localStorage.removeItem('expert_raah_user');
           setUser(null);
         }
         console.error('Failed to bootstrap auth state', error);
       } finally {
+        // Always ensure user is null if no valid token
+        const token = storage.getToken(TOKEN_KEY);
+        if (!token) {
+          setUser(null);
+        }
         setIsLoading(false);
       }
     };
@@ -133,27 +99,73 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     window.addEventListener('storage', handleStorageChange);
-    
+
     // Listen for user data updates (e.g., from account type selection)
     const handleUserDataUpdate = (e: CustomEvent) => {
       setUser(e.detail);
       localStorage.setItem('expert_raah_user', JSON.stringify(e.detail));
     };
-    
+
     // Listen for OAuth login events
     const handleOAuthLogin = (e: CustomEvent) => {
       setUser(e.detail);
     };
-    
+
     window.addEventListener('userDataUpdated', handleUserDataUpdate as EventListener);
     window.addEventListener('oauthLogin', handleOAuthLogin as EventListener);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('userDataUpdated', handleUserDataUpdate as EventListener);
       window.removeEventListener('oauthLogin', handleOAuthLogin as EventListener);
     };
-  }, [navigate]); // Add navigate to dependency array
+  }, []); // Remove navigate from dependencies to prevent loops
+
+  // Separate useEffect for handling redirects based on user state
+  useEffect(() => {
+    if (isLoading || !user) return;
+
+    const currentPath = window.location.pathname;
+
+    // Don't redirect if on logout page
+    if (currentPath === '/logout') return;
+
+    // Handle users without account type
+    if (!user.accountType) {
+      const isOnAuthPage = currentPath === '/login' || currentPath === '/signup' || currentPath === '/';
+      if (isOnAuthPage) {
+        navigate('/account-type', { replace: true });
+      }
+      return;
+    }
+
+    // Only redirect if on auth pages (login/signup/home) and not already on correct dashboard
+    const isOnAuthPage = currentPath === '/login' || currentPath === '/signup' || currentPath === '/';
+
+    // Don't redirect from common pages that all users can access
+    const commonPages = ['/messages', '/profile', '/settings', '/notifications', '/consultant/', '/payment', '/post-job', '/submit-proposal'];
+    const isOnCommonPage = commonPages.some(page => currentPath.startsWith(page));
+
+    // Don't redirect from consultant profile pages (viewing profiles should be allowed for all)
+    const isViewingConsultantProfile = /^\/consultant\/[a-zA-Z0-9]+$/.test(currentPath);
+
+    const isOnWrongDashboard = (
+      (user.accountType === 'consultant' && currentPath.startsWith('/buyer')) ||
+      ((user.accountType === 'admin' || user.roles?.includes('admin')) &&
+        (currentPath.startsWith('/buyer') || currentPath.startsWith('/consultant'))) ||
+      (user.accountType === 'buyer' && (currentPath.startsWith('/consultant-dashboard') || currentPath.startsWith('/admin')))
+    );
+
+    if ((isOnAuthPage || isOnWrongDashboard) && !isOnCommonPage && !isViewingConsultantProfile) {
+      if (user.accountType === 'consultant') {
+        navigate('/consultant-dashboard', { replace: true });
+      } else if (user.accountType === 'admin' || user.roles?.includes('admin')) {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/buyer-dashboard', { replace: true });
+      }
+    }
+  }, [user, isLoading]); // Removed navigate to prevent infinite loops
 
   const login = async (credentials: { email: string; password: string }) => {
     setIsLoading(true);
@@ -161,19 +173,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Clear any previous user data before login
       setUser(null);
       localStorage.removeItem('expert_raah_user');
-      
+
       const { token, user: profile } = await authService.login(credentials);
       storage.setToken(TOKEN_KEY, token);
       localStorage.setItem('expert_raah_user', JSON.stringify(profile));
-      
+
       // Get fresh profile data from backend to ensure consistency
       try {
         const freshProfile = await authService.getProfile();
         setUser(freshProfile);
         localStorage.setItem('expert_raah_user', JSON.stringify(freshProfile));
-        
+
         toast.success('Logged in successfully');
-        
+
         // Navigate based on user account type with delay to ensure state is updated
         setTimeout(() => {
           if (!freshProfile.accountType) {
@@ -190,9 +202,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // If getProfile fails, use login response data
         console.warn('Failed to refresh profile after login, using login data', error);
         setUser(profile);
-        
+
         toast.success('Logged in successfully');
-        
+
         setTimeout(() => {
           if (!profile.accountType) {
             navigate('/account-type', { replace: true });
@@ -214,11 +226,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = () => {
+    // Clear all authentication data
     storage.clearToken(TOKEN_KEY);
     localStorage.removeItem('expert_raah_user');
+
+    // Clear user state first
     setUser(null);
+
+    // Clear React Query cache
     queryClient.clear();
-    navigate('/login');
+
+    // Navigate to home page
+    navigate('/', { replace: true });
   };
 
   const value = useMemo(

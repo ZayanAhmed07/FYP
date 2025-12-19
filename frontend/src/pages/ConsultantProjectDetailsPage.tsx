@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaMapMarkerAlt, FaClock, FaDownload } from 'react-icons/fa';
-
+import { FaMapMarkerAlt, FaClock, FaDownload, FaArrowLeft } from 'react-icons/fa';
+import { Box, Container, Typography, CircularProgress, Button, Chip } from '@mui/material';
+import { motion } from 'framer-motion';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
-import styles from './ConsultantProjectDetailsPage.module.css';
 
 interface JobFromApi {
   _id: string;
@@ -98,130 +98,424 @@ const ConsultantProjectDetailsPage = () => {
 
   if (loading) {
     return (
-      <div className={styles.pageContainer}>
-        <div className={styles.content}>
-          <p>Loading project...</p>
-        </div>
-      </div>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress sx={{ color: '#fff', mb: 2 }} size={60} />
+          <Typography sx={{ color: '#fff', fontSize: '1.125rem' }}>
+            Loading project...
+          </Typography>
+        </Box>
+      </Box>
     );
   }
 
   if (error || !job) {
     return (
-      <div className={styles.pageContainer}>
-        <div className={styles.content}>
-          <p className={styles.errorText}>{error || 'Project not found.'}</p>
-          <button className={styles.backButton} onClick={() => navigate('/consultant-dashboard')}>
-            ← Back to Projects
-          </button>
-        </div>
-      </div>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 3,
+        }}
+      >
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          sx={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: '24px',
+            p: 4,
+            textAlign: 'center',
+            maxWidth: '500px',
+          }}
+        >
+          <Typography sx={{ color: '#ef4444', fontSize: '1.125rem', mb: 3, fontWeight: 600 }}>
+            {error || 'Project not found.'}
+          </Typography>
+          <Button
+            onClick={() => navigate('/consultant-dashboard')}
+            startIcon={<FaArrowLeft />}
+            sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: '#fff',
+              px: 4,
+              py: 1.5,
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontSize: '1rem',
+              fontWeight: 600,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+              },
+            }}
+          >
+            Back to Projects
+          </Button>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <div className={styles.pageContainer}>
-      <header className={styles.header}>
-        <button className={styles.backButton} onClick={() => navigate(-1)}>
-          ← Back
-        </button>
-        <h1 className={styles.title}>Project Details</h1>
-      </header>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        py: 4,
+      }}
+    >
+      <Container maxWidth="lg">
+        {/* Header */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 3,
+            flexWrap: 'wrap',
+            gap: 2,
+          }}
+        >
+          <Button
+            onClick={() => navigate(-1)}
+            startIcon={<FaArrowLeft />}
+            sx={{
+              color: '#fff',
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
+              px: 3,
+              py: 1,
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontSize: '1rem',
+              fontWeight: 600,
+              '&:hover': {
+                background: 'rgba(255, 255, 255, 0.25)',
+              },
+            }}
+          >
+            Back
+          </Button>
+          <Typography
+            sx={{
+              color: '#fff',
+              fontSize: '2rem',
+              fontWeight: 700,
+            }}
+          >
+            Project Details
+          </Typography>
+        </Box>
 
-      <main className={styles.content}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.categoryBadge}>{job.category}</span>
-            <h2 className={styles.jobTitle}>{job.title}</h2>
-            <div className={styles.metaRow}>
-              <span className={styles.metaItem}>
-                <FaClock /> Posted on {new Date(job.createdAt).toLocaleDateString()}
-              </span>
-              <span className={styles.metaItem}>
-                <FaMapMarkerAlt /> {job.location}
-              </span>
-              <span className={styles.statusBadge}>{job.status === 'open' ? 'Open' : job.status}</span>
-            </div>
-          </div>
+        {/* Main Card */}
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          sx={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: '24px',
+            p: 4,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          {/* Card Header */}
+          <Box sx={{ mb: 4 }}>
+            <Chip
+              label={job.category}
+              sx={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: '#fff',
+                fontWeight: 600,
+                mb: 2,
+                px: 2,
+                py: 2.5,
+              }}
+            />
+            <Typography
+              sx={{
+                fontSize: '2rem',
+                fontWeight: 700,
+                color: '#1f2937',
+                mb: 2,
+              }}
+            >
+              {job.title}
+            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 3,
+                alignItems: 'center',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FaClock style={{ color: '#667eea', fontSize: '18px' }} />
+                <Typography sx={{ color: '#6b7280', fontSize: '0.95rem' }}>
+                  Posted on {new Date(job.createdAt).toLocaleDateString()}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FaMapMarkerAlt style={{ color: '#ef4444', fontSize: '18px' }} />
+                <Typography sx={{ color: '#6b7280', fontSize: '0.95rem' }}>
+                  {job.location}
+                </Typography>
+              </Box>
+              <Chip
+                label={job.status === 'open' ? 'Open' : job.status}
+                sx={{
+                  background: job.status === 'open' ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' : '#9ca3af',
+                  color: '#fff',
+                  fontWeight: 600,
+                }}
+              />
+            </Box>
+          </Box>
 
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Description</h3>
-            <p className={styles.description}>{job.description}</p>
-          </div>
+          {/* Description Section */}
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              sx={{
+                fontSize: '1.25rem',
+                fontWeight: 700,
+                color: '#1f2937',
+                mb: 2,
+              }}
+            >
+              Description
+            </Typography>
+            <Typography
+              sx={{
+                color: '#4b5563',
+                fontSize: '1rem',
+                lineHeight: 1.7,
+              }}
+            >
+              {job.description}
+            </Typography>
+          </Box>
 
-          <div className={styles.sectionGrid}>
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Budget</h3>
-              <p className={styles.highlightValue}>{formatBudget(job.budget)}</p>
-            </div>
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Timeline</h3>
-              <p className={styles.highlightValue}>{job.timeline || 'Not specified'}</p>
-            </div>
-          </div>
+          {/* Budget & Timeline Grid */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gap: 3,
+              mb: 4,
+            }}
+          >
+            <Box
+              sx={{
+                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                borderRadius: '16px',
+                p: 3,
+                color: '#fff',
+              }}
+            >
+              <Typography sx={{ fontSize: '0.875rem', opacity: 0.9, mb: 1 }}>
+                Budget
+              </Typography>
+              <Typography sx={{ fontSize: '1.75rem', fontWeight: 700 }}>
+                {formatBudget(job.budget)}
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                borderRadius: '16px',
+                p: 3,
+                color: '#fff',
+              }}
+            >
+              <Typography sx={{ fontSize: '0.875rem', opacity: 0.9, mb: 1 }}>
+                Timeline
+              </Typography>
+              <Typography sx={{ fontSize: '1.75rem', fontWeight: 700 }}>
+                {job.timeline || 'Not specified'}
+              </Typography>
+            </Box>
+          </Box>
 
+          {/* Skills Section */}
           {job.skills && job.skills.length > 0 && (
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Required Skills</h3>
-              <div className={styles.skillsList}>
-                {job.skills.map((skill: string) => (
-                  <span key={skill} className={styles.skillBadge}>
-                    {skill.trim()}
-                  </span>
+            <Box sx={{ mb: 4 }}>
+              <Typography
+                sx={{
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  color: '#1f2937',
+                  mb: 2,
+                }}
+              >
+                Required Skills
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                {job.skills.map((skill: string, index: number) => (
+                  <Chip
+                    key={index}
+                    label={skill.trim()}
+                    sx={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: '#fff',
+                      fontWeight: 600,
+                      fontSize: '0.95rem',
+                      px: 1,
+                      py: 2.5,
+                      borderRadius: '12px',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                      },
+                      transition: 'all 0.3s ease',
+                    }}
+                  />
                 ))}
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
 
+          {/* Attachments Section */}
           {job.attachments && job.attachments.length > 0 && (
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Attachments</h3>
-              <div className={styles.attachmentsList}>
+            <Box sx={{ mb: 4 }}>
+              <Typography
+                sx={{
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  color: '#1f2937',
+                  mb: 2,
+                }}
+              >
+                Attachments
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {job.attachments.map((attachment: string, index: number) => (
-                  <div key={index} className={styles.attachmentItem}>
-                    <span className={styles.attachmentName}>
+                  <Box
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      p: 2,
+                      background: 'rgba(102, 126, 234, 0.05)',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(102, 126, 234, 0.2)',
+                    }}
+                  >
+                    <Typography sx={{ color: '#4b5563', fontSize: '0.95rem', fontWeight: 500 }}>
                       {getFilenameFromBase64(attachment)}
-                    </span>
-                    <button
-                      className={styles.downloadButton}
+                    </Typography>
+                    <Button
                       onClick={() =>
                         downloadFile(
                           attachment,
                           getFilenameFromBase64(attachment)
                         )
                       }
-                      title="Download attachment"
+                      startIcon={<FaDownload />}
+                      sx={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: '#fff',
+                        px: 3,
+                        py: 1,
+                        borderRadius: '10px',
+                        textTransform: 'none',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+                          transform: 'translateY(-2px)',
+                        },
+                        transition: 'all 0.3s ease',
+                      }}
                     >
-                      <FaDownload /> Download
-                    </button>
-                  </div>
+                      Download
+                    </Button>
+                  </Box>
                 ))}
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
 
-          <div className={styles.actions}>
-            <button
-              className={styles.secondaryButton}
+          {/* Action Buttons */}
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+              justifyContent: 'flex-end',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Button
               onClick={() => navigate('/consultant-dashboard')}
+              sx={{
+                background: 'rgba(156, 163, 175, 0.15)',
+                color: '#4b5563',
+                px: 4,
+                py: 1.5,
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontSize: '1rem',
+                fontWeight: 600,
+                '&:hover': {
+                  background: 'rgba(156, 163, 175, 0.25)',
+                },
+              }}
             >
               Cancel
-            </button>
-            <button
-              className={styles.primaryButton}
+            </Button>
+            <Button
               onClick={() => navigate(`/submit-proposal/${job._id}`)}
               disabled={job.status !== 'open'}
+              sx={{
+                background: job.status === 'open' 
+                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+                  : '#9ca3af',
+                color: '#fff',
+                px: 4,
+                py: 1.5,
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontSize: '1rem',
+                fontWeight: 600,
+                boxShadow: job.status === 'open' ? '0 4px 12px rgba(102, 126, 234, 0.3)' : 'none',
+                '&:hover': {
+                  background: job.status === 'open'
+                    ? 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)'
+                    : '#9ca3af',
+                  boxShadow: job.status === 'open' ? '0 6px 20px rgba(102, 126, 234, 0.4)' : 'none',
+                },
+                '&:disabled': {
+                  color: '#fff',
+                  opacity: 0.6,
+                },
+              }}
             >
               {job.status === 'open' ? 'Submit Proposal' : 'Project Closed'}
-            </button>
-          </div>
-        </section>
-      </main>
-    </div>
+            </Button>
+          </Box>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 
 export default ConsultantProjectDetailsPage;
+
 
 
 

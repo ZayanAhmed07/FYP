@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Box, CircularProgress, Typography } from '@mui/material';
 import { storage } from '../utils/storage';
-import styles from './AuthCallbackPage.module.css';
 
 const AuthCallbackPage = () => {
   const navigate = useNavigate();
@@ -62,12 +62,52 @@ const AuthCallbackPage = () => {
   }, [searchParams, navigate]);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.loader}>
-        <div className={styles.spinner}></div>
-        <p>Completing sign in...</p>
-      </div>
-    </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+      }}
+    >
+      <Box
+        sx={{
+          textAlign: 'center',
+          p: 4,
+          borderRadius: 3,
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <CircularProgress
+          sx={{
+            color: '#0db4bc',
+            mb: 3,
+          }}
+          size={60}
+        />
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 600,
+            color: '#1a1a1a',
+            mb: 1,
+          }}
+        >
+          Completing sign in...
+        </Typography>
+        <Typography
+          sx={{
+            color: '#666',
+            fontSize: '0.95rem',
+          }}
+        >
+          Please wait while we authenticate your account
+        </Typography>
+      </Box>
+    </Box>
   );
 };
 

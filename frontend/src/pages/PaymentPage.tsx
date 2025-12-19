@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaCreditCard, FaMobileAlt } from 'react-icons/fa';
+import { Box, Typography, TextField, Button, IconButton, Avatar, Chip, Modal } from '@mui/material';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
-import styles from './PaymentPage.module.css';
 
 type PaymentMethod = 'easypaisa' | 'jazzcash' | 'card';
 type PaymentStep = 'details' | 'otp' | 'success';
@@ -230,239 +230,559 @@ const PaymentPage = () => {
   };
 
   return (
-    <div className={styles.pageContainer}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        py: 4,
+      }}
+    >
       {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.logo}>
-          <img src="/src/assets/logo.png" alt="Expert Raah" className={styles.logoImage} />
-        </div>
+      <Box
+        sx={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          mb: 3,
+          mx: 3,
+          px: 3,
+          py: 2,
+          borderRadius: '16px',
+          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            component="img"
+            src="/src/assets/logo.png"
+            alt="Expert Raah"
+            sx={{ width: 40, height: 40, borderRadius: '8px' }}
+          />
+          <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+            EXPERT RAAH
+          </Typography>
+        </Box>
 
-        <nav className={styles.nav}>
-          <button className={styles.navItem} onClick={() => navigate('/buyer-dashboard')}>Dashboard</button>
-          <button className={styles.navItem}>Projects</button>
-          <button className={styles.navItemActive}>Payment</button>
-          <button className={styles.navItem}>Orders</button>
-        </nav>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            onClick={() => navigate('/buyer-dashboard')}
+            sx={{ color: '#6b7280', '&:hover': { color: '#667eea' } }}
+          >
+            Dashboard
+          </Button>
+          <Button sx={{ color: '#6b7280', '&:hover': { color: '#667eea' } }}>Projects</Button>
+          <Button
+            sx={{
+              color: '#667eea',
+              fontWeight: 700,
+              borderBottom: '2px solid #667eea',
+              borderRadius: 0,
+            }}
+          >
+            Payment
+          </Button>
+          <Button sx={{ color: '#6b7280', '&:hover': { color: '#667eea' } }}>Orders</Button>
+        </Box>
 
-        <div className={styles.headerActions}>
-          <button className={styles.notificationButton}>🔔</button>
-          <div className={styles.userProfile}>
-            <img 
-              src={currentUser?.profileImage || "https://i.pravatar.cc/150?img=10"} 
-              alt="User" 
-              className={styles.userAvatar} 
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <IconButton sx={{ color: '#667eea' }}>🔔</IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Avatar
+              src={currentUser?.profileImage || "https://i.pravatar.cc/150?img=10"}
+              alt="User"
+              sx={{ width: 36, height: 36 }}
             />
-            <span className={styles.userName}>{currentUser?.name || 'User'}</span>
-          </div>
-        </div>
-      </header>
+            <Typography sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+              {currentUser?.name || 'User'}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
 
       {/* Main Content */}
-      <div className={styles.mainContent}>
+      <Box sx={{ maxWidth: 800, mx: 'auto', px: 3 }}>
         {step === 'details' && (
-          <div className={styles.paymentCard}>
-            <div className={styles.paymentHeader}>
-              <h2 className={styles.paymentTitle}>Payment Details</h2>
-              <div className={styles.amount}>${amount}</div>
-            </div>
+          <Box
+            sx={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '24px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              sx={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                p: 3,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                Payment Details
+              </Typography>
+              <Chip
+                label={`$${amount}`}
+                sx={{
+                  background: 'white',
+                  color: '#667eea',
+                  fontWeight: 700,
+                  fontSize: '1.2rem',
+                  height: 40,
+                  px: 2,
+                }}
+              />
+            </Box>
 
-            {error && <div className={styles.errorMessage}>{error}</div>}
+            {error && (
+              <Box
+                sx={{
+                  mx: 3,
+                  mt: 3,
+                  p: 2,
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '12px',
+                  color: '#dc2626',
+                }}
+              >
+                {error}
+              </Box>
+            )}
 
-            <div className={styles.paymentBody}>
-              <h3 className={styles.sectionTitle}>Choose Payment Method:</h3>
+            <Box sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a' }}>
+                Choose Payment Method:
+              </Typography>
               
-              <div className={styles.paymentMethods}>
-                <button
-                  className={`${styles.methodButton} ${paymentMethod === 'easypaisa' ? styles.methodButtonActive : ''}`}
+              <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
+                <Box
                   onClick={() => setPaymentMethod('easypaisa')}
+                  sx={{
+                    flex: 1,
+                    p: 3,
+                    border: paymentMethod === 'easypaisa' ? '2px solid #667eea' : '2px solid rgba(0,0,0,0.08)',
+                    borderRadius: '16px',
+                    cursor: 'pointer',
+                    background: paymentMethod === 'easypaisa' ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)' : 'white',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      borderColor: '#667eea',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.2)',
+                    },
+                  }}
                 >
-                  <FaMobileAlt className={styles.methodIcon} />
-                  <div className={styles.methodLabel}>EasyPaisa</div>
-                  <div className={styles.methodSubtext}>Pay with your EasyPaisa account</div>
-                </button>
+                  <FaMobileAlt style={{ fontSize: '28px', color: '#667eea', marginBottom: '8px' }} />
+                  <Typography variant="body1" sx={{ fontWeight: 700, mb: 0.5 }}>EasyPaisa</Typography>
+                  <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '0.85rem' }}>Pay with your EasyPaisa account</Typography>
+                </Box>
 
-                <button
-                  className={`${styles.methodButton} ${paymentMethod === 'jazzcash' ? styles.methodButtonActive : ''}`}
+                <Box
                   onClick={() => setPaymentMethod('jazzcash')}
+                  sx={{
+                    flex: 1,
+                    p: 3,
+                    border: paymentMethod === 'jazzcash' ? '2px solid #667eea' : '2px solid rgba(0,0,0,0.08)',
+                    borderRadius: '16px',
+                    cursor: 'pointer',
+                    background: paymentMethod === 'jazzcash' ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)' : 'white',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      borderColor: '#667eea',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.2)',
+                    },
+                  }}
                 >
-                  <FaMobileAlt className={styles.methodIcon} />
-                  <div className={styles.methodLabel}>JazzCash</div>
-                  <div className={styles.methodSubtext}>Pay with your JazzCash account</div>
-                </button>
+                  <FaMobileAlt style={{ fontSize: '28px', color: '#667eea', marginBottom: '8px' }} />
+                  <Typography variant="body1" sx={{ fontWeight: 700, mb: 0.5 }}>JazzCash</Typography>
+                  <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '0.85rem' }}>Pay with your JazzCash account</Typography>
+                </Box>
 
-                <button
-                  className={`${styles.methodButton} ${paymentMethod === 'card' ? styles.methodButtonActive : ''}`}
+                <Box
                   onClick={() => setPaymentMethod('card')}
+                  sx={{
+                    flex: 1,
+                    p: 3,
+                    border: paymentMethod === 'card' ? '2px solid #667eea' : '2px solid rgba(0,0,0,0.08)',
+                    borderRadius: '16px',
+                    cursor: 'pointer',
+                    background: paymentMethod === 'card' ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)' : 'white',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      borderColor: '#667eea',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.2)',
+                    },
+                  }}
                 >
-                  <FaCreditCard className={styles.methodIcon} />
-                  <div className={styles.methodLabel}>Debit/Credit Card</div>
-                  <div className={styles.methodSubtext}>Visa, Mastercard, UnionPay</div>
-                </button>
-              </div>
+                  <FaCreditCard style={{ fontSize: '28px', color: '#667eea', marginBottom: '8px' }} />
+                  <Typography variant="body1" sx={{ fontWeight: 700, mb: 0.5 }}>Debit/Credit Card</Typography>
+                  <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '0.85rem' }}>Visa, Mastercard, UnionPay</Typography>
+                </Box>
+              </Box>
 
-              <h3 className={styles.sectionTitle}>Enter Details</h3>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a' }}>
+                Enter Details
+              </Typography>
 
               {(paymentMethod === 'easypaisa' || paymentMethod === 'jazzcash') && (
-                <div className={styles.formGroup}>
-                  <label className={styles.inputLabel}>Mobile Number</label>
-                  <input
-                    type="text"
-                    className={styles.input}
-                    placeholder="03XX-XXXXXXX"
-                    value={mobileNumber}
-                    onChange={(e) => handleMobileNumberChange(e.target.value)}
-                  />
-                </div>
+                <TextField
+                  fullWidth
+                  label="Mobile Number"
+                  placeholder="03XX-XXXXXXX"
+                  value={mobileNumber}
+                  onChange={(e) => handleMobileNumberChange(e.target.value)}
+                  sx={{
+                    mb: 3,
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                      '&:hover fieldset': { borderColor: '#667eea' },
+                      '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                    },
+                  }}
+                />
               )}
 
               {paymentMethod === 'card' && (
                 <>
-                  <div className={styles.formGroup}>
-                    <label className={styles.inputLabel}>Card Number</label>
-                    <input
-                      type="text"
-                      className={styles.input}
-                      placeholder="1234 5678 9012 3456"
-                      value={cardNumber}
-                      onChange={(e) => handleCardNumberChange(e.target.value)}
-                    />
-                  </div>
+                  <TextField
+                    fullWidth
+                    label="Card Number"
+                    placeholder="1234 5678 9012 3456"
+                    value={cardNumber}
+                    onChange={(e) => handleCardNumberChange(e.target.value)}
+                    sx={{
+                      mb: 3,
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                        '&:hover fieldset': { borderColor: '#667eea' },
+                        '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                      },
+                    }}
+                  />
 
-                  <div className={styles.formGroup}>
-                    <label className={styles.inputLabel}>Card Holder Name</label>
-                    <input
-                      type="text"
-                      className={styles.input}
-                      placeholder="Enter name as on card"
-                      value={cardHolderName}
-                      onChange={(e) => setCardHolderName(e.target.value.toUpperCase())}
-                    />
-                  </div>
+                  <TextField
+                    fullWidth
+                    label="Card Holder Name"
+                    placeholder="John Doe"
+                    value={cardHolderName}
+                    onChange={(e) => setCardHolderName(e.target.value)}
+                    sx={{
+                      mb: 3,
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                        '&:hover fieldset': { borderColor: '#667eea' },
+                        '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                      },
+                    }}
+                  />
 
-                  <div className={styles.formRow}>
-                    <div className={styles.formGroup}>
-                      <label className={styles.inputLabel}>Expiry Date</label>
-                      <input
-                        type="text"
-                        className={styles.input}
-                        placeholder="MM/YY"
-                        value={expiryDate}
-                        onChange={(e) => handleExpiryDateChange(e.target.value)}
-                      />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.inputLabel}>CVV</label>
-                      <input
-                        type="text"
-                        className={styles.input}
-                        placeholder="123"
-                        value={cvv}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, '');
-                          if (val.length <= 4) setCvv(val);
-                        }}
-                        maxLength={4}
-                      />
-                    </div>
-                  </div>
+                  <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                    <TextField
+                      label="Expiry Date"
+                      placeholder="MM/YYYY"
+                      value={expiryDate}
+                      onChange={(e) => handleExpiryDateChange(e.target.value)}
+                      sx={{
+                        flex: 1,
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '12px',
+                          '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                          '&:hover fieldset': { borderColor: '#667eea' },
+                          '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                        },
+                      }}
+                    />
+                    <TextField
+                      label="CVV"
+                      placeholder="123"
+                      value={cvv}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        if (val.length <= 4) setCvv(val);
+                      }}
+                      inputProps={{ maxLength: 4 }}
+                      sx={{
+                        flex: 1,
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '12px',
+                          '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                          '&:hover fieldset': { borderColor: '#667eea' },
+                          '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                        },
+                      }}
+                    />
+                  </Box>
                 </>
               )}
 
-              <button 
-                className={styles.continueButton} 
+              <Button
+                fullWidth
+                variant="contained"
                 onClick={handleContinue}
                 disabled={loading}
+                sx={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  py: 1.8,
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 16px rgba(102, 126, 234, 0.3)',
+                  },
+                  '&:disabled': {
+                    background: 'rgba(0, 0, 0, 0.12)',
+                    color: 'rgba(0, 0, 0, 0.26)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
               >
                 {loading ? 'Processing...' : 'Continue to Payment'}
-              </button>
-            </div>
-          </div>
+              </Button>
+            </Box>
+          </Box>
         )}
 
         {step === 'otp' && (
-          <>
-            <div className={styles.overlay} onClick={() => !loading && setStep('details')}></div>
-            <div className={styles.otpModal}>
-              <h2 className={styles.otpTitle}>Enter OTP</h2>
-              <p className={styles.otpSubtext}>
+          <Modal
+            open={step === 'otp'}
+            onClose={() => !loading && setStep('details')}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                background: 'rgba(255, 255, 255, 0.98)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: '24px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                p: 4,
+                maxWidth: 500,
+                width: '90%',
+                outline: 'none',
+              }}
+            >
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a', textAlign: 'center' }}>
+                Enter OTP
+              </Typography>
+              <Typography sx={{ color: '#6b7280', mb: 3, textAlign: 'center' }}>
                 A 6-digit OTP has been sent to your {paymentMethod === 'card' ? 'registered mobile number' : `${getPaymentMethodDisplay()} account`}.
-              </p>
+              </Typography>
 
               {developmentOtp && (
-                <div className={styles.devOtpInfo}>
+                <Box
+                  sx={{
+                    mb: 3,
+                    p: 2,
+                    background: '#fef3c7',
+                    border: '1px solid #fbbf24',
+                    borderRadius: '12px',
+                    color: '#92400e',
+                    textAlign: 'center',
+                  }}
+                >
                   <strong>Development OTP:</strong> {developmentOtp}
-                </div>
+                </Box>
               )}
 
-              {error && <div className={styles.errorMessage}>{error}</div>}
+              {error && (
+                <Box
+                  sx={{
+                    mb: 3,
+                    p: 2,
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: '12px',
+                    color: '#dc2626',
+                  }}
+                >
+                  {error}
+                </Box>
+              )}
 
-              <div className={styles.otpInputs}>
+              <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center', mb: 3 }}>
                 {otp.map((digit, index) => (
-                  <input
+                  <TextField
                     key={index}
                     id={`otp-${index}`}
                     type="text"
-                    className={styles.otpInput}
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
-                    maxLength={1}
+                    inputProps={{ maxLength: 1, style: { textAlign: 'center', fontSize: '1.5rem', fontWeight: 700 } }}
                     disabled={loading}
+                    sx={{
+                      width: 56,
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                        '&:hover fieldset': { borderColor: '#667eea' },
+                        '&.Mui-focused fieldset': { borderColor: '#667eea', borderWidth: 2 },
+                      },
+                    }}
                   />
                 ))}
-              </div>
+              </Box>
 
-              <button 
-                className={styles.verifyButton} 
+              <Button
+                fullWidth
+                variant="contained"
                 onClick={handleVerifyOtp}
                 disabled={loading}
+                sx={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  py: 1.8,
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
+                  },
+                  '&:disabled': {
+                    background: 'rgba(0, 0, 0, 0.12)',
+                    color: 'rgba(0, 0, 0, 0.26)',
+                  },
+                }}
               >
                 {loading ? 'Verifying...' : 'Verify & Pay'}
-              </button>
-            </div>
-          </>
+              </Button>
+            </Box>
+          </Modal>
         )}
 
         {step === 'success' && (
-          <div className={styles.successCard}>
-            <div className={styles.successContent}>
-              <div className={styles.checkmark}>
-                <svg className={styles.checkmarkIcon} viewBox="0 0 52 52">
-                  <circle className={styles.checkmarkCircle} cx="26" cy="26" r="25" fill="none"/>
-                  <path className={styles.checkmarkCheck} fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                </svg>
-              </div>
-              
-              <h2 className={styles.successTitle}>Payment Successful!</h2>
-              <p className={styles.successMessage}>
-                Your payment of <strong>Rs {amount.toLocaleString()}</strong> has been received and is being held in escrow.
-              </p>
-              <p className={styles.successSubmessage}>
-                The amount will be released to the consultant upon successful completion of the project.
-              </p>
+          <Box
+            sx={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '24px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+              p: 5,
+              textAlign: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3,
+                animation: 'scaleIn 0.5s ease-out',
+                '@keyframes scaleIn': {
+                  '0%': { transform: 'scale(0)', opacity: 0 },
+                  '100%': { transform: 'scale(1)', opacity: 1 },
+                },
+              }}
+            >
+              <svg viewBox="0 0 52 52" style={{ width: '50px', height: '50px' }}>
+                <circle
+                  cx="26"
+                  cy="26"
+                  r="25"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                />
+                <path
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  d="M14.1 27.2l7.1 7.2 16.7-16.8"
+                />
+              </svg>
+            </Box>
+            
+            <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a' }}>
+              Payment Successful!
+            </Typography>
+            <Typography sx={{ color: '#6b7280', mb: 1, fontSize: '1.1rem' }}>
+              Your payment of <strong style={{ color: '#1a1a1a' }}>Rs {amount.toLocaleString()}</strong> has been received and is being held in escrow.
+            </Typography>
+            <Typography sx={{ color: '#9ca3af', mb: 4, fontSize: '0.95rem' }}>
+              The amount will be released to the consultant upon successful completion of the project.
+            </Typography>
 
-              <div className={styles.paymentSummary}>
-                <div className={styles.summaryRow}>
-                  <span>Payment Method:</span>
-                  <span>{getPaymentMethodDisplay()}</span>
-                </div>
-                <div className={styles.summaryRow}>
-                  <span>Amount:</span>
-                  <span>Rs {amount.toLocaleString()}</span>
-                </div>
-                <div className={styles.summaryRow}>
-                  <span>Status:</span>
-                  <span className={styles.statusPaid}>Paid</span>
-                </div>
-              </div>
+            <Box
+              sx={{
+                background: '#f9fafb',
+                borderRadius: '16px',
+                p: 3,
+                mb: 4,
+                textAlign: 'left',
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography sx={{ color: '#6b7280' }}>Payment Method:</Typography>
+                <Typography sx={{ fontWeight: 600, color: '#1a1a1a' }}>{getPaymentMethodDisplay()}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography sx={{ color: '#6b7280' }}>Amount:</Typography>
+                <Typography sx={{ fontWeight: 600, color: '#1a1a1a' }}>Rs {amount.toLocaleString()}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography sx={{ color: '#6b7280' }}>Status:</Typography>
+                <Chip
+                  label="Paid"
+                  size="small"
+                  sx={{
+                    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                    color: 'white',
+                    fontWeight: 700,
+                  }}
+                />
+              </Box>
+            </Box>
 
-              <button className={styles.doneButton} onClick={handleDone}>
-                Go to Dashboard
-              </button>
-            </div>
-          </div>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handleDone}
+              sx={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                py: 1.8,
+                fontSize: '1rem',
+                fontWeight: 700,
+                borderRadius: '12px',
+                textTransform: 'none',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 8px 16px rgba(102, 126, 234, 0.3)',
+                },
+                transition: 'all 0.2s ease',
+              }}
+            >
+              Go to Dashboard
+            </Button>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 
