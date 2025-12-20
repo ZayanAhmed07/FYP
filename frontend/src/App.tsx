@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import { Loader } from './components/ui/Loader';
+import { SocketInitializer } from './components/socket/SocketInitializer';
 import DashboardPage from './pages/DashboardPage';
 import HomePage from './pages/HomePage';
 import SignupPage from './pages/SignupPage';
@@ -26,26 +27,29 @@ import ConsultantProposalsPage from './pages/ConsultantProposalsPage';
 import ConsultantProfileViewPage from './pages/ConsultantProfileViewPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import LogoutPage from './pages/LogoutPage';
+import JobDetailWithMatchingPage from './pages/JobDetailWithMatchingPage';
 
 const App = () => {
   return (
-    <Suspense fallback={<Loader />}>
-      <Routes>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
-        </Route>
-        <Route path="/login" element={<SignupPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+    <>
+      <SocketInitializer />
+      <Suspense fallback={<Loader />}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+          <Route path="/login" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/signup" element={<SignupPage />} />
         <Route path="/account-type" element={<AccountTypePage />} />
         <Route path="/verify-identity" element={
           <ProtectedRoute>
@@ -88,6 +92,11 @@ const App = () => {
             <PostJobPage />
           </ProtectedRoute>
         } />
+        <Route path="/job-detail/:jobId" element={
+          <ProtectedRoute requiredRole="buyer">
+            <JobDetailWithMatchingPage />
+          </ProtectedRoute>
+        } />
         <Route path="/payment" element={
           <ProtectedRoute>
             <PaymentPage />
@@ -127,11 +136,10 @@ const App = () => {
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/404" element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
-      </Routes>
-    </Suspense>
+        </Routes>
+      </Suspense>
+    </>
   );
 };
 
 export default App;
-
-

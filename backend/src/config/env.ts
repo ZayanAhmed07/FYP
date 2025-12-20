@@ -20,6 +20,8 @@ const envSchema = Joi.object({
     .default('info'),
   GOOGLE_CLIENT_ID: Joi.string().optional().allow(''),
   GOOGLE_CLIENT_SECRET: Joi.string().optional().allow(''),
+  HUGGINGFACE_API_KEY: Joi.string().optional().allow(''),
+  GROQ_API_KEY: Joi.string().optional().allow(''),
   API_URL: Joi.string().uri().default('http://localhost:5000'),
 })
   .unknown()
@@ -48,5 +50,10 @@ export const env = {
   adminEmail: value.ADMIN_EMAIL as string,
   googleClientId: value.GOOGLE_CLIENT_ID as string,
   googleClientSecret: value.GOOGLE_CLIENT_SECRET as string,
+  HUGGINGFACE_API_KEY: value.HUGGINGFACE_API_KEY as string,
+  GROQ_API_KEY: value.GROQ_API_KEY as string,
   apiUrl: value.API_URL as string,
 };
+
+export default env;
+

@@ -1,11 +1,12 @@
 /**
  * Socket.IO Client Hook
- * Manages real-time socket connection and messaging events
+ * Uses singleton socket service to prevent duplicate connections
+ * Safe for React 18 Strict Mode and component re-renders
  */
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { env } from '../config/env';
+import { Socket } from 'socket.io-client';
+import { socketService } from '../services/socket.service';
 import { authService } from '../services/authService';
 
 interface UseSocketOptions {
@@ -23,160 +24,216 @@ interface UseSocketOptions {
 }
 
 export const useSocket = (options: UseSocketOptions = {}) => {
-  const socketRef = useRef<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(socketService.isConnected());
   const [isConnecting, setIsConnecting] = useState(false);
+  const listenersRegisteredRef = useRef(false);
 
   /**
-   * Initialize socket connection
+   * Register event listeners on the singleton socket
+   * Only registers once per hook instance
    */
-  const connect = useCallback(() => {
-    if (socketRef.current?.connected) {
-      return socketRef.current;
+  const registerListeners = useCallback((socket: Socket) => {
+    if (listenersRegisteredRef.current) {
+      return; // Already registered
     }
 
-    const token = authService.getToken();
-    if (!token) {
-      console.warn('[Socket] No auth token available');
-      return null;
-    }
-
-    setIsConnecting(true);
-
-    const socket = io(env.apiBaseUrl.replace('/api', ''), {
-      auth: { token },
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5,
-    });
+    console.log('[useSocket] Registering event listeners');
 
     // Connection events
     socket.on('connect', () => {
-      console.log('[Socket] Connected:', socket.id);
+      console.log('[useSocket] Connected:', socket.id);
       setIsConnected(true);
       setIsConnecting(false);
     });
 
     socket.on('disconnect', (reason) => {
-      console.log('[Socket] Disconnected:', reason);
+      console.log('[useSocket] Disconnected:', reason);
       setIsConnected(false);
     });
 
     socket.on('connect_error', (error) => {
-      console.error('[Socket] Connection error:', error.message);
+      console.error('[useSocket] Connection error:', error.message);
       setIsConnecting(false);
       setIsConnected(false);
-    });
-
-    socket.on('reconnect', (attemptNumber) => {
-      console.log('[Socket] Reconnected after', attemptNumber, 'attempts');
-    });
-
-    socket.on('reconnect_attempt', (attemptNumber) => {
-      console.log('[Socket] Reconnection attempt:', attemptNumber);
-    });
-
-    socket.on('reconnect_failed', () => {
-      console.error('[Socket] Reconnection failed');
-      setIsConnecting(false);
     });
 
     // Message events
-    socket.on('message:receive', (data) => {
-      console.log('[Socket] Message received:', data);
-      options.onMessageReceive?.(data);
-    });
+    if (options.onMessageReceive) {
+      socket.on('message:receive', (data) => {
+        console.log('[useSocket] Message received:', data);
+        options.onMessageReceive?.(data);
+      });
+    }
 
-    socket.on('message:delivered', (data) => {
-      console.log('[Socket] Message delivered:', data);
-      options.onMessageDelivered?.(data);
-    });
+    if (options.onMessageDelivered) {
+      socket.on('message:delivered', (data) => {
+        console.log('[useSocket] Message delivered:', data);
+        options.onMessageDelivered?.(data);
+      });
+    }
 
-    socket.on('message:seen', (data) => {
-      console.log('[Socket] Message seen:', data);
-      options.onMessageSeen?.(data);
-    });
+    if (options.onMessageSeen) {
+      socket.on('message:seen', (data) => {
+        console.log('[useSocket] Message seen:', data);
+        options.onMessageSeen?.(data);
+      });
+    }
 
     // Typing events
-    socket.on('typing:start', (data) => {
-      console.log('[Socket] User started typing:', data);
-      options.onTypingStart?.(data);
-    });
+    if (options.onTypingStart) {
+      socket.on('typing:start', (data) => {
+        console.log('[useSocket] User started typing:', data);
+        options.onTypingStart?.(data);
+      });
+    }
 
-    socket.on('typing:stop', (data) => {
-      console.log('[Socket] User stopped typing:', data);
-      options.onTypingStop?.(data);
-    });
+    if (options.onTypingStop) {
+      socket.on('typing:stop', (data) => {
+        console.log('[useSocket] User stopped typing:', data);
+        options.onTypingStop?.(data);
+      });
+    }
 
     // Presence events
-    socket.on('user:online', (data) => {
-      console.log('[Socket] User online:', data);
-      options.onUserOnline?.(data);
-    });
+    if (options.onUserOnline) {
+      socket.on('user:online', (data) => {
+        console.log('[useSocket] User online:', data);
+        options.onUserOnline?.(data);
+      });
+    }
 
-    socket.on('user:offline', (data) => {
-      console.log('[Socket] User offline:', data);
-      options.onUserOffline?.(data);
-    });
+    if (options.onUserOffline) {
+      socket.on('user:offline', (data) => {
+        console.log('[useSocket] User offline:', data);
+        options.onUserOffline?.(data);
+      });
+    }
 
-    socket.on('user:status-changed', (data) => {
-      console.log('[Socket] User status changed:', data);
-      options.onUserStatusChanged?.(data);
-    });
+    if (options.onUserStatusChanged) {
+      socket.on('user:status-changed', (data) => {
+        console.log('[useSocket] User status changed:', data);
+        options.onUserStatusChanged?.(data);
+      });
+    }
 
     // Notification events
-    socket.on('notification:new-message', (data) => {
-      console.log('[Socket] New message notification:', data);
-      options.onNewMessageNotification?.(data);
-    });
+    if (options.onNewMessageNotification) {
+      socket.on('notification:new-message', (data) => {
+        console.log('[useSocket] New message notification:', data);
+        options.onNewMessageNotification?.(data);
+      });
+    }
 
     // Read receipt events
-    socket.on('messages:read', (data) => {
-      console.log('[Socket] Messages marked as read:', data);
-      options.onMessagesRead?.(data);
-    });
+    if (options.onMessagesRead) {
+      socket.on('messages:read', (data) => {
+        console.log('[useSocket] Messages marked as read:', data);
+        options.onMessagesRead?.(data);
+      });
+    }
 
     // Unread count update events
-    socket.on('unread-count:update', (data) => {
-      console.log('[Socket] Unread count updated:', data);
-      options.onUnreadCountUpdate?.(data);
-    });
+    if (options.onUnreadCountUpdate) {
+      socket.on('unread-count:update', (data) => {
+        console.log('[useSocket] Unread count updated:', data);
+        options.onUnreadCountUpdate?.(data);
+      });
+    }
 
-    socketRef.current = socket;
-    return socket;
+    listenersRegisteredRef.current = true;
   }, [options]);
 
   /**
+   * Remove event listeners from socket
+   */
+  const removeListeners = useCallback((socket: Socket) => {
+    if (!listenersRegisteredRef.current) {
+      return; // Nothing to remove
+    }
+
+    console.log('[useSocket] Removing event listeners');
+
+    // Remove connection events
+    socket.off('connect');
+    socket.off('disconnect');
+    socket.off('connect_error');
+
+    // Remove message events
+    socket.off('message:receive');
+    socket.off('message:delivered');
+    socket.off('message:seen');
+
+    // Remove typing events
+    socket.off('typing:start');
+    socket.off('typing:stop');
+
+    // Remove presence events
+    socket.off('user:online');
+    socket.off('user:offline');
+    socket.off('user:status-changed');
+
+    // Remove notification events
+    socket.off('notification:new-message');
+    socket.off('messages:read');
+    socket.off('unread-count:update');
+
+    listenersRegisteredRef.current = false;
+  }, []);
+
+  /**
+   * Connect to socket (idempotent)
+   */
+  const connect = useCallback(() => {
+    const token = authService.getToken();
+    if (!token) {
+      console.warn('[useSocket] No auth token available');
+      return null;
+    }
+
+    // Get or create singleton socket
+    const socket = socketService.connect(token);
+    
+    if (socket) {
+      // Register listeners for this hook instance
+      registerListeners(socket);
+      setIsConnected(socket.connected);
+    }
+
+    return socket;
+  }, [registerListeners]);
+
+  /**
    * Disconnect socket
+   * Note: This removes listeners but doesn't destroy the socket
+   * The socket remains available for other components
    */
   const disconnect = useCallback(() => {
-    if (socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
-      setIsConnected(false);
+    const socket = socketService.getSocket();
+    if (socket) {
+      removeListeners(socket);
     }
-  }, []);
+  }, [removeListeners]);
 
   /**
    * Send a message
    */
   const sendMessage = useCallback((data: { receiverId: string; content: string; tempId?: string }) => {
     return new Promise((resolve, reject) => {
-      if (!socketRef.current?.connected) {
+      const socket = socketService.getSocket();
+      
+      if (!socket?.connected) {
         reject(new Error('Socket not connected'));
         return;
       }
 
-      console.log('[Socket] Sending message:', data);
+      console.log('[useSocket] Sending message:', data);
       
-      socketRef.current.emit('message:send', data, (response: any) => {
+      socket.emit('message:send', data, (response: any) => {
         if (response.success) {
-          console.log('[Socket] Message sent successfully:', response);
+          console.log('[useSocket] Message sent successfully:', response);
           resolve(response);
         } else {
-          console.error('[Socket] Failed to send message:', response.error);
+          console.error('[useSocket] Failed to send message:', response.error);
           reject(new Error(response.error));
         }
       });
@@ -188,12 +245,14 @@ export const useSocket = (options: UseSocketOptions = {}) => {
    */
   const markMessagesSeen = useCallback((messageIds: string[]) => {
     return new Promise((resolve, reject) => {
-      if (!socketRef.current?.connected) {
+      const socket = socketService.getSocket();
+      
+      if (!socket?.connected) {
         reject(new Error('Socket not connected'));
         return;
       }
 
-      socketRef.current.emit('message:mark-seen', { messageIds }, (response: any) => {
+      socket.emit('message:mark-seen', { messageIds }, (response: any) => {
         if (response.success) {
           resolve(response);
         } else {
@@ -208,18 +267,20 @@ export const useSocket = (options: UseSocketOptions = {}) => {
    */
   const markConversationAsRead = useCallback((otherUserId: string) => {
     return new Promise((resolve, reject) => {
-      if (!socketRef.current?.connected) {
+      const socket = socketService.getSocket();
+      
+      if (!socket?.connected) {
         reject(new Error('Socket not connected'));
         return;
       }
 
-      console.log('[Socket] Marking conversation as read:', otherUserId);
-      socketRef.current.emit('conversation:mark-read', { otherUserId }, (response: any) => {
+      console.log('[useSocket] Marking conversation as read:', otherUserId);
+      socket.emit('conversation:mark-read', { otherUserId }, (response: any) => {
         if (response.success) {
-          console.log('[Socket] Conversation marked as read:', response);
+          console.log('[useSocket] Conversation marked as read:', response);
           resolve(response);
         } else {
-          console.error('[Socket] Failed to mark conversation as read:', response.error);
+          console.error('[useSocket] Failed to mark conversation as read:', response.error);
           reject(new Error(response.error));
         }
       });
@@ -230,8 +291,9 @@ export const useSocket = (options: UseSocketOptions = {}) => {
    * Emit typing start
    */
   const startTyping = useCallback((receiverId: string, conversationId?: string) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('typing:start', { receiverId, conversationId });
+    const socket = socketService.getSocket();
+    if (socket?.connected) {
+      socket.emit('typing:start', { receiverId, conversationId });
     }
   }, []);
 
@@ -239,8 +301,9 @@ export const useSocket = (options: UseSocketOptions = {}) => {
    * Emit typing stop
    */
   const stopTyping = useCallback((receiverId: string, conversationId?: string) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('typing:stop', { receiverId, conversationId });
+    const socket = socketService.getSocket();
+    if (socket?.connected) {
+      socket.emit('typing:stop', { receiverId, conversationId });
     }
   }, []);
 
@@ -249,12 +312,14 @@ export const useSocket = (options: UseSocketOptions = {}) => {
    */
   const joinConversation = useCallback((conversationId: string) => {
     return new Promise((resolve, reject) => {
-      if (!socketRef.current?.connected) {
+      const socket = socketService.getSocket();
+      
+      if (!socket?.connected) {
         reject(new Error('Socket not connected'));
         return;
       }
 
-      socketRef.current.emit('conversation:join', { conversationId }, (response: any) => {
+      socket.emit('conversation:join', { conversationId }, (response: any) => {
         if (response.success) {
           resolve(response);
         } else {
@@ -268,8 +333,9 @@ export const useSocket = (options: UseSocketOptions = {}) => {
    * Leave conversation room
    */
   const leaveConversation = useCallback((conversationId: string) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('conversation:leave', { conversationId });
+    const socket = socketService.getSocket();
+    if (socket?.connected) {
+      socket.emit('conversation:leave', { conversationId });
     }
   }, []);
 
@@ -278,12 +344,14 @@ export const useSocket = (options: UseSocketOptions = {}) => {
    */
   const getOnlineUsers = useCallback(() => {
     return new Promise((resolve, reject) => {
-      if (!socketRef.current?.connected) {
+      const socket = socketService.getSocket();
+      
+      if (!socket?.connected) {
         reject(new Error('Socket not connected'));
         return;
       }
 
-      socketRef.current.emit('users:get-online', (response: any) => {
+      socket.emit('users:get-online', (response: any) => {
         if (response.success) {
           resolve(response.users);
         } else {
@@ -298,12 +366,14 @@ export const useSocket = (options: UseSocketOptions = {}) => {
    */
   const checkUserOnline = useCallback((userId: string) => {
     return new Promise((resolve, reject) => {
-      if (!socketRef.current?.connected) {
+      const socket = socketService.getSocket();
+      
+      if (!socket?.connected) {
         reject(new Error('Socket not connected'));
         return;
       }
 
-      socketRef.current.emit('user:check-online', { userId }, (response: any) => {
+      socket.emit('user:check-online', { userId }, (response: any) => {
         if (response.success) {
           resolve(response.isOnline);
         } else {
@@ -313,19 +383,53 @@ export const useSocket = (options: UseSocketOptions = {}) => {
     });
   }, []);
 
-  // Auto-connect on mount
+  /**
+   * Connect once on mount, cleanup on unmount
+   * Idempotent for React 18 Strict Mode
+   * Socket is already connected by SocketInitializer, just register listeners
+   */
   useEffect(() => {
-    const socket = connect();
-    
-    return () => {
+    let mounted = true;
+
+    const initSocket = () => {
+      if (!mounted) return;
+
+      const socket = socketService.getSocket();
+      
       if (socket) {
-        socket.disconnect();
+        // Socket already exists (from SocketInitializer), just register listeners
+        console.log('[useSocket] Registering listeners on existing socket...');
+        registerListeners(socket);
+        setIsConnected(socket.connected);
+      } else {
+        // Fallback: socket doesn't exist yet, try to connect
+        console.log('[useSocket] No socket found, attempting to connect...');
+        const token = authService.getToken();
+        if (token) {
+          const newSocket = socketService.connect(token);
+          if (newSocket) {
+            registerListeners(newSocket);
+            setIsConnected(newSocket.connected);
+          }
+        }
       }
     };
-  }, []);
+
+    initSocket();
+
+    // Cleanup: remove listeners but keep socket alive for other components
+    return () => {
+      mounted = false;
+      console.log('[useSocket] Component unmounting, removing listeners...');
+      const socket = socketService.getSocket();
+      if (socket) {
+        removeListeners(socket);
+      }
+    };
+  }, []); // Empty deps - run once per component mount
 
   return {
-    socket: socketRef.current,
+    socket: socketService.getSocket(),
     isConnected,
     isConnecting,
     connect,

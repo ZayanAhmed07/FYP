@@ -17,7 +17,10 @@ import {
   FaChevronUp,
   FaComments,
   FaSearch,
+  FaMoon,
+  FaSun,
 } from 'react-icons/fa';
+import { useThemeMode } from '../context/ThemeContext';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
 import { orderService } from '../services/orderService';
@@ -99,6 +102,7 @@ const BuyerDashboardPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showNotification, showConfirm } = useNotification();
+  const { mode, toggleTheme } = useThemeMode();
   const [activeTab, setActiveTab] = useState<
     'browse' | 'myJobs' | 'proposals' | 'orders' | 'stats'
   >('browse');
@@ -113,10 +117,15 @@ const BuyerDashboardPage = () => {
   const [proposalsError, setProposalsError] = useState('');
   const [consultants, setConsultants] = useState<any[]>([]);
   const [consultantsLoading, setConsultantsLoading] = useState(false);
+  const [consultantPage, setConsultantPage] = useState(1);
+  const [consultantTotalPages, setConsultantTotalPages] = useState(1);
+  const [consultantHasMore, setConsultantHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [filters, setFilters] = useState({
     city: '',
     specialization: '',
+    search: '',
   });
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -245,6 +254,7 @@ const BuyerDashboardPage = () => {
 
     // Connect to socket
     connect();
+    connect();
 
     // Request notification permission
     if ('Notification' in window && Notification.permission === 'default') {
@@ -258,6 +268,15 @@ const BuyerDashboardPage = () => {
       disconnect();
     };
   }, []);
+
+  // Refetch consultants when filters change
+  useEffect(() => {
+    if (activeTab === 'browse') {
+      setConsultantPage(1);
+      fetchConsultants(1, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.city, filters.specialization, filters.search, activeTab]);
 
   useEffect(() => {
     if (location.state?.tab) {
@@ -273,11 +292,27 @@ const BuyerDashboardPage = () => {
     }
   }, [location.state, navigate]);
 
-  const fetchConsultants = async () => {
+  const fetchConsultants = async (page = 1, append = false) => {
     try {
-      setConsultantsLoading(true);
-      const response = await httpClient.get('/consultants?isVerified=true');
+      if (append) {
+        setIsLoadingMore(true);
+      } else {
+        setConsultantsLoading(true);
+      }
+      
+      // Build query params with filters
+      const params = new URLSearchParams();
+      params.append('isVerified', 'true');
+      params.append('page', page.toString());
+      params.append('limit', '10');
+      
+      if (filters.city) params.append('city', filters.city);
+      if (filters.specialization) params.append('specialization', filters.specialization);
+      if (filters.search) params.append('search', filters.search);
+      
+      const response = await httpClient.get(`/consultants?${params.toString()}`);
       const consultantsData = response.data?.data?.consultants || response.data?.data || [];
+      const pagination = response.data?.data?.pagination;
 
       // Transform data to match component structure
       const transformedConsultants = consultantsData.map((c: any) => {
@@ -311,11 +346,25 @@ const BuyerDashboardPage = () => {
         };
       });
 
-      setConsultants(transformedConsultants);
+      if (append) {
+        setConsultants(prev => [...prev, ...transformedConsultants]);
+      } else {
+        setConsultants(transformedConsultants);
+      }
+      
+      // Update pagination state
+      if (pagination) {
+        setConsultantPage(pagination.page);
+        setConsultantTotalPages(pagination.pages);
+        setConsultantHasMore(pagination.page < pagination.pages);
+      } else {
+        setConsultantHasMore(false);
+      }
     } catch (error) {
       console.error('Failed to fetch consultants', error);
     } finally {
       setConsultantsLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -663,6 +712,24 @@ const BuyerDashboardPage = () => {
                     {unreadMessageCount}
                   </Box>
                 )}
+              </IconButton>
+
+              {/* Theme Toggle Button */}
+              <IconButton
+                onClick={toggleTheme}
+                sx={{
+                  background: (theme) => theme.palette.mode === 'dark'
+                    ? 'rgba(13, 180, 188, 0.1)'
+                    : 'rgba(13, 180, 188, 0.05)',
+                  color: '#0db4bc',
+                  '&:hover': {
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(13, 180, 188, 0.2)'
+                      : 'rgba(13, 180, 188, 0.1)',
+                  },
+                }}
+              >
+                {mode === 'dark' ? <FaSun /> : <FaMoon />}
               </IconButton>
 
               {/* User Profile Dropdown */}
@@ -1320,7 +1387,7 @@ const BuyerDashboardPage = () => {
                             <Chip
                               label={jobCategory}
                               sx={{
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                                 color: 'white',
                                 fontWeight: 600,
                               }}
@@ -1728,7 +1795,7 @@ const BuyerDashboardPage = () => {
                               {job.title}
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                              <Chip label={job.category} size="small" sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }} />
+                              <Chip label={job.category} size="small" sx={{ background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)', color: 'white' }} />
                               <Chip label={job.location} size="small" icon={<FaMapMarkerAlt />} />
                               <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
                                 Posted on {new Date(job.createdAt).toLocaleDateString()}
@@ -1773,7 +1840,7 @@ const BuyerDashboardPage = () => {
                           <Box sx={{ display: 'flex', gap: 1 }}>
                             <Button
                               variant="outlined"
-                              onClick={() => navigate(`/post-job/${job._id}`)}
+                              onClick={() => navigate(`/job-detail/${job._id}`)}
                               sx={{
                                 borderRadius: '10px',
                                 borderColor: '#0db4bc',
@@ -1786,7 +1853,7 @@ const BuyerDashboardPage = () => {
                                 },
                               }}
                             >
-                              Edit
+                              View Details
                             </Button>
                             <Button
                               variant="outlined"
@@ -1935,6 +2002,8 @@ const BuyerDashboardPage = () => {
                     <TextField
                       fullWidth
                       placeholder="Search Consultants"
+                      value={filters.search}
+                      onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                       InputProps={{
                         startAdornment: (
                           <Box component="span" sx={{ mr: 1, display: 'flex', color: '#0db4bc' }}>
@@ -2014,20 +2083,8 @@ const BuyerDashboardPage = () => {
                         </Typography>
                       </Card>
                     ) : (
-                      consultants
-                        .filter((consultant) => {
-                          if (filters.city && consultant.city !== filters.city) {
-                            return false;
-                          }
-                          if (
-                            filters.specialization &&
-                            !consultant.specializationArray?.includes(filters.specialization)
-                          ) {
-                            return false;
-                          }
-                          return true;
-                        })
-                        .map((consultant) => (
+                      <>
+                        {consultants.map((consultant) => (
                           <Card
                             key={consultant.id}
                             component={motion.div}
@@ -2093,7 +2150,7 @@ const BuyerDashboardPage = () => {
                                     label={consultant.category}
                                     size="small"
                                     sx={{
-                                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                      background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                                       color: 'white',
                                       fontWeight: 600,
                                       fontSize: '0.7rem',
@@ -2245,7 +2302,55 @@ const BuyerDashboardPage = () => {
                               </Box>
                             </Box>
                           </Card>
-                        ))
+                        ))}
+                        
+                        {/* Load More Button */}
+                        {consultantHasMore && (
+                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                            <Button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                fetchConsultants(consultantPage + 1, true);
+                              }}
+                              disabled={isLoadingMore}
+                              sx={{
+                                py: 1.5,
+                                px: 4,
+                                borderRadius: '16px',
+                                background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                                color: 'white',
+                                fontWeight: 600,
+                                textTransform: 'none',
+                                fontSize: '1rem',
+                                boxShadow: '0 4px 20px rgba(13, 180, 188, 0.4)',
+                                '&:hover': {
+                                  background: 'linear-gradient(135deg, #0a8b91 0%, #086f75 100%)',
+                                  boxShadow: '0 6px 30px rgba(13, 180, 188, 0.5)',
+                                },
+                                '&:disabled': {
+                                  background: 'rgba(13, 180, 188, 0.3)',
+                                },
+                              }}
+                            >
+                              {isLoadingMore ? (
+                                <CircularProgress size={24} sx={{ color: 'white' }} />
+                              ) : (
+                                'Load More Consultants'
+                              )}
+                            </Button>
+                          </Box>
+                        )}
+                        
+                        {/* Pagination Info */}
+                        {consultants.length > 0 && (
+                          <Box sx={{ textAlign: 'center', mt: 2 }}>
+                            <Typography variant="body2" color="text.secondary">
+                              Showing {consultants.length} consultant{consultants.length !== 1 ? 's' : ''}
+                              {consultantTotalPages > 1 && ` (Page ${consultantPage} of ${consultantTotalPages})`}
+                            </Typography>
+                          </Box>
+                        )}
+                      </>
                     )}
                   </Box>
                 </Box>

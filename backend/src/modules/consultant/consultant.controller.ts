@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 
 import { catchAsync } from '../../utils/catchAsync';
 import * as consultantService from './consultant.service';
+import consultantMatchingService from '../../services/consultant-matching.service';
 
 export const createConsultant = catchAsync(async (req: Request, res: Response) => {
   const consultant = await consultantService.createConsultant(req.body);
@@ -101,4 +102,49 @@ export const getConsultantStats = catchAsync(async (req: Request, res: Response)
   const stats = await consultantService.getConsultantStats(id);
   res.status(200).json({ success: true, data: stats });
 });
+
+export const suggestConsultantsForJob = catchAsync(async (req: Request, res: Response) => {
+  const { jobId } = req.params;
+  
+  if (!jobId) {
+    return res.status(400).json({ success: false, error: 'Job ID is required' });
+  }
+  
+  const matches = await consultantMatchingService.suggestConsultantsForJob(jobId);
+  res.status(200).json({ 
+    success: true, 
+    data: matches,
+    message: `Found ${matches.length} matching consultants`
+  });
+});
+
+export const findBestMatches = catchAsync(async (req: Request, res: Response) => {
+  const { title, description, category, skills, budget } = req.body;
+  
+  if (!title || !description || !category) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Title, description, and category are required' 
+    });
+  }
+  
+  const matches = await consultantMatchingService.findBestMatches({
+    title,
+    description,
+    category,
+    skills,
+    budget,
+  }, {
+    limit: req.body.limit || 10,
+    minScore: req.body.minScore || 0.4,
+    onlyVerified: req.body.onlyVerified || false,
+  });
+  
+  res.status(200).json({ 
+    success: true, 
+    data: matches,
+    message: `Found ${matches.length} matching consultants`
+  });
+});
+
 

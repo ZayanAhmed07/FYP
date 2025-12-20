@@ -42,15 +42,30 @@ export const registerMessageHandlers = (
 
       logger.info(`[Socket] message:send from ${userId} to ${receiverId}`);
 
-      // Validate input
+      // Validate input types and format
       if (!receiverId || !content) {
         const error = { success: false, error: 'Receiver ID and content are required' };
         callback?.(error);
         return;
       }
 
+      // Validate MongoDB ObjectId format
       if (!Types.ObjectId.isValid(receiverId)) {
         const error = { success: false, error: 'Invalid receiver ID format' };
+        callback?.(error);
+        return;
+      }
+
+      // Sanitize content: trim whitespace and limit length
+      const sanitizedContent = content.trim();
+      if (sanitizedContent.length === 0) {
+        const error = { success: false, error: 'Message content cannot be empty' };
+        callback?.(error);
+        return;
+      }
+
+      if (sanitizedContent.length > 5000) {
+        const error = { success: false, error: 'Message content exceeds maximum length' };
         callback?.(error);
         return;
       }
@@ -86,13 +101,13 @@ export const registerMessageHandlers = (
         conversationId: conversation._id.toString(),
         senderId: userId,
         receiverId,
-        content: content.trim(),
+        content: sanitizedContent,
         isRead: false,
         status: 'sent',
       });
 
       // Update conversation
-      conversation.lastMessage = content.substring(0, 100);
+      conversation.lastMessage = sanitizedContent.substring(0, 100);
       conversation.lastMessageAt = new Date();
       const receiverUnreadCount = conversation.unreadCount.get(receiverId) || 0;
       conversation.unreadCount.set(receiverId, receiverUnreadCount + 1);
@@ -212,6 +227,12 @@ export const registerMessageHandlers = (
 
       if (!messageIds || !Array.isArray(messageIds)) {
         callback?.({ success: false, error: 'Message IDs array is required' });
+        return;
+      }
+
+      // Limit array size to prevent abuse
+      if (messageIds.length > 100) {
+        callback?.({ success: false, error: 'Too many message IDs (max 100)' });
         return;
       }
 

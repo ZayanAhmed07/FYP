@@ -8,8 +8,15 @@ import { useNavigate } from 'react-router-dom';
 import ChatMessage from './ChatMessage';
 import ProgressIndicator from './ProgressIndicator';
 import type { ChatMessage as ChatMessageType, ConversationState, ConversationStep } from '../../types/chatbotTypes';
+import { SKILL_KEYWORDS } from '../../types/chatbotTypes';
+import { sarahAI } from '../../services/rachelAI.service';
 
-const ChatbotWidget = () => {
+interface ChatbotWidgetProps {
+    initialOpen?: boolean;
+    onJobDataChange?: (jobData: any, progress: number, currentStep: ConversationStep) => void;
+}
+
+const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetProps) => {
     const navigate = useNavigate();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [inputValue, setInputValue] = useState('');
@@ -20,16 +27,29 @@ const ChatbotWidget = () => {
         progress: 0,
         jobData: {},
         messages: [],
-        isOpen: false,
+        isOpen: initialOpen,
     });
 
+    // Notify parent component when job data changes
+    useEffect(() => {
+        if (onJobDataChange) {
+            onJobDataChange(state.jobData, state.progress, state.currentStep);
+        }
+    }, [state.jobData, state.progress, state.currentStep, onJobDataChange]);
+
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     };
 
     useEffect(() => {
         scrollToBottom();
     }, [state.messages]);
+
+    // Auto-scroll when new message is added
+    useEffect(() => {
+        const timer = setTimeout(() => scrollToBottom(), 100);
+        return () => clearTimeout(timer);
+    }, [state.messages.length]);
 
     const addMessage = (text: string, sender: 'user' | 'assistant', isTyping = false) => {
         const newMessage: ChatMessageType = {
@@ -70,12 +90,12 @@ const ChatbotWidget = () => {
         return progressMap[step];
     };
 
-    const simulateTyping = async (text: string): Promise<string> => {
+    const simulateTyping = async (text: string, useAI: boolean = false): Promise<string> => {
         setIsTyping(true);
         const typingId = addMessage('', 'assistant', true);
 
         // Simulate typing delay
-        await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
+        await new Promise(resolve => setTimeout(resolve, useAI ? 1200 : 800 + Math.random() * 400));
 
         updateMessage(typingId, { text, isTyping: false });
         setIsTyping(false);
@@ -84,13 +104,13 @@ const ChatbotWidget = () => {
 
     const getAssistantMessage = (step: ConversationStep): string => {
         const messages: Record<ConversationStep, string> = {
-            welcome: "Hi! I'm Rachel, your legal job posting assistant. I'm here to help you find the perfect legal professional for your needs. What type of legal help are you looking for?",
-            description: "Great! Can you tell me more about your legal needs? Please provide a detailed description of what you're looking for.",
-            category: "Perfect! Which legal specialty best matches your needs?",
-            budget: "Understood. What's your budget range for this project? (Please provide minimum and maximum amounts in PKR)",
-            timeline: "Got it! What's your timeline or deadline for this project?",
-            location: "Excellent! Do you prefer remote consultants, in-office, or hybrid work arrangements? Please specify your location preference.",
-            summary: `Thank you! Let me summarize what we've collected:\n\n📋 Description: ${state.jobData.description}\n📁 Legal Specialty: ${state.jobData.category}\n💰 Budget: PKR ${state.jobData.budgetMin?.toLocaleString()} - ${state.jobData.budgetMax?.toLocaleString()}\n⏰ Timeline: ${state.jobData.timeline}\n📍 Location: ${state.jobData.location}\n\nWould you like to post this job and connect with qualified legal professionals?`,
+            welcome: "Hi! 👋 I'm Sarah, your Raah assistant. I'll help you post your job and connect with qualified Pakistani consultants in Education, Business, and Legal fields. Let's start! What kind of help do you need?",
+            description: "Excellent! Tell me more about your project. What specific tasks or outcomes are you looking for? The more details you provide, the better I can match you with the right consultant.",
+            category: "Got it! Which category best describes your needs?",
+            budget: "Perfect! What's your budget for this project? You can say something like '10000 to 50000' or just '25000'. I work in PKR (Pakistani Rupees).",
+            timeline: "Understood! When do you need this completed? For example: '1 week', '2 months', 'ASAP', or a specific date.",
+            location: "Great! Where would you like the consultant to work? Choose: Rawalpindi, Islamabad, Lahore, Karachi, or Remote.",
+            summary: `Thank you! Let me summarize what we've collected:\n\n📋 Description: ${state.jobData.description}\n📁 Category: ${state.jobData.category}\n🎯 Skills Detected: ${state.jobData.skills?.length ? state.jobData.skills.join(', ') : 'None'}\n💰 Budget: PKR ${state.jobData.budgetMin?.toLocaleString()} - ${state.jobData.budgetMax?.toLocaleString()}\n⏰ Timeline: ${state.jobData.timeline}\n📍 Location: ${state.jobData.location}\n\nWould you like to post this job and connect with qualified Pakistani consultants?`,
             complete: "Perfect! Redirecting you to finalize your job posting...",
         };
         return messages[step];
@@ -98,13 +118,40 @@ const ChatbotWidget = () => {
 
     const handleCategorySelect = async (category: string) => {
         addMessage(category, 'user');
+        
+        // Auto-detect skills from description based on category
+        const detectedSkills = extractSkillsFromDescription(state.jobData.description || '', category);
+        
         setState(prev => ({
             ...prev,
-            jobData: { ...prev.jobData, category },
+            jobData: { 
+                ...prev.jobData, 
+                category,
+                skills: detectedSkills 
+            },
             currentStep: 'budget',
             progress: calculateProgress('budget'),
         }));
         await simulateTyping(getAssistantMessage('budget'));
+    };
+
+    // Smart skill extraction from description
+    const extractSkillsFromDescription = (description: string, category: string): string[] => {
+        const lowerDesc = description.toLowerCase();
+        const skills: string[] = [];
+        const categorySkills = SKILL_KEYWORDS[category as keyof typeof SKILL_KEYWORDS] || [];
+        
+        categorySkills.forEach(keyword => {
+            if (lowerDesc.includes(keyword.toLowerCase())) {
+                // Capitalize first letter
+                const skill = keyword.charAt(0).toUpperCase() + keyword.slice(1);
+                if (!skills.includes(skill)) {
+                    skills.push(skill);
+                }
+            }
+        });
+        
+        return skills.slice(0, 6); // Limit to 6 skills
     };
 
     const handleSummaryAction = async (action: 'post' | 'edit') => {
@@ -133,58 +180,424 @@ const ChatbotWidget = () => {
         setInputValue('');
 
         const currentStep = state.currentStep;
-        const nextStep = getNextStep(currentStep);
 
-        // Update job data based on current step
-        let updatedJobData = { ...state.jobData };
+        try {
+            // Use Groq AI for intelligent responses
+            const aiResponse = await sarahAI.getResponse(userMessage, state.messages, currentStep);
 
-        switch (currentStep) {
-            case 'welcome':
-            case 'description':
-                updatedJobData.description = userMessage;
-                break;
-            case 'budget':
-                // Parse budget from user input (e.g., "5000-10000" or "5000 to 10000")
-                const budgetMatch = userMessage.match(/(\d+)[\s-]+(?:to\s+)?(\d+)/);
-                if (budgetMatch) {
-                    updatedJobData.budgetMin = parseInt(budgetMatch[1]);
-                    updatedJobData.budgetMax = parseInt(budgetMatch[2]);
-                } else {
-                    const singleBudget = parseInt(userMessage.replace(/\D/g, ''));
-                    if (singleBudget) {
-                        updatedJobData.budgetMin = singleBudget;
-                        updatedJobData.budgetMax = singleBudget * 1.5;
-                    }
+            // Handle welcome - collect initial description
+            if (currentStep === 'welcome') {
+                const description = state.jobData.description || '';
+                const combinedDescription = description ? `${description} ${userMessage}` : userMessage;
+                
+                // Check if description is detailed enough (at least 20 words)
+                const wordCount = combinedDescription.trim().split(/\s+/).length;
+                
+                if (wordCount < 20) {
+                    setState(prev => ({
+                        ...prev,
+                        jobData: { ...prev.jobData, description: combinedDescription },
+                        currentStep: 'description',
+                        progress: calculateProgress('description'),
+                    }));
+                    await simulateTyping(aiResponse || getAssistantMessage('description'), true);
+                    return;
                 }
-                break;
-            case 'timeline':
-                updatedJobData.timeline = userMessage;
-                break;
-            case 'location':
-                updatedJobData.location = userMessage;
-                break;
+                
+                // Description is detailed enough, proceed to category detection
+                const detectedCategory = await sarahAI.detectCategory(combinedDescription);
+                
+                if (detectedCategory) {
+                    const detectedSkills = await sarahAI.extractSkills(combinedDescription, detectedCategory);
+                    
+                    setState(prev => ({
+                        ...prev,
+                        jobData: {
+                            ...prev.jobData,
+                            description: combinedDescription,
+                            category: detectedCategory,
+                            skills: detectedSkills
+                        },
+                        currentStep: 'budget',
+                        progress: calculateProgress('budget'),
+                    }));
+                    
+                    await simulateTyping(aiResponse || `Great! I can see you need help with ${detectedCategory}. ${getAssistantMessage('budget')}`, true);
+                    return;
+                } else {
+                    setState(prev => ({
+                        ...prev,
+                        jobData: { ...prev.jobData, description: combinedDescription },
+                        currentStep: 'category',
+                        progress: calculateProgress('category'),
+                    }));
+                    await simulateTyping(aiResponse || getAssistantMessage('category'), true);
+                    return;
+                }
+            }
+
+            // Handle description step - append more details
+            if (currentStep === 'description') {
+                const previousDescription = state.jobData.description || '';
+                const fullDescription = `${previousDescription} ${userMessage}`.trim();
+                
+                const detectedCategory = await sarahAI.detectCategory(fullDescription);
+                
+                if (detectedCategory) {
+                    const detectedSkills = await sarahAI.extractSkills(fullDescription, detectedCategory);
+                    
+                    setState(prev => ({
+                        ...prev,
+                        jobData: {
+                            ...prev.jobData,
+                            description: fullDescription,
+                            category: detectedCategory,
+                            skills: detectedSkills
+                        },
+                        currentStep: 'budget',
+                        progress: calculateProgress('budget'),
+                    }));
+                    
+                    await simulateTyping(aiResponse || `Excellent! I can see you need help with ${detectedCategory}. ${getAssistantMessage('budget')}`, true);
+                    return;
+                } else {
+                    setState(prev => ({
+                        ...prev,
+                        jobData: { ...prev.jobData, description: fullDescription },
+                        currentStep: 'category',
+                        progress: calculateProgress('category'),
+                    }));
+                    await simulateTyping(aiResponse || getAssistantMessage('category'), true);
+                    return;
+                }
+            }
+
+            // Handle other steps
+            let updatedJobData = { ...state.jobData };
+            const nextStep = getNextStep(currentStep);
+
+            switch (currentStep) {
+                case 'budget':
+                    const budgetInfo = parseBudget(userMessage);
+                    if (budgetInfo) {
+                        updatedJobData.budgetMin = budgetInfo.min;
+                        updatedJobData.budgetMax = budgetInfo.max;
+                    } else {
+                        await simulateTyping(aiResponse || "I didn't quite catch that. Please tell me your budget like '10000 to 50000' or just '25000' in PKR.", true);
+                        return;
+                    }
+                    break;
+                case 'timeline':
+                    updatedJobData.timeline = userMessage;
+                    break;
+                case 'location':
+                    updatedJobData.location = normalizeLocation(userMessage);
+                    break;
+            }
+
+            setState(prev => ({
+                ...prev,
+                jobData: updatedJobData,
+                currentStep: nextStep,
+                progress: calculateProgress(nextStep),
+            }));
+
+            await simulateTyping(aiResponse || getAssistantMessage(nextStep), true);
+
+        } catch (error) {
+            console.error('Sarah AI error:', error);
+            // Fallback to hardcoded logic
+            const detectedCategory = detectCategoryFromText(userMessage);
+            let updatedJobData = { ...state.jobData };
+            const nextStep = getNextStep(currentStep);
+
+            if ((currentStep === 'welcome' || currentStep === 'description') && detectedCategory) {
+                const skillsDetected = extractSkillsFromDescription(userMessage, detectedCategory);
+                updatedJobData = {
+                    ...updatedJobData,
+                    description: userMessage,
+                    category: detectedCategory,
+                    skills: skillsDetected
+                };
+                setState(prev => ({
+                    ...prev,
+                    jobData: updatedJobData,
+                    currentStep: 'budget',
+                    progress: calculateProgress('budget'),
+                }));
+                await simulateTyping(`I can see you need help with ${detectedCategory}! ${getAssistantMessage('budget')}`);
+                return;
+            }
+
+            // Continue with original logic for other steps
+            switch (currentStep) {
+                case 'welcome':
+                case 'description':
+                    updatedJobData.description = userMessage;
+                    break;
+                case 'budget':
+                    const budgetInfo = parseBudget(userMessage);
+                    if (budgetInfo) {
+                        updatedJobData.budgetMin = budgetInfo.min;
+                        updatedJobData.budgetMax = budgetInfo.max;
+                    } else {
+                        await simulateTyping("I didn't quite catch that. Please tell me your budget like '10000 to 50000' or just '25000' in PKR.");
+                        return;
+                    }
+                    break;
+                case 'timeline':
+                    updatedJobData.timeline = userMessage;
+                    break;
+                case 'location':
+                    updatedJobData.location = normalizeLocation(userMessage);
+                    break;
+            }
+
+            setState(prev => ({
+                ...prev,
+                jobData: updatedJobData,
+                currentStep: nextStep,
+                progress: calculateProgress(nextStep),
+            }));
+
+            await simulateTyping(getAssistantMessage(nextStep));
         }
+    };
 
-        setState(prev => ({
-            ...prev,
-            jobData: updatedJobData,
-            currentStep: nextStep,
-            progress: calculateProgress(nextStep),
-        }));
+    // Detect category from text using keywords
+    const detectCategoryFromText = (text: string): string | null => {
+        const lowerText = text.toLowerCase();
+        
+        if (lowerText.match(/tutor|teach|education|student|learn|study|homework|exam|school|college|university|sat|test prep/)) {
+            return 'Education';
+        }
+        if (lowerText.match(/business|market|sales|finance|account|consult|strategy|management|project/)) {
+            return 'Business';
+        }
+        if (lowerText.match(/legal|law|lawyer|contract|compliance|litigation|attorney|court|lawsuit/)) {
+            return 'Legal';
+        }
+        
+        return null;
+    };
 
-        await simulateTyping(getAssistantMessage(nextStep));
+    // Smart budget parser
+    const parseBudget = (text: string): { min: number; max: number } | null => {
+        // Remove commas and extract numbers
+        const cleaned = text.replace(/,/g, '');
+        
+        // Pattern 1: "10000 to 50000" or "10000-50000"
+        const rangeMatch = cleaned.match(/(\d+)[\s-]+(?:to\s+)?(\d+)/);
+        if (rangeMatch) {
+            return {
+                min: parseInt(rangeMatch[1]),
+                max: parseInt(rangeMatch[2])
+            };
+        }
+        
+        // Pattern 2: Single number like "25000"
+        const singleMatch = cleaned.match(/\d+/);
+        if (singleMatch) {
+            const budget = parseInt(singleMatch[0]);
+            return {
+                min: Math.floor(budget * 0.8), // 20% lower
+                max: Math.floor(budget * 1.2)  // 20% higher
+            };
+        }
+        
+        return null;
+    };
+
+    // Normalize Pakistani city names
+    const normalizeLocation = (text: string): string => {
+        const lowerText = text.toLowerCase();
+        
+        if (lowerText.includes('rawalpindi') || lowerText.includes('pindi')) {
+            return 'Rawalpindi, Pakistan';
+        }
+        if (lowerText.includes('islamabad') || lowerText.includes('isb')) {
+            return 'Islamabad, Pakistan';
+        }
+        if (lowerText.includes('lahore') || lowerText.includes('lhr')) {
+            return 'Lahore, Pakistan';
+        }
+        if (lowerText.includes('karachi') || lowerText.includes('khi')) {
+            return 'Karachi, Pakistan';
+        }
+        if (lowerText.includes('remote') || lowerText.includes('online') || lowerText.includes('virtual')) {
+            return 'Remote (Pakistan)';
+        }
+        
+        // Default to what user typed
+        return text;
     };
 
     const handleOpen = async () => {
         setState(prev => ({ ...prev, isOpen: true }));
-        if (state.messages.length === 0) {
-            await simulateTyping(getAssistantMessage('welcome'));
-        }
+        // Don't send welcome message on open - it's already sent on mount
     };
 
     const handleClose = () => {
         setState(prev => ({ ...prev, isOpen: false }));
     };
+
+    // Initialize welcome message for embedded mode - only once
+    useEffect(() => {
+        if (initialOpen && state.messages.length === 0) {
+            const timer = setTimeout(() => {
+                simulateTyping(getAssistantMessage('welcome'));
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, []); // Empty dependency array to run only once
+
+    // If initialOpen is true, render embedded mode (no floating button)
+    if (initialOpen) {
+        return (
+            <Box
+                sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                }}
+            >
+                {/* Header */}
+                <Box
+                    sx={{
+                        p: 2,
+                        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                        color: 'white',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <ChatIcon />
+                        <Box>
+                            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
+                                Sarah - Raah AI Assistant 🤖
+                            </Typography>
+                            <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                                Chat with me to post your job and find Pakistani consultants
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Box>
+
+                {/* Main Content */}
+                <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
+                    {/* Messages Area */}
+                    <Box
+                        sx={{
+                            flex: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            overflow: 'hidden',
+                            minHeight: 0,
+                        }}
+                    >
+                        {/* Messages */}
+                        <Box
+                            sx={{
+                                flex: 1,
+                                overflowY: 'auto',
+                                p: 3,
+                                bgcolor: '#fafafa',
+                                minHeight: 0,
+                            }}
+                        >
+                            {state.messages.map(message => (
+                                <ChatMessage key={message.id} message={message} />
+                            ))}
+
+                            {/* Category Selection */}
+                            {state.currentStep === 'category' && !isTyping && (
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+                                    {['Education', 'Business', 'Legal'].map(category => (
+                                        <Chip
+                                            key={category}
+                                            label={category}
+                                            onClick={() => handleCategorySelect(category)}
+                                            sx={{
+                                                bgcolor: '#0db4bc',
+                                                color: 'white',
+                                                '&:hover': {
+                                                    bgcolor: '#0a8b91',
+                                                },
+                                                cursor: 'pointer',
+                                                fontWeight: 600,
+                                            }}
+                                        />
+                                    ))}
+                                </Box>
+                            )}
+
+                            {/* Summary View - No buttons, just show summary */}
+                            {state.currentStep === 'summary' && !isTyping && (
+                                <Box sx={{ mt: 2, p: 2, bgcolor: '#f0f9ff', borderRadius: 2 }}>
+                                    <Typography sx={{ fontSize: '0.875rem', color: '#0369a1', fontWeight: 500 }}>
+                                        ℹ️ Job details collected! Review the preview on the right and click "Post Job" when ready.
+                                    </Typography>
+                                </Box>
+                            )}
+
+                            <div ref={messagesEndRef} />
+                        </Box>
+
+                        {/* Input Area */}
+                        <Box sx={{ p: 2, bgcolor: 'white', borderTop: '1px solid #e0e0e0', flexShrink: 0 }}>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Message Sarah"
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                    disabled={isTyping || state.currentStep === 'category' || state.currentStep === 'summary' || state.currentStep === 'complete'}
+                                    size="small"
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 3,
+                                            bgcolor: 'white',
+                                            '& input': {
+                                                color: '#1f2937',
+                                            },
+                                            '& input::placeholder': {
+                                                color: '#9ca3af',
+                                                opacity: 1,
+                                            },
+                                        },
+                                    }}
+                                />
+                                <IconButton
+                                    onClick={handleSendMessage}
+                                    disabled={!inputValue.trim() || isTyping || state.currentStep === 'category' || state.currentStep === 'summary'}
+                                    sx={{
+                                        bgcolor: 'primary.main',
+                                        color: 'white',
+                                        '&:hover': {
+                                            bgcolor: 'primary.dark',
+                                        },
+                                        '&.Mui-disabled': {
+                                            bgcolor: '#e0e0e0',
+                                        },
+                                    }}
+                                >
+                                    <SendIcon />
+                                </IconButton>
+                            </Box>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
+                                Raah Assistant can make mistakes. Check important info.
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Box>
+            </Box>
+        );
+    }
+
+    // Default floating widget mode
 
     return (
         <>
@@ -208,10 +621,10 @@ const ChatbotWidget = () => {
                             sx={{
                                 width: 64,
                                 height: 64,
-                                background: 'linear-gradient(135deg, #9333ea 0%, #7c3aed 100%)',
+                                background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                                 boxShadow: '0 8px 24px rgba(13, 180, 188, 0.4)',
                                 '&:hover': {
-                                    background: 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)',
+                                    background: 'linear-gradient(135deg, #0a8b91 0%, #08696d 100%)',
                                     boxShadow: '0 12px 32px rgba(13, 180, 188, 0.5)',
                                 },
                             }}
@@ -255,7 +668,7 @@ const ChatbotWidget = () => {
                             <Box
                                 sx={{
                                     p: 2,
-                                    background: 'linear-gradient(135deg, #9333ea 0%, #7c3aed 100%)',
+                                    background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                                     color: 'white',
                                     display: 'flex',
                                     justifyContent: 'space-between',
@@ -266,10 +679,10 @@ const ChatbotWidget = () => {
                                     <ChatIcon />
                                     <Box>
                                         <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
-                                            Rachel - Legal Job Assistant
+                                            Sarah - Raah AI Assistant 🤖
                                         </Typography>
                                         <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                                            Have a quick chat. We'll build your case. Connect with Consultants.
+                                            Chat with me to post your job and find Pakistani consultants
                                         </Typography>
                                     </Box>
                                 </Box>
@@ -305,7 +718,7 @@ const ChatbotWidget = () => {
                                         {/* Category Selection */}
                                         {state.currentStep === 'category' && !isTyping && (
                                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
-                                                {['Legal', 'Business Consulting', 'Technical/IT', 'Marketing', 'Financial', 'Design', 'Writing', 'Other'].map(category => (
+                                                {['Education', 'Business', 'Legal'].map(category => (
                                                     <Chip
                                                         key={category}
                                                         label={category}
@@ -354,7 +767,7 @@ const ChatbotWidget = () => {
                                         <Box sx={{ display: 'flex', gap: 1 }}>
                                             <TextField
                                                 fullWidth
-                                                placeholder="Message Raah Assistant"
+                                                placeholder="Message Sarah"
                                                 value={inputValue}
                                                 onChange={(e) => setInputValue(e.target.value)}
                                                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
@@ -363,6 +776,14 @@ const ChatbotWidget = () => {
                                                 sx={{
                                                     '& .MuiOutlinedInput-root': {
                                                         borderRadius: 3,
+                                                        bgcolor: 'white',
+                                                        '& input': {
+                                                            color: '#1f2937',
+                                                        },
+                                                        '& input::placeholder': {
+                                                            color: '#9ca3af',
+                                                            opacity: 1,
+                                                        },
                                                     },
                                                 }}
                                             />

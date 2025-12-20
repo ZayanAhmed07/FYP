@@ -83,7 +83,7 @@ const ConsultantProfileViewPage = () => {
       <Box
         sx={{
           minHeight: '100vh',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -104,7 +104,7 @@ const ConsultantProfileViewPage = () => {
       <Box
         sx={{
           minHeight: '100vh',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -131,7 +131,7 @@ const ConsultantProfileViewPage = () => {
             onClick={() => navigate(-1)}
             startIcon={<FaArrowLeft />}
             sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
               color: '#fff',
               px: 4,
               py: 1.5,
@@ -140,7 +140,7 @@ const ConsultantProfileViewPage = () => {
               fontSize: '1rem',
               fontWeight: 600,
               '&:hover': {
-                background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+                background: 'linear-gradient(135deg, #0a8b91 0%, #0db4bc 100%)',
               },
             }}
           >
@@ -157,7 +157,7 @@ const ConsultantProfileViewPage = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
         py: 4,
       }}
     >
@@ -210,8 +210,8 @@ const ConsultantProfileViewPage = () => {
                   sx={{
                     width: 160,
                     height: 160,
-                    border: '4px solid #667eea',
-                    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.3)',
+                    border: '4px solid #0db4bc',
+                    boxShadow: '0 8px 24px rgba(13, 180, 188, 0.3)',
                   }}
                 />
               ) : (
@@ -220,11 +220,11 @@ const ConsultantProfileViewPage = () => {
                     width: 160,
                     height: 160,
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.3)',
+                    boxShadow: '0 8px 24px rgba(13, 180, 188, 0.3)',
                   }}
                 >
                   <FaUserCircle style={{ fontSize: '80px', color: '#fff' }} />
@@ -247,7 +247,7 @@ const ConsultantProfileViewPage = () => {
               <Typography
                 sx={{
                   fontSize: '1.25rem',
-                  color: '#667eea',
+                  color: '#0db4bc',
                   fontWeight: 600,
                   mb: 2,
                 }}
@@ -288,7 +288,7 @@ const ConsultantProfileViewPage = () => {
                 onClick={handleMessageConsultant}
                 startIcon={<FaEnvelope />}
                 sx={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                   color: '#fff',
                   px: 4,
                   py: 1.5,
@@ -296,10 +296,10 @@ const ConsultantProfileViewPage = () => {
                   textTransform: 'none',
                   fontSize: '1rem',
                   fontWeight: 600,
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                  boxShadow: '0 4px 15px rgba(13, 180, 188, 0.3)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
-                    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
+                    background: 'linear-gradient(135deg, #0a8b91 0%, #0db4bc 100%)',
+                    boxShadow: '0 6px 20px rgba(13, 180, 188, 0.4)',
                   },
                 }}
               >
@@ -323,7 +323,7 @@ const ConsultantProfileViewPage = () => {
               icon: <FaBriefcase style={{ fontSize: '28px' }} />,
               value: consultant.completedProjects || 0,
               label: 'Completed Projects',
-              gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              gradient: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
             },
             {
               icon: <FaClock style={{ fontSize: '28px' }} />,
@@ -515,7 +515,7 @@ const ConsultantProfileViewPage = () => {
                   key={index}
                   label={skill}
                   sx={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                     color: '#fff',
                     fontWeight: 600,
                     fontSize: '0.95rem',
@@ -524,7 +524,7 @@ const ConsultantProfileViewPage = () => {
                     borderRadius: '12px',
                     '&:hover': {
                       transform: 'translateY(-2px)',
-                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                      boxShadow: '0 4px 12px rgba(13, 180, 188, 0.4)',
                     },
                     transition: 'all 0.3s ease',
                   }}
@@ -564,7 +564,7 @@ const ConsultantProfileViewPage = () => {
                 width: 48,
                 height: 48,
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

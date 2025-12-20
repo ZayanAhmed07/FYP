@@ -27,7 +27,17 @@ import { env } from '../../config/env';
 export const login = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const result = await authService.login(email, password);
-  res.status(200).json(ApiResponse.success(200, 'Login successful', result));
+  
+  // Set token in HttpOnly cookie for XSS protection
+  res.cookie('authToken', result.token, {
+    httpOnly: true,
+    secure: env.nodeEnv === 'production',
+    sameSite: 'strict',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  });
+  
+  // Return user data without token
+  res.status(200).json(ApiResponse.success(200, 'Login successful', { user: result.user }));
 });
 
 /**
@@ -40,7 +50,17 @@ export const login = catchAsync(async (req: Request, res: Response) => {
  */
 export const register = catchAsync(async (req: Request, res: Response) => {
   const result = await authService.register(req.body);
-  res.status(201).json(ApiResponse.success(201, 'Registration successful', result));
+  
+  // Set token in HttpOnly cookie for XSS protection
+  res.cookie('authToken', result.token, {
+    httpOnly: true,
+    secure: env.nodeEnv === 'production',
+    sameSite: 'strict',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  });
+  
+  // Return user data without token
+  res.status(201).json(ApiResponse.success(201, 'Registration successful', { user: result.user }));
 });
 
 export const forgotPassword = catchAsync(async (req: Request, res: Response) => {
@@ -109,8 +129,16 @@ export const googleAuthCallback = (req: Request, res: Response) => {
   // Generate JWT token for the authenticated user
   const token = tokenService.generateToken({ id: user._id.toString(), roles: user.roles });
   
-  // Redirect to frontend with token
-  res.redirect(`${env.frontendUrl}/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify({
+  // Set token in HttpOnly cookie for security
+  res.cookie('authToken', token, {
+    httpOnly: true,
+    secure: env.nodeEnv === 'production',
+    sameSite: 'strict',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  });
+  
+  // Redirect to frontend without token in URL
+  res.redirect(`${env.frontendUrl}/auth/callback?user=${encodeURIComponent(JSON.stringify({
     id: user._id,
     name: user.name,
     email: user.email,
@@ -120,6 +148,7 @@ export const googleAuthCallback = (req: Request, res: Response) => {
     profileImage: user.profileImage,
   }))}`);
 };
+
 
 
 

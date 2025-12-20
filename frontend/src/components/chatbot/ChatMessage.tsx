@@ -29,19 +29,19 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                         sx={{
                             width: 36,
                             height: 36,
-                            bgcolor: 'primary.main',
+                            bgcolor: '#0db4bc',
                             fontSize: '0.9rem',
                         }}
                     >
-                        R
+                        S
                     </Avatar>
                 )}
 
                 <Box
                     sx={{
                         maxWidth: '75%',
-                        bgcolor: isAssistant ? '#f5f5f5' : 'primary.main',
-                        color: isAssistant ? 'text.primary' : 'white',
+                        bgcolor: isAssistant ? '#e0f7f9' : '#0db4bc',
+                        color: isAssistant ? '#1f2937' : 'white',
                         px: 2,
                         py: 1.5,
                         borderRadius: 2,

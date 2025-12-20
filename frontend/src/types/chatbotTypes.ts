@@ -35,14 +35,16 @@ export interface ConversationState {
 }
 
 export const CATEGORIES = [
-    'Business Law',
-    'Contract Law',
-    'Employment Law',
-    'Intellectual Property',
-    'Real Estate Law',
-    'Family Law',
-    'Criminal Law',
-    'Tax Law',
+    'Education',
+    'Business',
+    'Legal',
 ] as const;
 
 export type Category = typeof CATEGORIES[number];
+
+// Skill keywords for automatic extraction
+export const SKILL_KEYWORDS: Record<string, string[]> = {
+    Education: ['teaching', 'tutoring', 'curriculum', 'student', 'learning', 'exam', 'homework', 'study', 'math', 'science', 'english', 'counseling', 'SAT', 'test prep'],
+    Business: ['marketing', 'sales', 'strategy', 'finance', 'accounting', 'management', 'consulting', 'planning', 'development', 'project', 'operations', 'supply chain', 'digital'],
+    Legal: ['contract', 'law', 'legal', 'compliance', 'regulation', 'litigation', 'corporate', 'tax law', 'employment law', 'intellectual property', 'patent', 'trademark'],
+};

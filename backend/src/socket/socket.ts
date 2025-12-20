@@ -69,9 +69,25 @@ export const initializeSocket = (httpServer: HTTPServer): Server => {
   io.on('connection', (socket: Socket) => {
     const userId = (socket as any).userId;
     
-    logger.info(`[Socket.IO] User connected: ${userId} (socket: ${socket.id})`);
+    // Check if user already has an active connection
+    const existingSocketId = activeUsers.get(userId);
+    if (existingSocketId) {
+      const existingSocket = userSockets.get(existingSocketId);
+      if (existingSocket && existingSocket.connected) {
+        logger.warn(
+          `[Socket.IO] User ${userId} already connected with socket ${existingSocketId}. Disconnecting old connection.`
+        );
+        existingSocket.emit('force-disconnect', {
+          reason: 'New connection established from another location',
+        });
+        existingSocket.disconnect(true);
+        userSockets.delete(existingSocketId);
+      }
+    }
 
-    // Track active user
+    logger.info(`[Socket.IO] ✅ User connected: ${userId} (socket: ${socket.id})`);
+
+    // Track active user with new socket
     activeUsers.set(userId, socket.id);
     userSockets.set(socket.id, socket);
 
@@ -88,9 +104,12 @@ export const initializeSocket = (httpServer: HTTPServer): Server => {
 
     // Handle disconnection
     socket.on('disconnect', (reason) => {
-      logger.info(`[Socket.IO] User disconnected: ${userId} (${reason})`);
+      logger.info(`[Socket.IO] ❌ User disconnected: ${userId} (${reason})`);
       
-      activeUsers.delete(userId);
+      // Only remove if this socket is still the active one for this user
+      if (activeUsers.get(userId) === socket.id) {
+        activeUsers.delete(userId);
+      }
       userSockets.delete(socket.id);
       
       // Notify about offline status

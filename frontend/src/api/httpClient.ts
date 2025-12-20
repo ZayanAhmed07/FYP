@@ -1,9 +1,6 @@
 import axios from 'axios';
 
 import { env } from '../config/env';
-import { storage } from '../utils/storage';
-
-const TOKEN_KEY = 'expert_raah_token';
 
 export const httpClient = axios.create({
   baseURL: env.apiBaseUrl,
@@ -11,13 +8,11 @@ export const httpClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Enable sending cookies with requests
 });
 
 httpClient.interceptors.request.use((config) => {
-  const token = storage.getToken(TOKEN_KEY);
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  // Token is now in HttpOnly cookie, automatically sent by browser
   return config;
 });
 
@@ -31,13 +26,15 @@ httpClient.interceptors.response.use(
       const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
       
       if (!isPublicPath) {
-        storage.clearToken(TOKEN_KEY);
+        // Clear local user data
+        localStorage.removeItem('expert_raah_user');
         window.location.assign('/login');
       }
     }
     return Promise.reject(error);
   },
 );
+
 
 
 

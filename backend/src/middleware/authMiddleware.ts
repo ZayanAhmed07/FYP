@@ -12,12 +12,16 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export const authenticate = (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
-  const header = req.headers.authorization;
-  if (!header) {
-    throw new ApiError(401, 'Authentication required');
+  // Try to get token from cookie first (more secure), fallback to Authorization header
+  let token = req.cookies?.authToken;
+  
+  if (!token) {
+    const header = req.headers.authorization;
+    if (!header) {
+      throw new ApiError(401, 'Authentication required');
+    }
+    token = header.replace('Bearer ', '');
   }
-
-  const token = header.replace('Bearer ', '');
 
   try {
     const payload = jwt.verify(token, env.jwtSecret!) as AuthenticatedRequest['user'];
@@ -30,6 +34,7 @@ export const authenticate = (req: AuthenticatedRequest, _res: Response, next: Ne
     throw new ApiError(401, 'Invalid or expired token');
   }
 };
+
 
 
 

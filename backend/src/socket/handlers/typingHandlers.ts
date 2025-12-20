@@ -4,6 +4,7 @@
  */
 
 import { Server, Socket } from 'socket.io';
+import { Types } from 'mongoose';
 import logger from '../../config/logger';
 
 interface TypingData {
@@ -28,7 +29,13 @@ export const registerTypingHandlers = (
   socket.on('typing:start', (data: TypingData) => {
     const { receiverId, conversationId } = data;
 
-    if (!receiverId) {
+    // Validate receiverId
+    if (!receiverId || !Types.ObjectId.isValid(receiverId)) {
+      return;
+    }
+
+    // Validate conversationId if provided
+    if (conversationId && !Types.ObjectId.isValid(conversationId)) {
       return;
     }
 
@@ -50,7 +57,13 @@ export const registerTypingHandlers = (
   socket.on('typing:stop', (data: TypingData) => {
     const { receiverId, conversationId } = data;
 
-    if (!receiverId) {
+    // Validate receiverId
+    if (!receiverId || !Types.ObjectId.isValid(receiverId)) {
+      return;
+    }
+
+    // Validate conversationId if provided
+    if (conversationId && !Types.ObjectId.isValid(conversationId)) {
       return;
     }
 

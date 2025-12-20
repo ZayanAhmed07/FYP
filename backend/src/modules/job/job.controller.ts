@@ -30,11 +30,35 @@ export const getJobById = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const updateJob = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  
+  if (!userId) {
+    throw new ApiError(401, 'Authentication required');
+  }
+
+  // Verify ownership before update
+  const existingJob = await jobService.getJobById(req.params.id!);
+  if (existingJob.buyerId.toString() !== userId) {
+    throw new ApiError(403, 'You do not have permission to update this job');
+  }
+
   const job = await jobService.updateJob(req.params.id!, req.body);
   res.status(200).json({ success: true, data: job });
 });
 
 export const deleteJob = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  
+  if (!userId) {
+    throw new ApiError(401, 'Authentication required');
+  }
+
+  // Verify ownership before delete
+  const existingJob = await jobService.getJobById(req.params.id!);
+  if (existingJob.buyerId.toString() !== userId) {
+    throw new ApiError(403, 'You do not have permission to delete this job');
+  }
+
   await jobService.deleteJob(req.params.id!);
   res.status(200).json({ success: true, message: 'Job deleted successfully' });
 });

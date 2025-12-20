@@ -12,6 +12,7 @@ import reviewRoutes from '../modules/review/review.routes';
 import contactRoutes from '../modules/contact/contact.routes';
 import notificationRoutes from '../modules/notification/notification.routes';
 import analyticsRoutes from '../modules/analytics/analytics.routes';
+import chatbotRoutes from '../modules/chatbot/chatbot.routes';
 import { authenticate } from '../middleware/authMiddleware';
 import * as messagingController from '../modules/messaging/messaging.controller';
 
@@ -31,6 +32,7 @@ router.use('/reviews', reviewRoutes);
 router.use('/contacts', contactRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/analytics', analyticsRoutes);
+router.use('/chatbot', chatbotRoutes);
 
 // Conversations endpoint
 router.get('/conversations', authenticate, messagingController.getConversations);
