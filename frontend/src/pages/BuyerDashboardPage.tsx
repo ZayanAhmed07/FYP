@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import {
   FaPlus,
   FaStar,
@@ -104,7 +104,7 @@ const BuyerDashboardPage = () => {
   const { showNotification, showConfirm } = useNotification();
   const { mode, toggleTheme } = useThemeMode();
   const [activeTab, setActiveTab] = useState<
-    'browse' | 'myJobs' | 'proposals' | 'orders' | 'stats'
+    'browse' | 'myJobs' | 'proposals' | 'orders'
   >('browse');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -146,28 +146,34 @@ const BuyerDashboardPage = () => {
     const user = authService.getCurrentUser();
     if (user) {
       setCurrentUser(user);
-      // Refresh user data from backend to get latest profile image
-      const refreshUser = async () => {
-        try {
-          const response = await httpClient.get('/users/me');
-          if (response.data?.data) {
-            const backendUser = response.data.data;
-            const normalizedUser = {
-              ...backendUser,
-              // Ensure we always have an `id` field for client-side logic
-              id: backendUser.id ?? backendUser._id,
-              _id: backendUser._id ?? backendUser.id,
-            };
-            // Update localStorage with latest normalized data
-            localStorage.setItem('expert_raah_user', JSON.stringify(normalizedUser));
-            setCurrentUser(normalizedUser);
+      // Only refresh user data if it's been more than 5 minutes since last update
+      const lastUpdate = localStorage.getItem('expert_raah_user_last_update');
+      const shouldRefresh = !lastUpdate || Date.now() - parseInt(lastUpdate) > 5 * 60 * 1000;
+      
+      if (shouldRefresh) {
+        const refreshUser = async () => {
+          try {
+            const response = await httpClient.get('/users/me');
+            if (response.data?.data) {
+              const backendUser = response.data.data;
+              const normalizedUser = {
+                ...backendUser,
+                // Ensure we always have an `id` field for client-side logic
+                id: backendUser.id ?? backendUser._id,
+                _id: backendUser._id ?? backendUser.id,
+              };
+              // Update localStorage with latest normalized data
+              localStorage.setItem('expert_raah_user', JSON.stringify(normalizedUser));
+              localStorage.setItem('expert_raah_user_last_update', Date.now().toString());
+              setCurrentUser(normalizedUser);
+            }
+          } catch (err) {
+            // Silently fail, use cached data
+            console.log('Could not refresh user data');
           }
-        } catch (err) {
-          // Silently fail, use cached data
-          console.log('Could not refresh user data');
-        }
-      };
-      refreshUser();
+        };
+        refreshUser();
+      }
     } else {
       // Redirect to login if not authenticated
       navigate('/login');
@@ -252,8 +258,7 @@ const BuyerDashboardPage = () => {
     fetchOrders();
     fetchUnreadMessageCount();
 
-    // Connect to socket
-    connect();
+    // Connect to socket only once
     connect();
 
     // Request notification permission
@@ -261,22 +266,33 @@ const BuyerDashboardPage = () => {
       Notification.requestPermission();
     }
 
-    // Poll for new messages every 10 seconds
-    const interval = setInterval(fetchUnreadMessageCount, 10000);
+    // Poll for new messages every 30 seconds (increased from 10)
+    const interval = setInterval(fetchUnreadMessageCount, 30000);
     return () => {
       clearInterval(interval);
       disconnect();
     };
   }, []);
 
-  // Refetch consultants when filters change
+  // Refetch consultants when filters change OR when switching to browse tab
   useEffect(() => {
     if (activeTab === 'browse') {
       setConsultantPage(1);
       fetchConsultants(1, false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.city, filters.specialization, filters.search, activeTab]);
+  }, [filters.city, filters.specialization, filters.search]);
+
+  // Refetch consultants when switching to browse tab
+  useEffect(() => {
+    if (activeTab === 'browse') {
+      setConsultantPage(1);
+      fetchConsultants(1, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     if (location.state?.tab) {
@@ -291,6 +307,25 @@ const BuyerDashboardPage = () => {
       }
     }
   }, [location.state, navigate]);
+
+  // Handle Stripe payment redirect
+  useEffect(() => {
+    const payment = searchParams.get('payment');
+    const sessionId = searchParams.get('session_id');
+    
+    if (payment === 'success' && sessionId) {
+      // Switch to orders tab and show success message
+      setActiveTab('orders');
+      showNotification('Payment successful! Your order has been updated.', 'success');
+      // Refresh orders to show updated payment
+      fetchOrders();
+      // Clear URL params
+      setSearchParams({});
+    } else if (payment === 'cancelled') {
+      showNotification('Payment was cancelled.', 'info');
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   const fetchConsultants = async (page = 1, append = false) => {
     try {
@@ -481,14 +516,15 @@ const BuyerDashboardPage = () => {
   const fetchProposals = async () => {
     try {
       const user = authService.getCurrentUser();
-      if (!user?.id) {
+      const userId = user?.id || (user as any)?._id;
+      if (!userId) {
         setProposalsLoading(false);
         setProposals([]);
         return;
       }
       setProposalsLoading(true);
       setProposalsError('');
-      const response = await httpClient.get(`/proposals/buyer/${user.id}`);
+      const response = await httpClient.get(`/proposals/buyer/${userId}`);
       const proposalsData = response.data?.data ?? [];
       setProposals(proposalsData);
     } catch (error) {
@@ -640,7 +676,6 @@ const BuyerDashboardPage = () => {
                 { value: 'myJobs', label: 'My Jobs' },
                 { value: 'proposals', label: 'Proposals' },
                 { value: 'orders', label: 'Orders' },
-                { value: 'stats', label: 'Stats' },
               ].map((tab) => (
                 <Button
                   key={tab.value}
@@ -837,31 +872,6 @@ const BuyerDashboardPage = () => {
                     >
                       My Profile
                     </Button>
-                    <Button
-                      fullWidth
-                      onClick={() => {
-                        navigate('/settings');
-                        setShowProfileDropdown(false);
-                      }}
-                      startIcon={<span>⚙️</span>}
-                      sx={{
-                        justifyContent: 'flex-start',
-                        px: 2,
-                        py: 1.25,
-                        borderRadius: '12px',
-                        fontSize: '0.95rem',
-                        fontWeight: 500,
-                        textTransform: 'none',
-                        color: 'text.primary',
-                        '&:hover': {
-                          background: (theme) => theme.palette.mode === 'dark'
-                            ? 'rgba(13, 180, 188, 0.1)'
-                            : 'rgba(13, 180, 188, 0.05)',
-                        },
-                      }}
-                    >
-                      Settings
-                    </Button>
                     <Box sx={{ height: '1px', background: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)', my: 1 }} />
                     <Button
                       fullWidth
@@ -894,62 +904,7 @@ const BuyerDashboardPage = () => {
       {/* Main Content */}
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <AnimatePresence mode="wait">
-          {activeTab === 'stats' ? (
-            <motion.div
-              key="stats"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minHeight: '60vh',
-                }}
-              >
-                <Card
-                  sx={{
-                    maxWidth: 600,
-                    p: 6,
-                    textAlign: 'center',
-                    borderRadius: '32px',
-                    background: (theme) => theme.palette.mode === 'dark'
-                      ? 'linear-gradient(145deg, rgba(20, 35, 37, 0.7) 0%, rgba(10, 25, 27, 0.85) 100%)'
-                      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.95) 100%)',
-                    backdropFilter: 'blur(20px)',
-                    border: (theme) => theme.palette.mode === 'dark'
-                      ? '2px solid rgba(13, 180, 188, 0.15)'
-                      : '2px solid rgba(13, 180, 188, 0.1)',
-                    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.15)',
-                  }}
-                >
-                  <Typography variant="h1" sx={{ fontSize: '4rem', mb: 3 }}>📊</Typography>
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      fontWeight: 700,
-                      mb: 2,
-                      background: 'linear-gradient(135deg, #0db4bc 0%, #2d5a5f 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                    }}
-                  >
-                    Statistics Dashboard
-                  </Typography>
-                  <Typography variant="h6" sx={{ color: '#0db4bc', mb: 3, fontWeight: 600 }}>
-                    Coming Soon
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
-                    We're working on bringing you detailed analytics and insights about your projects,
-                    spending, and consultant performance.
-                  </Typography>
-                </Card>
-              </Box>
-            </motion.div>
-          ) : activeTab === 'orders' ? (
+          {activeTab === 'orders' ? (
             <motion.div
               key="orders"
               initial={{ opacity: 0, y: 20 }}
@@ -1628,11 +1583,12 @@ const BuyerDashboardPage = () => {
                                   }
                                   sx={{
                                     borderRadius: '10px',
-                                    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                                    background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                                    color: 'white',
                                     textTransform: 'none',
                                     fontWeight: 700,
                                     '&:hover': {
-                                      background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+                                      background: 'linear-gradient(135deg, #0a8b91 0%, #086f78 100%)',
                                     },
                                   }}
                                 >

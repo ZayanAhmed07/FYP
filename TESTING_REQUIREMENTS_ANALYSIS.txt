@@ -1,0 +1,339 @@
+================================================================================
+TESTING AND EVALUATION REQUIREMENTS ANALYSIS
+================================================================================
+Date: December 22, 2025
+Project: Expert Raah Platform (FYP)
+================================================================================
+
+1. OVERVIEW
+================================================================================
+
+Testing is a critical phase that must be performed BEFORE deployment to ensure
+the system works as intended and meets all stated requirements. The testing 
+process helps identify hidden errors and validates system quality.
+
+Required Testing Types:
+- Unit Testing
+- Functional Testing  
+- Integration Testing
+
+All three types of testing are REQUIRED to ensure comprehensive system quality.
+
+
+2. UNIT TESTING
+================================================================================
+
+Definition:
+A level of software testing where individual units/components are tested to
+validate that each unit performs as designed.
+
+Unit Testing 1: Login as Patient with valid and invalid credentials
+
+Testing Objective:
+To ensure the login form is working correctly with valid and invalid 
+credentials/inputs.
+
+Test Cases:
+
+┌────┬──────────────────────────┬─────────────────────┬─────────────────────┬────────┐
+│ No.│ Test case/Test script    │ Attribute and value │ Expected result     │ Result │
+├────┼──────────────────────────┼─────────────────────┼─────────────────────┼────────┤
+│ 1  │ Check the email field of │ Email:              │ Validates email     │ Pass   │
+│    │ login to validate that   │ abc@gmail.com       │ address and moves   │        │
+│    │ it shows proper error    │                     │ cursor to next      │        │
+│    │ message                  │                     │ textbox             │        │
+├────┼──────────────────────────┼─────────────────────┼─────────────────────┼────────┤
+│ 2  │ Check the email field of │ Email:              │ Highlights field    │ Pass   │
+│    │ login to validate that   │ abc gmail.com       │ and displays error  │        │
+│    │ it displays error        │                     │ message             │        │
+│    │ message                  │                     │                     │        │
+└────┴──────────────────────────┴─────────────────────┴─────────────────────┴────────┘
+
+
+3. FUNCTIONAL TESTING
+================================================================================
+
+Definition:
+Functional testing takes place after unit testing. In functional testing, the
+functionality of each module is tested to ensure the system meets specifications
+and requirements.
+
+Functional Testing 1: Login with different roles (Management, Patient, Doctor)
+
+Objective:
+To ensure that the correct page with the correct navigation bar is loaded.
+
+Test Cases:
+
+┌────┬──────────────────────────┬─────────────────────┬─────────────────────┬─────────────────┬────────┐
+│ No.│ Test case/Test script    │ Attribute and value │ Expected result     │ Actual result   │ Result │
+├────┼──────────────────────────┼─────────────────────┼─────────────────────┼─────────────────┼────────┤
+│ 1  │ Login as a 'Management'  │ Username: (correct  │ Main page for the   │ Logged in and   │ Pass   │
+│    │ member                   │ username M003)      │ Management is       │ redirected to   │        │
+│    │                          │ Password:           │ loaded with the     │ management main │        │
+│    │                          │ (correct password   │ Management          │ page            │        │
+│    │                          │ 1234)               │ navigation bar      │                 │        │
+├────┼──────────────────────────┼─────────────────────┼─────────────────────┼─────────────────┼────────┤
+│ 2  │ Login as a 'Doctor'      │ Username: D003      │ Main page for the   │ Login failed -  │ Fail   │
+│    │ member                   │ Password:           │ Doctor is loaded    │ invalid         │        │
+│    │                          │ 1234                │ with the doctor     │ credentials     │        │
+│    │                          │                     │ navigation bar      │ error           │        │
+└────┴──────────────────────────┴─────────────────────┴─────────────────────┴─────────────────┴────────┘
+
+
+4. BUSINESS RULES TESTING
+================================================================================
+
+Methodology:
+Decision table-based testing technique is used to test business rules.
+
+The business rules were defined in FRs and Use Cases. Decision based testing 
+uses a systematic approach where inputs and outputs are provided in tabular 
+form. It is a precise and compact way to model complicated logic.
+
+The form: Conditions and actions are used for test cases where conditions are
+inputs and actions are outputs.
+
+Detailed example is given in Appendix E (Decision Tables for SuperStores 
+Marketing Policy).
+
+Decision Table Methodology:
+1. Identify Conditions & Values
+   - Find the data attribute each condition tests and all attribute values
+
+2. Identify Possible Actions
+   - Determine each independent action to be taken for each policy
+
+3. Compute Max Number of Rules
+   - Multiply the number of values for each condition data attribute by each other
+
+4. Enter All Possible Rules
+   - Fill in the values of the condition data attributes in each numbered rule column
+
+5. Define Actions for each Rule
+   - For each rule, mark the appropriate actions with an X in the decision table
+
+6. Verify the Policy
+   - Review completed decision table with end-users
+
+7. Simplify the Table
+   - Eliminate and/or consolidate rules to reduce the number of columns
+
+
+5. INTEGRATION TESTING
+================================================================================
+
+Definition:
+Integration tests assess whether a set of classes that must work together do so
+without error. They ensure the interfaces between different parts of the system
+work properly.
+
+At this point, classes have passed their individual unit tests, so focus is on
+the flow of control as classes interact and messages are passed among them.
+
+Integration testing uses the same general procedures as unit testing: develop
+a test plan with series of tests, which in turn have a test case. Often done
+by a set of programmers and/or systems analysts.
+
+Integration Testing 1: Scheduling Patient Appointment
+
+Testing Objective:
+To ensure that the scheduling is being done correctly and the interface between
+module 'Patient/Doctor Management' and module 'Appointment/Scheduling' is
+running correctly.
+
+Test Cases:
+
+┌────┬──────────────────────────┬─────────────────────┬─────────────────────┬─────────────────┬────────┐
+│ No.│ Test case/Test script    │ Attribute and value │ Expected result     │ Actual result   │ Result │
+├────┼──────────────────────────┼─────────────────────┼─────────────────────┼─────────────────┼────────┤
+│ 1  │ Make appointment         │ Doctor schedule,    │ Successfully create │ Appointment     │ Pass   │
+│    │                          │ patient preferred   │ doctor-patient      │ created         │        │
+│    │                          │ date and time       │ appointment showing │ successfully    │        │
+│    │                          │                     │ date and time of    │                 │        │
+│    │                          │                     │ appointment         │                 │        │
+├────┼──────────────────────────┼─────────────────────┼─────────────────────┼─────────────────┼────────┤
+│ 2  │ Change appointment       │ Select Date and     │ Final date and time │ Appointment     │ Pass   │
+│    │ booking                  │ time                │ of appointment will │ time changed    │        │
+│    │                          │                     │ be shown            │ successfully    │        │
+└────┴──────────────────────────┴─────────────────────┴─────────────────────┴─────────────────┴────────┘
+
+
+6. BUSINESS RULES TESTING - DETAILED EXAMPLE (APPENDIX E)
+================================================================================
+
+Example Context: SuperStore Marketing Policy
+
+SUPERSTORES MARKETING POLICY #1:
+• Repeat customers get free shipping
+• New customers pay regular shipping on their first order
+
+Decision Table:
+┌──────────────────────┬────────┬────────┐
+│ Condition            │ Rule 1 │ Rule 2 │
+├──────────────────────┼────────┼────────┤
+│ Repeat customer?     │   Y    │   N    │
+├──────────────────────┼────────┼────────┤
+│ Free shipping        │   Y    │   N    │
+└──────────────────────┴────────┴────────┘
+
+
+SUPERSTORES MARKETING POLICY #2:
+• Repeat customers get free shipping
+• New customers pay regular shipping on their first order
+• Any customer who uses the SuperStore (SS) charge card gets a 5% discount
+
+Decision Table:
+┌──────────────────────┬────────┬────────┬────────┬────────┐
+│ Condition            │ Rule 1 │ Rule 2 │ Rule 3 │ Rule 4 │
+├──────────────────────┼────────┼────────┼────────┼────────┤
+│ Repeat customer?     │   Y    │   Y    │   N    │   N    │
+│ Used SS card?        │   Y    │   N    │   Y    │   N    │
+├──────────────────────┼────────┼────────┼────────┼────────┤
+│ Free shipping        │        │        │        │        │
+│ 5% discount          │        │        │        │        │
+└──────────────────────┴────────┴────────┴────────┴────────┘
+
+Analysis:
+- Rules 1 & 2 can be combined (Repeat customer = Y, SS card doesn't matter)
+- Rules 3 & 4 remain separate (New customer, SS card matters for discount)
+
+
+SUPERSTORES MARKETING POLICY #3:
+• Repeat customers get free shipping
+• New customers pay regular shipping on their first order. However, if a new
+  customer's first order is over $100, shipping is free
+• Any customer who uses the SuperStore (SS) charge card gets a 5% discount
+
+Decision Table (Full - 8 Rules):
+┌──────────────────────┬───┬───┬───┬───┬───┬───┬───┬───┐
+│ Condition            │R1 │R2 │R3 │R4 │R5 │R6 │R7 │R8 │
+├──────────────────────┼───┼───┼───┼───┼───┼───┼───┼───┤
+│ Repeat customer?     │ Y │ Y │ Y │ Y │ N │ N │ N │ N │
+│ Used SS card?        │ Y │ Y │ N │ N │ Y │ Y │ N │ N │
+│ Order over $100?     │ Y │ N │ Y │ N │ Y │ N │ Y │ N │
+├──────────────────────┼───┼───┼───┼───┼───┼───┼───┼───┤
+│ Free shipping        │ Y │ Y │ Y │ Y │ Y │ N │ Y │ N │
+│ 5% discount          │ Y │ Y │ N │ N │ Y │ Y │ N │ N │
+└──────────────────────┴───┴───┴───┴───┴───┴───┴───┴───┘
+
+Combined Rules Analysis:
+- Original Rules 1 & 2 combine → Combined Rules 1 & 2
+  (Repeat customer=Y, Y / Used SS=Y, Y / Order>$100=doesn't matter)
+  
+- Original Rules 3 & 4 combine → Combined Rules 3 & 4
+  (Repeat customer=Y, Y / Used SS=N, N / Order>$100=doesn't matter)
+
+Final Simplified Table (6 Rules):
+┌──────────────────────┬───┬───┬───┬───┬───┬───┐
+│ Condition            │R1 │R2 │R3 │R4 │R5 │R6 │
+├──────────────────────┼───┼───┼───┼───┼───┼───┤
+│ Repeat customer?     │ Y │ Y │ N │ N │ N │ N │
+│ Used SS card?        │ Y │ N │ Y │ Y │ N │ N │
+│ Order over $100?     │ - │ - │ Y │ N │ Y │ N │
+├──────────────────────┼───┼───┼───┼───┼───┼───┤
+│ Free shipping        │ Y │ Y │ Y │ N │ Y │ N │
+│ 5% discount          │ Y │ N │ Y │ Y │ N │ N │
+└──────────────────────┴───┴───┴───┴───┴───┴───┘
+
+Result: This is the final table. Now you have to create test cases on every 
+rule. In above example there are 6 rules so there shall be 6 test cases.
+
+
+7. KEY TESTING PRINCIPLES
+================================================================================
+
+1. Testing Must Be Completed Before Deployment
+   - All tests must pass before system goes live
+   - Helps find hidden errors from user perspective
+
+2. Comprehensive Testing Required
+   - Unit testing validates individual components
+   - Functional testing validates module functionality
+   - Integration testing validates interface communication
+
+3. Systematic Approach
+   - Use test plans with documented test cases
+   - Record expected vs actual results
+   - Document pass/fail status
+
+4. Business Rules Validation
+   - Use decision tables for complex business logic
+   - Test all possible rule combinations
+   - Simplify tables by combining equivalent rules
+
+5. Interface Testing Critical
+   - Ensure proper data flow between modules
+   - Validate message passing between classes
+   - Test control flow in integrated systems
+
+
+8. APPLICATION TO EXPERT RAAH PLATFORM
+================================================================================
+
+Based on this documentation, the Expert Raah platform should implement:
+
+Unit Tests:
+- User registration with valid/invalid inputs
+- Login with valid/invalid credentials
+- Email validation and format checking
+- Password strength validation
+- Profile creation and updates
+- Job posting field validations
+
+Functional Tests:
+- Login with different roles (Buyer, Consultant, Admin)
+- Correct dashboard loading per role
+- Navigation bar display per role
+- Job posting workflow
+- Proposal submission workflow
+- Order management workflow
+
+Integration Tests:
+- Job posting to proposal submission flow
+- Proposal acceptance to order creation flow
+- Messaging system between buyers and consultants
+- Payment release workflow
+- Review and rating system integration
+- Notification system integration
+
+Business Rules (Decision Table Testing):
+- Consultant matching algorithm rules
+- Payment release conditions
+- Order status transitions
+- Proposal acceptance/rejection logic
+- User verification workflow
+
+
+9. CURRENT TEST COVERAGE STATUS
+================================================================================
+
+Overall Coverage: 30.11%
+Target Coverage: 70-80%
+
+Module Coverage:
+- Auth Module: 62.06%
+- User Module: 80.72%
+- Job Module: 56.84%
+- Consultant Module: 49.76%
+- Proposal Module: 41.98%
+- Order Module: 32.49%
+- Messaging Module: 24.28%
+- Review Module: 33.03%
+
+Tests Status:
+- Total Tests: 113
+- Passing: 31
+- Failing: 82
+
+Next Steps Required:
+1. Fix failing tests in all modules
+2. Add missing test cases for low-coverage modules
+3. Implement decision table tests for business rules
+4. Increase integration test coverage
+5. Achieve 70-80% code coverage target
+
+
+================================================================================
+END OF TESTING REQUIREMENTS ANALYSIS
+================================================================================

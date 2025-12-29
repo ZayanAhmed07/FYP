@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
+import { env } from '../config/env';
 
 /**
  * Strict rate limiter for authentication endpoints
@@ -7,11 +8,19 @@ import rateLimit from 'express-rate-limit';
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per IP
+  max: env.nodeEnv === 'production' ? 5 : 50, // 5 in production, 50 in development
   message: 'Too many authentication attempts, please try again after 15 minutes',
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: false,
+  handler: (req: Request, res: Response) => {
+    const resetTime = new Date(Date.now() + 15 * 60 * 1000);
+    res.status(429).json({
+      success: false,
+      message: 'Too many login attempts. Please try again after 15 minutes.',
+      retryAfter: 900
+    });
+  }
 });
 
 /**

@@ -55,7 +55,7 @@ describe('Integration Testing - Job Posting to Proposal Submission Flow', () => 
       .send({
         title: 'Legal Consultant for Contract Review',
         category: 'Legal',
-        description: 'Need expert to review business contracts',
+        description: 'Need expert legal consultant to review business contracts and provide comprehensive legal advice',
         budget: { min: 70000, max: 90000 },
         timeline: '2 weeks',
         location: 'Islamabad',

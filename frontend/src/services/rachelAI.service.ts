@@ -89,6 +89,23 @@ export class SarahAIService {
       return { title, enhancedDescription: description };
     }
   }
+
+  /**
+   * Enhance description only (for real-time preview)
+   */
+  async enhanceDescription(description: string, category: string): Promise<{ enhanced: string }> {
+    try {
+      const response = await httpClient.post('/chatbot/enhance-description', {
+        description,
+        category,
+      });
+      return response.data?.data || { enhanced: description };
+    } catch (error) {
+      console.error('Description enhancement error:', error);
+      // Fallback: return original description
+      return { enhanced: description };
+    }
+  }
 }
 
 export const sarahAI = new SarahAIService();

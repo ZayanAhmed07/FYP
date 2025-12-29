@@ -81,15 +81,28 @@ const IntakeAssistantWidget = ({
     role: 'user' | 'assistant',
     isTyping = false
   ): string => {
-    const newMessage: IntakeMessage = {
-      id: Date.now().toString(),
-      role,
-      content,
-      timestamp: new Date(),
-      isTyping,
-    };
-    setState((prev) => ({ ...prev, messages: [...prev.messages, newMessage] }));
-    return newMessage.id;
+    // Prevent duplicate consecutive messages
+    let messageId = '';
+    setState((prev) => {
+      // Check if the last message is identical to what we're trying to add
+      const lastMessage = prev.messages[prev.messages.length - 1];
+      if (lastMessage && lastMessage.content === content && lastMessage.role === role && !isTyping) {
+        console.warn('[Duplicate Prevention] Skipping duplicate message:', content);
+        messageId = lastMessage.id;
+        return prev; // Don't add duplicate
+      }
+      
+      const newMessage: IntakeMessage = {
+        id: Date.now().toString(),
+        role,
+        content,
+        timestamp: new Date(),
+        isTyping,
+      };
+      messageId = newMessage.id;
+      return { ...prev, messages: [...prev.messages, newMessage] };
+    });
+    return messageId;
   };
 
   const updateMessage = (id: string, updates: Partial<IntakeMessage>) => {

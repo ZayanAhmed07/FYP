@@ -11,38 +11,48 @@ interface EmbeddingResponse {
  */
 export class HuggingFaceService {
   private apiKey: string;
-  private modelEndpoint: string;
+  private apiUrl: string;
 
   constructor() {
     this.apiKey = env.HUGGINGFACE_API_KEY || '';
-    // Using a popular sentence-transformer model for embeddings
-    this.modelEndpoint = 'https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2';
+    // Using NEW HuggingFace Router API (as of late 2024)
+    this.apiUrl = 'https://router.huggingface.co/v1/embeddings';
   }
 
   /**
-   * Generate embeddings for text using Hugging Face API
+   * Generate embeddings for text using Hugging Face Router API
    */
   async generateEmbedding(text: string): Promise<number[]> {
     try {
       const response = await axios.post(
-        this.modelEndpoint,
+        this.apiUrl,
         {
-          inputs: text,
-          options: { wait_for_model: true }
+          model: 'sentence-transformers/all-MiniLM-L6-v2',
+          input: text,
         },
         {
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
           },
+          timeout: 30000,
         }
       );
 
-      // The model returns embeddings directly as array
-      return response.data;
+      // New API format: { data: [{ embedding: [...] }] }
+      if (response.data?.data?.[0]?.embedding) {
+        return response.data.data[0].embedding;
+      }
+      
+      throw new Error('Unexpected response format from HuggingFace');
     } catch (error: any) {
-      console.error('Error generating embedding:', error.response?.data || error.message);
-      throw new Error('Failed to generate embedding from Hugging Face');
+      console.error('❌ HuggingFace Error:', error.response?.data || error.message);
+      
+      if (error.response?.status === 503) {
+        throw new Error('HuggingFace model is loading. Please try again in a moment.');
+      }
+      
+      throw new Error(`Failed to generate embedding: ${error.response?.data?.error || error.message}`);
     }
   }
 

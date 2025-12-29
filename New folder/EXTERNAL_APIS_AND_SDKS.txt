@@ -1,613 +1,919 @@
 ================================================================================
-                    7.2 EXTERNAL APIs/SDKs DOCUMENTATION
-                            Expert Raah Platform
+EXTERNAL APIs AND SDKs USED IN EXPERT RAAH PROJECT
 ================================================================================
 
-Table 1: Details of APIs/SDKs used in the project
+This document describes the third-party APIs/SDKs used in the Expert Raah 
+consultancy marketplace platform implementation.
 
 ================================================================================
-1. REACT (v19.2.0)
-================================================================================
-Description:
-A JavaScript library for building user interfaces with component-based 
-architecture and virtual DOM for efficient rendering.
-
-Purpose of Usage:
-- Building interactive and dynamic user interfaces
-- Component-based architecture for reusable UI elements
-- State management and lifecycle handling
-- Single Page Application (SPA) development
-
-API Endpoints/Functions/Classes Used:
-- useState() - State management in functional components
-  Used in: All dashboard pages, MessagingPage, ProfilePage, SignupPage
-  Files: BuyerDashboardPage.tsx, ConsultantDashboardPage.tsx, MessagingPage.tsx,
-         ProfilePage.tsx, SignupPage.tsx, AccountTypePage.tsx
-  
-- useEffect() - Side effects and lifecycle management
-  Used in: BuyerDashboardPage, ConsultantDashboardPage, MessagingPage
-  Files: All major page components for data fetching and subscriptions
-  
-- useRef() - DOM element references and mutable values
-  Used in: MessagingPage (messagesEndRef, inputRef)
-  Files: MessagingPage.tsx
-  
-- useNavigate() - Programmatic navigation
-  Used in: All pages for routing and redirects
-  Files: All page components
-  
-- useParams() - URL parameter extraction
-  Used in: MessagingPage, SubmitProposalPage, PostJobPage
-  Files: MessagingPage.tsx, SubmitProposalPage.tsx, PostJobPage.tsx
-  
-- useLocation() - Current location and state access
-  Used in: MessagingPage, MainLayout, Header
-  Files: MessagingPage.tsx, MainLayout.tsx, Header.tsx
-
-================================================================================
-2. REACT ROUTER DOM (v6.30.1)
-================================================================================
-Description:
-Declarative routing library for React applications enabling navigation 
-between different views/pages without full page reloads.
-
-Purpose of Usage:
-- Client-side routing and navigation
-- Protected routes for authenticated users
-- Dynamic route parameters
-- Navigation state management
-
-API Endpoints/Functions/Classes Used:
-- BrowserRouter - Root router component
-  Used in: main.tsx
-  
-- Routes, Route - Route definition and matching
-  Used in: App.tsx for all application routes
-  
-- Link, NavLink - Navigation components
-  Used in: Header.tsx, MainLayout.tsx, Dashboard components
-  
-- Navigate - Redirect component
-  Used in: ProtectedRoute.tsx, authentication flows
-  
-- useNavigate() - Programmatic navigation hook
-  Used in: All pages for navigation logic
-  
-- useParams() - URL parameter extraction hook
-  Used in: MessagingPage (/messages/:userId), PostJobPage (/post-job/:jobId),
-           SubmitProposalPage (/submit-proposal/:jobId)
-  
-- useLocation() - Location object access
-  Used in: Header (active route), MessagingPage (state passing)
-
-================================================================================
-3. REACT ICONS (v5.5.0)
-================================================================================
-Description:
-Popular icon library providing thousands of icons from multiple icon sets 
-(Font Awesome, Material Design, etc.) as React components.
-
-Purpose of Usage:
-- Consistent iconography across the application
-- Scalable vector icons
-- Easy integration with React components
-- Visual enhancement of UI elements
-
-API Endpoints/Functions/Classes Used:
-- FaPlus, FaStar, FaMapMarkerAlt, FaUserCircle - Font Awesome icons
-  Used in: BuyerDashboardPage.tsx, ConsultantDashboardPage.tsx
-  
-- FaEnvelope, FaPaperPlane, FaPhone, FaVideo - Communication icons
-  Used in: MessagingPage.tsx, BuyerDashboardPage.tsx
-  
-- FaSearch, FaEllipsisV - UI utility icons
-  Used in: MessagingPage.tsx, Dashboard pages
-  
-- FaCamera, FaEdit, FaShare, FaHeart - Action icons
-  Used in: ProfilePage.tsx, Dashboard components
-  
-- FaCheckCircle, FaTimesCircle, FaBan - Status icons
-  Used in: AdminDashboardPage.tsx, PaymentPage.tsx
-  
-- FaFileAlt, FaEye, FaEyeSlash - Document and visibility icons
-  Used in: VerifyIdentityPage.tsx, SignupPage.tsx
-  
-- FaClock, FaGoogle, FaApple, FaFacebookF, FaXTwitter - Additional icons
-  Used in: Various components
-
-================================================================================
-4. AXIOS (v1.13.2)
-================================================================================
-Description:
-Promise-based HTTP client for making API requests from browser and Node.js 
-with support for interceptors, automatic JSON transformation, and request/
-response handling.
-
-Purpose of Usage:
-- HTTP requests to backend API
-- Request/response interceptors for authentication
-- Error handling and retry logic
-- Automatic JSON data transformation
-
-API Endpoints/Functions/Classes Used:
-- axios.create() - HTTP client instance creation
-  Used in: httpClient.ts
-  
-- axios.get() - GET requests
-  Used in: Fetching users, jobs, proposals, consultants, messages
-  Endpoints: /users/me, /jobs, /consultants, /proposals, /messages/conversations,
-             /messages/:userId, /jobs/buyer/:buyerId, /proposals/buyer/:buyerId
-  Files: BuyerDashboardPage.tsx, ConsultantDashboardPage.tsx, MessagingPage.tsx,
-         ProfilePage.tsx, PostJobPage.tsx, AdminDashboardPage.tsx
-  
-- axios.post() - POST requests
-  Used in: Creating jobs, proposals, messages, user registration
-  Endpoints: /auth/register, /auth/login, /jobs, /proposals, /messages, /consultants
-  Files: SignupPage.tsx, PostJobPage.tsx, SubmitProposalPage.tsx, MessagingPage.tsx,
-         ProfilePage.tsx
-  
-- axios.put() - PUT requests
-  Used in: Updating jobs
-  Endpoints: /jobs/:id
-  Files: PostJobPage.tsx
-  
-- axios.patch() - PATCH requests
-  Used in: Partial updates (proposals, messages read status, user profile)
-  Endpoints: /proposals/:id/accept, /proposals/:id/reject, /messages/:userId/read,
-             /users/me, /admin/consultants/:id/verify, /admin/users/:id/ban
-  Files: BuyerDashboardPage.tsx, MessagingPage.tsx, ProfilePage.tsx,
-         AdminDashboardPage.tsx, AccountTypePage.tsx
-  
-- axios.delete() - DELETE requests
-  Used in: Deleting jobs
-  Endpoints: /jobs/:id
-  Files: BuyerDashboardPage.tsx
-  
-- interceptors.request.use() - Request interceptor
-  Used in: httpClient.ts for adding JWT tokens
-  
-- interceptors.response.use() - Response interceptor
-  Used in: httpClient.ts for error handling
-
-================================================================================
-5. REACT TOASTIFY (v11.0.5)
-================================================================================
-Description:
-React notification library providing customizable toast notifications with 
-various positions, animations, and styling options.
-
-Purpose of Usage:
-- User feedback notifications
-- Success/error messages
-- Non-intrusive alerts
-- Action confirmations
-
-API Endpoints/Functions/Classes Used:
-- toast.success() - Success notifications
-  Used in: ContactSection.tsx, SubscribeSection.tsx
-  
-- toast.error() - Error notifications
-  Used in: ContactSection.tsx, SubscribeSection.tsx
-  
-- ToastContainer - Toast container component
-  Used in: main.tsx
-
-================================================================================
-6. TANSTACK REACT QUERY (v5.90.8)
-================================================================================
-Description:
-Powerful data synchronization library for React providing caching, background 
-updates, and automatic refetching of server state.
-
-Purpose of Usage:
-- Server state management
-- Data caching and synchronization
-- Background data fetching
-- Optimistic updates
-
-API Endpoints/Functions/Classes Used:
-- QueryClient - Query client instance
-  Used in: main.tsx
-  
-- QueryClientProvider - Provider component
-  Used in: main.tsx, AuthContext.tsx
-
-================================================================================
-7. VITE (v7.2.2)
-================================================================================
-Description:
-Next-generation frontend build tool providing fast development server with 
-Hot Module Replacement (HMR) and optimized production builds.
-
-Purpose of Usage:
-- Frontend development server
-- Fast Hot Module Replacement
-- Production build optimization
-- Asset bundling and optimization
-
-API Endpoints/Functions/Classes Used:
-- defineConfig() - Vite configuration
-  Used in: vite.config.ts
-  
-- react() - React plugin
-  Used in: vite.config.ts for React support
-  
-- vite dev - Development server command
-  Used in: package.json scripts
-  
-- vite build - Production build command
-  Used in: package.json scripts
-
-================================================================================
-8. TYPESCRIPT (v5.9.3)
-================================================================================
-Description:
-Typed superset of JavaScript that compiles to plain JavaScript, providing 
-static type checking and enhanced IDE support.
-
-Purpose of Usage:
-- Type safety and error prevention
-- Enhanced IDE support and autocomplete
-- Better code documentation
-- Improved maintainability
-
-API Endpoints/Functions/Classes Used:
-- interface - Type definitions
-  Used in: All TypeScript files for type definitions
-  Files: All .ts and .tsx files
-  
-- type - Type aliases
-  Used in: express.d.ts, global.d.ts
-  
-- enum - Enumeration types
-  Used in: Model definitions for status fields
-
-================================================================================
-9. EXPRESS.JS (v5.1.0)
-================================================================================
-Description:
-Fast, unopinionated, minimalist web framework for Node.js providing robust 
-routing, middleware support, and HTTP utility methods.
-
-Purpose of Usage:
-- Backend REST API server
-- Routing and middleware management
-- Request/response handling
-- Static file serving
-
-API Endpoints/Functions/Classes Used:
-- express() - Application instance creation
-  Used in: app.ts
-  
-- app.use() - Middleware registration
-  Used in: app.ts for cors, helmet, morgan, body-parser
-  
-- app.get(), app.post(), app.put(), app.patch(), app.delete()
-  Used in: All route files for endpoint definitions
-  
-- Router() - Modular route handlers
-  Used in: All module route files (auth.routes.ts, user.routes.ts, job.routes.ts,
-           consultant.routes.ts, proposal.routes.ts, order.routes.ts,
-           admin.routes.ts, messaging.routes.ts)
-  
-- express.json() - JSON body parser middleware
-  Used in: app.ts with 50mb limit for image uploads
-  
-- express.urlencoded() - URL-encoded body parser
-  Used in: app.ts with extended option
-  
-- Request, Response, NextFunction - Type definitions
-  Used in: All controllers and middleware
-
-================================================================================
-10. MONGOOSE (v8.19.3)
-================================================================================
-Description:
-MongoDB object modeling tool designed to work in an asynchronous environment, 
-providing schema-based solution for modeling application data.
-
-Purpose of Usage:
-- MongoDB database interaction
-- Schema definition and validation
-- Data modeling and relationships
-- Query building and execution
-
-API Endpoints/Functions/Classes Used:
-- mongoose.connect() - Database connection
-  Used in: database.ts
-  
-- Schema() - Schema definition
-  Used in: user.model.ts, job.model.ts, consultant.model.ts, proposal.model.ts,
-           order.model.ts, message.model.ts, conversation.model.ts
-  
-- model() - Model creation
-  Used in: All model files for creating Mongoose models
-  
-- Model.find() - Query documents
-  Used in: All service files for fetching data
-  
-- Model.findById() - Find by ID
-  Used in: All service files for single document retrieval
-  
-- Model.findOne() - Find single document
-  Used in: auth.service.ts, consultant.service.ts, messaging.service.ts
-  
-- Model.create() - Create new document
-  Used in: All service files for data creation
-  
-- Model.findByIdAndUpdate() - Update by ID
-  Used in: All service files for updates
-  
-- Model.findByIdAndDelete() - Delete by ID
-  Used in: All service files for deletions
-  
-- populate() - Reference population
-  Used in: job.service.ts, proposal.service.ts, messaging.service.ts
-  
-- Schema.Types.ObjectId - ObjectId type
-  Used in: All models for references
-
-================================================================================
-11. JSONWEBTOKEN (v9.0.2)
-================================================================================
-Description:
-Implementation of JSON Web Tokens for secure authentication and authorization 
-between parties as a JSON object.
-
-Purpose of Usage:
-- User authentication
-- Secure token generation
-- Token verification and validation
-- Stateless session management
-
-API Endpoints/Functions/Classes Used:
-- jwt.sign() - Token generation
-  Used in: token.service.ts for creating access and refresh tokens
-  Functions: generateAccessToken(), generateRefreshToken()
-  
-- jwt.verify() - Token verification
-  Used in: token.service.ts, authMiddleware.ts
-  Function: verifyToken()
-
-================================================================================
-12. BCRYPTJS (v3.0.3)
-================================================================================
-Description:
-Library for hashing and comparing passwords using the bcrypt algorithm, 
-providing secure password storage.
-
-Purpose of Usage:
-- Password hashing before storage
-- Password comparison during authentication
-- Secure password management
-- Protection against rainbow table attacks
-
-API Endpoints/Functions/Classes Used:
-- bcrypt.hash() - Password hashing
-  Used in: password.ts
-  Function: hashPassword()
-  
-- bcrypt.compare() - Password comparison
-  Used in: password.ts
-  Function: comparePassword()
-  
-- bcrypt.genSalt() - Salt generation
-  Used in: password.ts with 10 rounds
-
-================================================================================
-13. CORS (v2.8.5)
-================================================================================
-Description:
-Express middleware for enabling Cross-Origin Resource Sharing (CORS) with 
-various options for configuring allowed origins, methods, and headers.
-
-Purpose of Usage:
-- Enable cross-origin requests from frontend
-- Configure allowed origins and methods
-- Handle preflight requests
-- Security configuration for API access
-
-API Endpoints/Functions/Classes Used:
-- cors() - CORS middleware
-  Used in: app.ts
-  Configuration: { origin: '*', credentials: true }
-
-================================================================================
-14. HELMET (v8.1.0)
-================================================================================
-Description:
-Express middleware that helps secure Express apps by setting various HTTP 
-headers to protect against common web vulnerabilities.
-
-Purpose of Usage:
-- Security headers configuration
-- Protection against XSS attacks
-- Clickjacking prevention
-- Content Security Policy enforcement
-
-API Endpoints/Functions/Classes Used:
-- helmet() - Security middleware
-  Used in: app.ts with default configuration
-
-================================================================================
-15. MORGAN (v1.10.1)
-================================================================================
-Description:
-HTTP request logger middleware for Node.js, providing detailed logging of 
-incoming requests and responses.
-
-Purpose of Usage:
-- HTTP request logging
-- Development debugging
-- Performance monitoring
-- Access log generation
-
-API Endpoints/Functions/Classes Used:
-- morgan() - Logging middleware
-  Used in: app.ts
-  Format: ':method :url :status :res[content-length] - :response-time ms'
-
-================================================================================
-16. DOTENV (v17.2.3)
-================================================================================
-Description:
-Module that loads environment variables from a .env file into process.env, 
-enabling configuration management.
-
-Purpose of Usage:
-- Environment variable management
-- Configuration separation
-- Sensitive data protection
-- Environment-specific settings
-
-API Endpoints/Functions/Classes Used:
-- dotenv.config() - Load environment variables
-  Used in: env.ts
-  
-- process.env - Access environment variables
-  Used in: env.ts, database.ts, all configuration files
-
-================================================================================
-17. JOI (v18.0.1)
-================================================================================
-Description:
-Powerful schema description language and data validator for JavaScript, 
-providing object schema validation.
-
-Purpose of Usage:
-- Request data validation
-- Schema definition
-- Input sanitization
-- Error message generation
-
-API Endpoints/Functions/Classes Used:
-- Joi.object() - Schema definition
-  Used in: auth.validation.ts
-  
-- Joi.string(), Joi.number(), Joi.array() - Type validators
-  Used in: All validation schemas
-  
-- Joi.valid() - Enum validation
-  Used in: auth.validation.ts (accountType)
-  
-- Joi.required() - Required field validation
-  Used in: All validation schemas
-  
-- Joi.min(), Joi.max() - Range validation
-  Used in: auth.validation.ts (password length)
-
-================================================================================
-18. CELEBRATE (v15.0.3)
-================================================================================
-Description:
-Express middleware for Joi validation, providing easy integration of Joi 
-schemas with Express routes.
-
-Purpose of Usage:
-- Request validation middleware
-- Integration of Joi with Express
-- Automatic error responses
-- Schema-based validation
-
-API Endpoints/Functions/Classes Used:
-- celebrate() - Validation middleware
-  Used in: auth.routes.ts for request validation
-  
-- Segments.BODY - Body validation
-  Used in: Route validation for request body
-  
-- errors() - Error handler middleware
-  Used in: app.ts for validation error handling
-
-================================================================================
-19. WINSTON (v3.18.3)
-================================================================================
-Description:
-Versatile logging library for Node.js supporting multiple transports, 
-log levels, and formatting options.
-
-Purpose of Usage:
-- Application logging
-- Error tracking
-- Debug information
-- Log file management
-
-API Endpoints/Functions/Classes Used:
-- winston.createLogger() - Logger instance creation
-  Used in: logger.ts
-  
-- winston.format.combine() - Format combination
-  Used in: logger.ts for timestamp and JSON formatting
-  
-- winston.transports.Console() - Console transport
-  Used in: logger.ts for development logging
-  
-- winston.transports.File() - File transport
-  Used in: logger.ts for error and combined logs
-  
-- logger.info(), logger.error(), logger.warn()
-  Used in: Throughout backend for logging
-
-================================================================================
-20. GOOGLE FONTS API
-================================================================================
-Description:
-Free web font service by Google providing optimized font delivery and 
-hosting for web applications.
-
-Purpose of Usage:
-- Custom typography
-- Font loading and optimization
-- Consistent font rendering
-- Web font hosting
-
-API Endpoints/Functions/Classes Used:
-- @import url('https://fonts.googleapis.com/css2?family=Reddit+Sans:...')
-  Used in: global.css for Reddit Sans font family
-
-================================================================================
-21. PRAVATAR.CC (External API) - Mock Data Only
-================================================================================
-Description:
-Free avatar placeholder service providing random avatar images for 
-development and testing purposes.
-
-Purpose of Usage:
-- Placeholder profile images in mock data
-- Development testing
-- UI mockups for orders and payments
-
-API Endpoints/Functions/Classes Used:
-- https://i.pravatar.cc/150?img={id}
-  Used in: Mock data in BuyerDashboardPage.tsx, ConsultantDashboardPage.tsx,
-           PaymentPage.tsx (mockOrders, mockProposals)
-  Note: Only used in static mock data, not in actual API calls
-
+TABLE 1: DETAILS OF APIs USED IN THE PROJECT
 ================================================================================
 
-SUMMARY OF API USAGE BY MODULE:
-
-Frontend Modules:
-- Authentication: React, React Router, Axios, React Toastify, TanStack Query
-- Dashboards: React, React Icons, Axios, React Router
-- Messaging: React, React Icons, Axios, React Router
-- Profile Management: React, Axios, React Icons
-- UI Components: React, React Icons, CSS Modules
-
-Backend Modules:
-- Authentication: Express, Mongoose, JWT, Bcrypt
-- API Routes: Express, Celebrate, Joi
-- Database: Mongoose, MongoDB
-- Logging: Winston, Morgan
-- Security: Helmet, CORS, JWT, Bcrypt
-
-Development Tools:
-- Frontend Build: Vite, TypeScript
-- Backend Runtime: Node.js, TypeScript
-- Package Management: npm
-
-Total APIs/SDKs: 21
+┌─────────────────────┬──────────────────────┬──────────────────────┬────────────────────────┐
+│ Name of API         │ Description of API   │ Purpose of Usage     │ List down the API     │
+│ and Version         │                      │                      │ endpoint/function/     │
+│                     │                      │                      │ class in which        │
+│                     │                      │                      │ it is used            │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ Stripe              │ Credit Card payment  │ Sandbox used for the │ stripe.payment         │
+│ (version 2020-08-27)│ integration          │ orders payment       │ Methods.create         │
+│                     │                      │                      │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ PaymentPage.tsx        │
+│                     │                      │                      │ payment.service.ts     │
+│                     │                      │                      │ order.service.ts       │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ Cloudinary          │ Image and Video      │ Uploading Product    │ https://api.cloudinary │
+│                     │ management solution  │ Images on Cloudinary │ .com/v1_1/demo/image/  │
+│                     │                      │ server               │ upload                 │
+│                     │                      │                      │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ ProfilePage.tsx        │
+│                     │                      │                      │ ConsultantSignupPage   │
+│                     │                      │                      │ .tsx                   │
+│                     │                      │                      │ AdminDashboardPage.tsx │
+│                     │                      │                      │ user.service.ts        │
+│                     │                      │                      │ consultant.service.ts  │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ OpenAI API          │ Advanced natural     │ Powers Rachel AI     │ openai.chat.completions│
+│ (GPT-4)             │ language processing  │ Intake Assistant for │ .create()              │
+│                     │ and AI chat          │ intelligent job      │                        │
+│                     │                      │ posting creation     │ https://api.openai.com/│
+│                     │                      │                      │ v1/chat/completions    │
+│                     │                      │                      │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ intakeAssistant        │
+│                     │                      │                      │ .service.ts            │
+│                     │                      │                      │ PostJobPage.tsx        │
+│                     │                      │                      │ ChatbotWidget.tsx      │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ Socket.IO           │ Real-time            │ Enables real-time    │ io.on('connection')    │
+│ (v4.x)              │ bidirectional        │ instant messaging,   │ socket.emit()          │
+│                     │ event-based          │ typing indicators,   │ socket.on()            │
+│                     │ communication        │ online status, and   │ io.to().emit()         │
+│                     │                      │ notifications        │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ socket/index.ts        │
+│                     │                      │                      │ messageHandlers.ts     │
+│                     │                      │                      │ socket.service.ts      │
+│                     │                      │                      │ useSocket.ts           │
+│                     │                      │                      │ MessagingPage.tsx      │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ Nodemailer          │ Email sending module │ Sending automated    │ nodemailer.create      │
+│                     │ for Node.js          │ emails for           │ Transport()            │
+│                     │                      │ registration,        │ transporter.sendMail() │
+│                     │                      │ verification, and    │                        │
+│                     │                      │ notifications        │ Used in:               │
+│                     │                      │                      │ email.ts               │
+│                     │                      │                      │ user.service.ts        │
+│                     │                      │                      │ admin.service.ts       │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ JWT                 │ JSON Web Token       │ User authentication  │ jwt.sign()             │
+│ (jsonwebtoken)      │ implementation       │ and authorization,   │ jwt.verify()           │
+│                     │                      │ secure token-based   │ jwt.decode()           │
+│                     │                      │ session management   │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ jwt.ts                 │
+│                     │                      │                      │ authenticate.ts        │
+│                     │                      │                      │ auth.service.ts        │
+│                     │                      │                      │ authService.ts         │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ Bcrypt.js           │ Password hashing     │ Secure password      │ bcrypt.hash()          │
+│                     │ library              │ storage with salt    │ bcrypt.compare()       │
+│                     │                      │ and hash             │ bcrypt.genSalt()       │
+│                     │                      │                      │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ user.model.ts          │
+│                     │                      │                      │ auth.service.ts        │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ Mongoose            │ MongoDB object       │ Database operations, │ mongoose.connect()     │
+│ (v7.x)              │ modeling tool        │ schema definition,   │ mongoose.model()       │
+│                     │                      │ CRUD operations      │ Model.find()           │
+│                     │                      │                      │ Model.create()         │
+│                     │                      │                      │ Model.aggregate()      │
+│                     │                      │                      │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ All model files        │
+│                     │                      │                      │ All service files      │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ Express.js          │ Fast web framework   │ Backend server       │ express()              │
+│ (v4.x)              │ for Node.js          │ implementation,      │ app.use()              │
+│                     │                      │ RESTful API          │ app.get/post/put/      │
+│                     │                      │ endpoints            │ patch/delete()         │
+│                     │                      │                      │ express.Router()       │
+│                     │                      │                      │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ app.ts                 │
+│                     │                      │                      │ All route files        │
+│                     │                      │                      │ All controller files   │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ Axios               │ Promise-based HTTP   │ Frontend API         │ axios.get()            │
+│                     │ client               │ communication with   │ axios.post()           │
+│                     │                      │ backend              │ axios.put()            │
+│                     │                      │                      │ axios.create()         │
+│                     │                      │                      │ axios.interceptors     │
+│                     │                      │                      │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ httpClient.ts          │
+│                     │                      │                      │ All service files      │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ Material-UI (MUI)   │ React component      │ Frontend UI          │ Box, Container,        │
+│ (v5.x)              │ library implementing │ components with      │ Typography, Button,    │
+│                     │ Material Design      │ responsive design    │ TextField, Select,     │
+│                     │                      │                      │ Dialog, Card, Avatar   │
+│                     │                      │                      │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ All page files         │
+│                     │                      │                      │ All component files    │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ React Router DOM    │ Declarative routing  │ Frontend navigation  │ BrowserRouter          │
+│ (v6.x)              │ library for React    │ and protected routes │ Routes, Route          │
+│                     │                      │                      │ useNavigate()          │
+│                     │                      │                      │ useParams()            │
+│                     │                      │                      │ useLocation()          │
+│                     │                      │                      │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ App.tsx                │
+│                     │                      │                      │ All page components    │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ Framer Motion       │ Production-ready     │ UI animations and    │ motion.div             │
+│                     │ animation library    │ transitions          │ motion.button          │
+│                     │                      │                      │ AnimatePresence        │
+│                     │                      │                      │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ BuyerDashboardPage.tsx │
+│                     │                      │                      │ PaymentPage.tsx        │
+│                     │                      │                      │ ChatbotWidget.tsx      │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ React Icons         │ Popular icon library │ UI icons throughout  │ FaUser, FaSearch,      │
+│                     │ for React            │ the application      │ FaStar, FaMapMarkerAlt │
+│                     │                      │                      │ MdDashboard, MdMessage │
+│                     │                      │                      │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ All page and component │
+│                     │                      │                      │ files                  │
+├─────────────────────┼──────────────────────┼──────────────────────┼────────────────────────┤
+│ Redis               │ In-memory data       │ Session storage,     │ redis.set()            │
+│                     │ structure store      │ OTP caching, rate    │ redis.get()            │
+│                     │                      │ limiting             │ redis.del()            │
+│                     │                      │                      │ redis.expire()         │
+│                     │                      │                      │                        │
+│                     │                      │                      │ Used in:               │
+│                     │                      │                      │ redis.ts               │
+│                     │                      │                      │ order.service.ts       │
+│                     │                      │                      │ rateLimit.ts           │
+└─────────────────────┴──────────────────────┴──────────────────────┴────────────────────────┘
 
 ================================================================================
-                            END OF DOCUMENT
+DETAILED API DESCRIPTIONS
+================================================================================
+
+--------------------------------------------------------------------------------
+1. STRIPE API (Version 2020-08-27)
+--------------------------------------------------------------------------------
+Official Website: https://stripe.com
+Documentation: https://stripe.com/docs/api
+
+Authentication Method:
+  - API Secret Key (backend)
+  - Publishable Key (frontend)
+
+Key Features Used:
+  ✓ Payment Methods Creation
+  ✓ Payment Intents
+  ✓ Customer Management
+  ✓ Webhook Events
+
+Configuration:
+  Backend Environment Variables:
+    STRIPE_SECRET_KEY=sk_test_...
+    STRIPE_PUBLISHABLE_KEY=pk_test_...
+  
+  Frontend Environment Variables:
+    VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+
+Implementation Files:
+  Backend:
+    - backend/src/modules/payment/payment.service.ts
+    - backend/src/modules/order/order.service.ts
+  
+  Frontend:
+    - frontend/src/pages/PaymentPage.tsx
+    - frontend/src/services/paymentService.ts
+
+Usage in Project:
+  • Processing secure payments between buyers and consultants
+  • Escrow payment management
+  • Payment verification with OTP
+  • Transaction history tracking
+  • Platform fee calculation (10%)
+
+--------------------------------------------------------------------------------
+2. CLOUDINARY API
+--------------------------------------------------------------------------------
+Official Website: https://cloudinary.com
+Documentation: https://cloudinary.com/documentation
+
+Authentication Method:
+  - Cloud Name
+  - API Key
+  - API Secret
+
+API Endpoints Used:
+  • https://api.cloudinary.com/v1_1/{cloud_name}/image/upload
+  • https://api.cloudinary.com/v1_1/{cloud_name}/video/upload
+  • https://api.cloudinary.com/v1_1/{cloud_name}/image/destroy
+
+Configuration:
+  CLOUDINARY_CLOUD_NAME=your_cloud_name
+  CLOUDINARY_API_KEY=your_api_key
+  CLOUDINARY_API_SECRET=your_api_secret
+
+Implementation Files:
+  Backend:
+    - backend/src/utils/cloudinary.ts
+    - backend/src/middleware/upload.middleware.ts
+    - backend/src/modules/user/user.service.ts
+    - backend/src/modules/consultant/consultant.service.ts
+  
+  Frontend:
+    - frontend/src/pages/ProfilePage.tsx
+    - frontend/src/pages/ConsultantSignupPage.tsx
+    - frontend/src/pages/AdminDashboardPage.tsx
+
+Usage in Project:
+  • User profile image uploads
+  • Consultant ID card document storage (front and back)
+  • Job posting attachments
+  • Message file attachments
+  • Automatic image optimization and CDN delivery
+
+Supported Formats:
+  Images: JPG, PNG, GIF, WebP
+  Documents: PDF
+  Max File Size: 10MB
+
+--------------------------------------------------------------------------------
+3. OPENAI API (GPT-4)
+--------------------------------------------------------------------------------
+Official Website: https://openai.com
+Documentation: https://platform.openai.com/docs
+
+Authentication Method:
+  - API Key
+
+API Endpoints Used:
+  • https://api.openai.com/v1/chat/completions
+  • https://api.openai.com/v1/embeddings
+
+Configuration:
+  OPENAI_API_KEY=sk-...
+
+Models Used:
+  • gpt-4-turbo-preview (Main conversational AI)
+  • text-embedding-ada-002 (Semantic search)
+
+Implementation Files:
+  Backend:
+    - backend/src/modules/ai-assistant/intakeAssistant.service.ts
+  
+  Frontend:
+    - frontend/src/pages/PostJobPage.tsx
+    - frontend/src/components/chatbot/ChatbotWidget.tsx
+
+Usage in Project:
+  • Rachel AI Intake Assistant for job posting creation
+  • Natural language understanding of requirements
+  • Skill extraction from job descriptions
+  • Context-aware conversation flow
+  • Domain-specific guidance (Education, Business, Legal)
+
+Conversation Flow:
+  1. Greeting and domain selection
+  2. Job description collection (min 100 words)
+  3. Budget extraction (PKR range)
+  4. Timeline specification
+  5. Location selection
+  6. Confirmation and posting
+
+--------------------------------------------------------------------------------
+4. SOCKET.IO (v4.x)
+--------------------------------------------------------------------------------
+Official Website: https://socket.io
+Documentation: https://socket.io/docs/v4/
+
+Authentication Method:
+  - JWT Token in connection query
+
+Transport Protocols:
+  • WebSocket (primary)
+  • HTTP long-polling (fallback)
+
+Configuration:
+  Server Port: 5000 (same as backend)
+  CORS: Configured for frontend origin
+
+Events Implemented:
+  Connection Events:
+    • connect
+    • disconnect
+    • connect_error
+    • reconnect
+  
+  Message Events:
+    • message:send
+    • message:receive
+    • message:delivered
+    • message:seen
+  
+  Typing Events:
+    • typing:start
+    • typing:stop
+  
+  Presence Events:
+    • user:online
+    • user:offline
+    • user:status-changed
+  
+  Conversation Events:
+    • conversation:join
+    • conversation:leave
+    • conversation:mark-read
+  
+  Notification Events:
+    • notification:new-message
+    • unread-count:update
+
+Implementation Files:
+  Backend:
+    - backend/src/socket/index.ts
+    - backend/src/socket/handlers/messageHandlers.ts
+    - backend/src/socket/handlers/notificationHandlers.ts
+  
+  Frontend:
+    - frontend/src/services/socket.service.ts
+    - frontend/src/hooks/useSocket.ts
+    - frontend/src/pages/MessagingPage.tsx
+    - frontend/src/pages/BuyerDashboardPage.tsx
+    - frontend/src/pages/ConsultantDashboardPage.tsx
+
+Usage in Project:
+  • Real-time instant messaging
+  • Typing indicators ("User is typing...")
+  • Online/offline status tracking
+  • Message read receipts
+  • Live notification delivery
+  • Unread message count updates
+
+--------------------------------------------------------------------------------
+5. NODEMAILER
+--------------------------------------------------------------------------------
+Official Website: https://nodemailer.com
+Documentation: https://nodemailer.com/usage/
+
+Authentication Method:
+  - Email credentials (Gmail App Password)
+
+SMTP Configuration:
+  Host: smtp.gmail.com
+  Port: 587
+  Secure: false (STARTTLS)
+
+Configuration:
+  EMAIL_USER=your_email@gmail.com
+  EMAIL_PASSWORD=your_app_specific_password
+
+Implementation Files:
+  - backend/src/utils/email.ts
+  - backend/src/modules/user/user.service.ts
+  - backend/src/modules/admin/admin.service.ts
+  - backend/src/modules/order/order.service.ts
+
+Email Templates Sent:
+  • User Registration Confirmation
+  • Password Reset Link
+  • Consultant Verification Approval
+  • Consultant Verification Decline
+  • Order Status Updates
+  • Payment Confirmation
+  • Proposal Submitted Notification
+  • Project Completion Notification
+
+Rate Limits:
+  Gmail Free: 500 emails/day
+  Google Workspace: 2000 emails/day
+
+--------------------------------------------------------------------------------
+6. JWT (JSON WEB TOKEN)
+--------------------------------------------------------------------------------
+Library: jsonwebtoken
+Documentation: https://github.com/auth0/node-jsonwebtoken
+
+Configuration:
+  JWT_SECRET=your_secret_key
+  JWT_EXPIRES_IN=7d
+  JWT_REFRESH_SECRET=your_refresh_secret
+  JWT_REFRESH_EXPIRES_IN=30d
+
+Token Structure:
+  Header: { alg: "HS256", typ: "JWT" }
+  Payload: { id, email, role, iat, exp }
+  Signature: HMACSHA256(base64UrlEncode(header) + "." + base64UrlEncode(payload), secret)
+
+Implementation Files:
+  Backend:
+    - backend/src/utils/jwt.ts
+    - backend/src/middleware/authenticate.ts
+    - backend/src/modules/auth/auth.service.ts
+  
+  Frontend:
+    - frontend/src/services/authService.ts
+
+Usage in Project:
+  • User authentication on login
+  • Protected route authorization
+  • Role-based access control (buyer, consultant, admin)
+  • Session management
+  • API request authentication
+
+Roles Supported:
+  • buyer (default user)
+  • consultant (verified professionals)
+  • admin (platform administrators)
+
+--------------------------------------------------------------------------------
+7. BCRYPT.JS
+--------------------------------------------------------------------------------
+Library: bcryptjs
+Documentation: https://github.com/dcodeIO/bcrypt.js
+
+Configuration:
+  Salt Rounds: 10
+
+Implementation Files:
+  - backend/src/models/user.model.ts
+  - backend/src/modules/auth/auth.service.ts
+
+Usage in Project:
+  • Password hashing before database storage
+  • Password comparison during login
+  • Secure password reset
+
+Security Features:
+  ✓ Automatic salt generation
+  ✓ Configurable cost factor
+  ✓ Protection against rainbow table attacks
+  ✓ Resistant to brute force
+
+--------------------------------------------------------------------------------
+8. MONGOOSE (v7.x)
+--------------------------------------------------------------------------------
+Official Website: https://mongoosejs.com
+Documentation: https://mongoosejs.com/docs/
+
+Database: MongoDB
+Connection String: mongodb://localhost:27017/expert_raah
+
+Models Defined:
+  • User (users collection)
+  • Consultant (consultants collection)
+  • Job (jobs collection)
+  • Proposal (proposals collection)
+  • Order (orders collection)
+  • Message (messages collection)
+  • Conversation (conversations collection)
+  • Review (reviews collection)
+  • Notification (notifications collection)
+
+Key Features Used:
+  ✓ Schema definition with validation
+  ✓ Middleware hooks (pre/post)
+  ✓ Population (relationships)
+  ✓ Aggregation pipelines
+  ✓ Text indexes for search
+  ✓ Compound indexes for optimization
+
+Implementation Files:
+  - All files in backend/src/models/
+  - All service files in backend/src/modules/
+
+Usage in Project:
+  • Database schema management
+  • Data validation
+  • CRUD operations
+  • Complex queries with aggregation
+  • Full-text search
+  • Relationship management
+
+--------------------------------------------------------------------------------
+9. EXPRESS.JS (v4.x)
+--------------------------------------------------------------------------------
+Official Website: https://expressjs.com
+Documentation: https://expressjs.com/en/api.html
+
+Server Configuration:
+  PORT=5000
+  NODE_ENV=development
+
+Middleware Used:
+  • express.json() - Body parsing
+  • express.urlencoded() - URL encoding
+  • cors() - Cross-Origin Resource Sharing
+  • helmet() - Security headers
+  • morgan() - HTTP request logging
+  • express-validator - Request validation
+
+Implementation Files:
+  - backend/src/app.ts (main app)
+  - backend/src/server.ts (server startup)
+  - All route files in backend/src/routes/
+  - All controller files in backend/src/modules/
+
+API Endpoints Structure:
+  /api/auth/* - Authentication endpoints
+  /api/users/* - User management
+  /api/consultants/* - Consultant profiles
+  /api/jobs/* - Job postings
+  /api/proposals/* - Proposal management
+  /api/orders/* - Order processing
+  /api/messages/* - Messaging
+  /api/conversations/* - Conversation list
+  /api/admin/* - Admin operations
+  /api/reviews/* - Review system
+  /api/notifications/* - Notifications
+
+--------------------------------------------------------------------------------
+10. AXIOS
+--------------------------------------------------------------------------------
+Official Website: https://axios-http.com
+Documentation: https://axios-http.com/docs/intro
+
+Configuration:
+  Base URL: http://localhost:5000/api
+  Timeout: 10000ms (10 seconds)
+
+Interceptors Configured:
+  Request Interceptor:
+    • Attach Authorization header with JWT token
+    • Add request timestamp
+  
+  Response Interceptor:
+    • Handle 401 Unauthorized (redirect to login)
+    • Handle 403 Forbidden
+    • Extract data from response
+    • Error handling and formatting
+
+Implementation Files:
+  - frontend/src/api/httpClient.ts (axios instance)
+  - All service files in frontend/src/services/
+
+Usage in Project:
+  • API communication with backend
+  • Automatic token attachment
+  • Error handling
+  • Request/response transformation
+  • Loading state management
+
+--------------------------------------------------------------------------------
+11. MATERIAL-UI (MUI v5.x)
+--------------------------------------------------------------------------------
+Official Website: https://mui.com
+Documentation: https://mui.com/material-ui/
+
+Theme Configuration:
+  Primary Color: #0db4bc (Teal)
+  Primary Dark: #0a8b91
+  Secondary: #f50057
+  Font Family: 'Roboto', 'Helvetica', 'Arial', sans-serif
+
+Components Used:
+  Layout: Box, Container, Grid, Stack
+  Inputs: TextField, Select, Checkbox, Radio, Switch
+  Navigation: Button, IconButton, Tabs, Menu
+  Surfaces: Card, Paper, Accordion, AppBar
+  Feedback: CircularProgress, LinearProgress, Alert, Snackbar
+  Data Display: Typography, Avatar, Chip, Badge, Tooltip
+  Modals: Dialog, Modal, Drawer
+
+Custom Theme:
+  - Responsive breakpoints
+  - Custom color palette with teal
+  - Typography scale
+  - Shadow system
+  - Border radius standards
+
+Implementation Files:
+  - All page files in frontend/src/pages/
+  - All component files in frontend/src/components/
+  - frontend/src/theme/theme.ts
+
+Usage in Project:
+  • Consistent UI components
+  • Responsive design
+  • Material Design standards
+  • Theme customization
+  • Accessibility features
+
+--------------------------------------------------------------------------------
+12. REACT ROUTER DOM (v6.x)
+--------------------------------------------------------------------------------
+Official Website: https://reactrouter.com
+Documentation: https://reactrouter.com/en/main
+
+Routing Strategy: Browser History
+
+Route Structure:
+  Public Routes:
+    / - Landing Page
+    /login - Login Page
+    /signup - Signup Page
+    /account-type - Account Type Selection
+  
+  Authenticated Routes:
+    /buyer-dashboard - Buyer Dashboard
+    /consultant-dashboard - Consultant Dashboard
+    /messages/:userId? - Messaging Center
+    /profile - User Profile
+    /post-job - Job Posting (AI Assistant)
+    /job/:jobId - Job Details
+    /submit-proposal/:jobId - Submit Proposal
+    /payment/:orderId - Payment Processing
+  
+  Admin Routes:
+    /admin - Admin Dashboard
+    /admin/verify-consultants - Verification Queue
+  
+  Consultant Routes:
+    /consultant-signup - Consultant Registration
+    /consultant-proposals - Proposal Management
+
+Protected Route Logic:
+  • Check authentication status
+  • Verify user role
+  • Redirect unauthorized users
+  • Preserve intended destination
+
+Implementation Files:
+  - frontend/src/App.tsx (route definitions)
+  - All page components
+
+Usage in Project:
+  • Client-side routing
+  • Navigation between pages
+  • URL parameter extraction
+  • Navigation state passing
+  • Programmatic navigation
+  • Route protection
+
+--------------------------------------------------------------------------------
+13. FRAMER MOTION
+--------------------------------------------------------------------------------
+Official Website: https://www.framer.com/motion/
+Documentation: https://www.framer.com/motion/introduction/
+
+Animation Types Used:
+  • Fade in/out
+  • Slide transitions
+  • Scale animations
+  • Spring physics
+  • Stagger effects
+
+Configuration:
+  Default Transition: { duration: 0.3, ease: "easeInOut" }
+  Spring Config: { type: "spring", stiffness: 300, damping: 30 }
+
+Implementation Files:
+  - frontend/src/pages/BuyerDashboardPage.tsx
+  - frontend/src/pages/ConsultantDashboardPage.tsx
+  - frontend/src/pages/PaymentPage.tsx
+  - frontend/src/components/chatbot/ChatbotWidget.tsx
+
+Usage in Project:
+  • Page transition animations
+  • Card hover effects
+  • Modal entry/exit animations
+  • List item stagger
+  • Smooth scrolling
+  • Interactive elements
+
+Animation Examples:
+  • Dashboard tab switching
+  • Payment success screen
+  • Chatbot widget open/close
+  • Proposal card reveal
+  • Notification popup
+
+--------------------------------------------------------------------------------
+14. REACT ICONS
+--------------------------------------------------------------------------------
+Official Website: https://react-icons.github.io/react-icons/
+Documentation: https://react-icons.github.io/react-icons/
+
+Icon Sets Used:
+  Font Awesome (Fa):
+    FaUser, FaSearch, FaStar, FaMapMarkerAlt, FaBriefcase,
+    FaClock, FaDollarSign, FaCheckCircle, FaTimesCircle,
+    FaFileAlt, FaAward, FaEnvelope, FaPhone, FaPaperPlane
+  
+  Material Design (Md):
+    MdDashboard, MdMessage, MdSettings, MdNotifications,
+    MdWork, MdPerson, MdPayment
+  
+  Heroicons (Hi):
+    HiOutlineCheck, HiOutlineX, HiOutlinePencil
+
+Implementation Files:
+  - All page files
+  - All component files
+
+Usage in Project:
+  • Navigation icons
+  • Action buttons
+  • Status indicators
+  • Feature highlights
+  • Social media links
+  • Form inputs
+
+Icon Styling:
+  • Dynamic sizing
+  • Color customization
+  • Hover effects
+  • Accessibility labels
+
+--------------------------------------------------------------------------------
+15. REDIS
+--------------------------------------------------------------------------------
+Official Website: https://redis.io
+Documentation: https://redis.io/docs/
+
+Connection:
+  URL: redis://localhost:6379
+  Default DB: 0
+
+Data Structures Used:
+  • Strings (OTP storage)
+  • Hash (Session data)
+  • Sets (Active users)
+  • Sorted Sets (Rate limiting)
+
+TTL Configuration:
+  OTP: 300 seconds (5 minutes)
+  Sessions: 86400 seconds (24 hours)
+  Rate Limit: 60 seconds (1 minute)
+
+Implementation Files:
+  - backend/src/config/redis.ts
+  - backend/src/modules/order/order.service.ts
+  - backend/src/middleware/rateLimit.ts
+
+Usage in Project:
+  • OTP caching for payment verification
+  • Session management
+  • Rate limiting API requests
+  • Active user tracking
+  • Temporary data storage
+
+Benefits:
+  ✓ Fast in-memory operations
+  ✓ Automatic expiration
+  ✓ Reduced database load
+  ✓ Scalability support
+
+================================================================================
+ENVIRONMENT VARIABLES SUMMARY
+================================================================================
+
+Backend (.env):
+-----------------------------------
+# Server
+PORT=5000
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
+
+# Database
+MONGODB_URI=mongodb://localhost:27017/expert_raah
+
+# JWT Authentication
+JWT_SECRET=your_jwt_secret_key_here
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_SECRET=your_refresh_secret_here
+JWT_REFRESH_EXPIRES_IN=30d
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# OpenAI
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4-turbo-preview
+
+# Email (Gmail)
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASSWORD=your_app_specific_password
+EMAIL_FROM="Expert Raah <noreply@expertaah.com>"
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+Frontend (.env):
+-----------------------------------
+# API
+VITE_API_URL=http://localhost:5000/api
+VITE_SOCKET_URL=http://localhost:5000
+
+# Stripe
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+
+# App
+VITE_APP_NAME=Expert Raah
+VITE_APP_VERSION=1.0.0
+
+================================================================================
+API RATE LIMITS AND QUOTAS
+================================================================================
+
+Stripe:
+  Test Mode: Unlimited requests
+  Live Mode: Based on account tier
+  Webhook Events: 1000/hour
+
+Cloudinary:
+  Free Tier:
+    - 25 credits/month
+    - 25GB bandwidth/month
+    - 25GB storage
+    - 1000 transformations/month
+
+OpenAI:
+  Rate Limits (varies by tier):
+    - GPT-4: 10,000 tokens/minute
+    - Embeddings: 1,000,000 tokens/minute
+  Cost:
+    - GPT-4: $0.03/1K prompt tokens, $0.06/1K completion tokens
+    - Embeddings: $0.0001/1K tokens
+
+Socket.IO:
+  No inherent API limits
+  Limited by server resources:
+    - Memory per connection: ~10KB
+    - Concurrent connections: Server dependent
+
+Gmail SMTP (Nodemailer):
+  Free Gmail: 500 emails/day
+  Google Workspace: 2000 emails/day
+  Rate: 10 emails/minute
+
+Redis:
+  No API rate limits
+  Performance limits:
+    - Operations: ~100K ops/sec (typical)
+    - Memory: Based on available RAM
+
+Application Rate Limiting:
+  API Endpoints:
+    - General: 100 requests/minute per IP
+    - Auth: 10 requests/minute per IP
+    - File Upload: 10 requests/hour per user
+
+================================================================================
+SECURITY CONSIDERATIONS
+================================================================================
+
+API Key Protection:
+  ✓ All API keys stored in environment variables
+  ✓ Never committed to version control
+  ✓ Different keys for development and production
+  ✓ Regular key rotation recommended
+
+Authentication:
+  ✓ JWT tokens for API authentication
+  ✓ HTTPS required in production
+  ✓ Token expiration implemented
+  ✓ Refresh token mechanism
+
+Data Validation:
+  ✓ Input sanitization
+  ✓ Request validation with express-validator
+  ✓ File type and size restrictions
+  ✓ XSS protection with helmet
+
+CORS Configuration:
+  ✓ Restricted to frontend domain
+  ✓ Credentials enabled for cookies
+  ✓ Preflight requests handled
+
+Payment Security:
+  ✓ PCI DSS compliant via Stripe
+  ✓ No card data stored locally
+  ✓ OTP verification for transactions
+  ✓ Escrow system for fund protection
+
+================================================================================
+END OF DOCUMENT
 ================================================================================

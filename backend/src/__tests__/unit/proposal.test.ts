@@ -52,7 +52,7 @@ describe('Unit Testing - Proposal Submission', () => {
       .send({
         title: 'Legal Consultant Needed',
         category: 'Legal',
-        description: 'Need help with contracts',
+        description: 'Need experienced legal consultant to help with contract review and legal compliance matters',
         budget: { min: 40000, max: 60000 },
         timeline: '2 weeks',
         location: 'Lahore',

@@ -8,6 +8,7 @@ import {
   FaVideo,
   FaEllipsisV,
   FaPaperclip,
+  FaComments,
 } from 'react-icons/fa';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
@@ -66,17 +67,10 @@ const MessagingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [uploadingFile, setUploadingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // Helper to determine user's account type (some responses use `accountType`, others `roles` or `role`)
-  const getAccountType = (user: any) => {
-    if (!user) return 'buyer';
-    if (user.accountType) return user.accountType;
-    if (Array.isArray(user.roles) && user.roles.includes('consultant')) return 'consultant';
-    if (user.role) return user.role;
-    return 'buyer';
-  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const initialLoadRef = useRef(true);
 
   // Socket.IO connection for real-time messaging
   const { connect, disconnect, isConnected, markConversationAsRead } = useSocket({
@@ -135,9 +129,11 @@ const MessagingPage = () => {
 
     setCurrentUser(normalizedUser);
 
-    // Connect to Socket.IO
+    // Connect to Socket.IO first
     connect();
 
+    // CRITICAL: Fetch conversations immediately when page loads
+    // This ensures conversations load regardless of navigation state
     fetchConversations();
 
     // Poll conversations less frequently since we have real-time updates
@@ -149,6 +145,7 @@ const MessagingPage = () => {
       clearInterval(conversationInterval);
       disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   // Handle URL parameter changes
@@ -158,18 +155,23 @@ const MessagingPage = () => {
     }
   }, [selectedUserIdParam]);
 
-  // Fetch messages when conversation changes
+  // Fetch messages when conversation changes and manage socket rooms
   useEffect(() => {
     if (selectedUserId && currentUser) {
+      console.log('[MessagingPage] Selected conversation changed:', selectedUserId);
+      
+      // Fetch messages first to get conversation data
       fetchMessages(selectedUserId);
       markAsRead(selectedUserId);
 
-      // Poll messages every 2 seconds
+      // Poll messages every 3 seconds (reduced frequency with socket)
       const messageInterval = setInterval(() => {
         fetchMessages(selectedUserId);
-      }, 2000);
+      }, 3000);
 
-      return () => clearInterval(messageInterval);
+      return () => {
+        clearInterval(messageInterval);
+      };
     }
   }, [selectedUserId, currentUser]);
 
@@ -182,14 +184,17 @@ const MessagingPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     try {
-      const response = await httpClient.get('/conversations'); // Changed from /messages/conversations
+      console.log('[MessagingPage] Fetching conversations...');
+      const response = await httpClient.get('/conversations');
       const conversationsData = response.data?.data || [];
+      console.log('[MessagingPage] Conversations loaded:', conversationsData.length);
+      
       setConversations(conversationsData);
 
-      // Auto-select first conversation if none selected and conversations exist
-      if (!selectedUserId && conversationsData.length > 0 && currentUser) {
+      // Only auto-select on initial load, not on subsequent polling fetches
+      if (initialLoadRef.current && !selectedUserId && !selectedUserIdParam && !preselectedUser && conversationsData.length > 0 && currentUser) {
         const firstConversation = conversationsData[0];
         const otherUser = firstConversation.participants?.find((p: any) => {
           const participantId = p._id || p.id;
@@ -197,9 +202,10 @@ const MessagingPage = () => {
         });
         if (otherUser) {
           const otherUserId = otherUser._id || otherUser.id;
-
+          console.log('[MessagingPage] Auto-selecting first conversation:', otherUserId);
           setSelectedUserId(otherUserId);
         }
+        initialLoadRef.current = false;
       }
     } catch (error: any) {
       console.error('💥 [MessagingPage] Failed to fetch conversations:', error);
@@ -210,7 +216,7 @@ const MessagingPage = () => {
       });
       setConversations([]);
     }
-  };
+  }, [currentUser, selectedUserId, selectedUserIdParam, preselectedUser]);
 
   const fetchMessages = async (otherUserId: string) => {
     try {
@@ -479,17 +485,8 @@ const MessagingPage = () => {
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Button
-              onClick={() => {
-                const role = getAccountType(currentUser);
-                if (role === 'consultant') {
-                  navigate('/consultant-dashboard');
-                } else if (role === 'admin') {
-                  navigate('/admin');
-                } else {
-                  navigate('/buyer-dashboard');
-                }
-              }}
-              title="Back to Dashboard"
+              onClick={() => navigate(-1)}
+              title="Back"
               sx={{
                 color: 'white',
                 minWidth: 'auto',
@@ -582,13 +579,38 @@ const MessagingPage = () => {
             <Box
               sx={{
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                height: '200px',
-                color: '#9ca3af',
+                height: '100%',
+                gap: 2,
+                px: 3,
+                py: 8,
               }}
             >
-              <Typography>No conversations yet</Typography>
+              <FaComments style={{ fontSize: '72px', color: '#d1d5db', opacity: 0.5 }} />
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 600, 
+                  color: '#6b7280',
+                  textAlign: 'center',
+                }}
+              >
+                {searchQuery ? 'No conversations found' : 'No conversations yet'}
+              </Typography>
+              <Typography 
+                sx={{ 
+                  fontSize: '0.9rem', 
+                  color: '#9ca3af',
+                  textAlign: 'center',
+                  maxWidth: '280px',
+                }}
+              >
+                {searchQuery 
+                  ? 'Try a different search term' 
+                  : 'Start chatting with consultants by visiting their profiles'}
+              </Typography>
             </Box>
           ) : (
             filteredConversations.map((conversation) => {
@@ -612,13 +634,13 @@ const MessagingPage = () => {
                     cursor: 'pointer',
                     borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
                     background: isSelected
-                      ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)'
+                      ? 'linear-gradient(135deg, rgba(13, 180, 188, 0.08) 0%, rgba(10, 139, 145, 0.08) 100%)'
                       : 'transparent',
                     transition: 'all 0.2s ease',
                     '&:hover': {
                       background: isSelected
-                        ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%)'
-                        : 'rgba(0, 0, 0, 0.02)',
+                        ? 'linear-gradient(135deg, rgba(13, 180, 188, 0.12) 0%, rgba(10, 139, 145, 0.12) 100%)'
+                        : 'rgba(13, 180, 188, 0.04)',
                     },
                   }}
                 >
@@ -729,35 +751,6 @@ const MessagingPage = () => {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Button
-                  onClick={() => {
-                    // On mobile, go back to conversations list
-                    if (window.innerWidth <= 768) {
-                      setSelectedUserId(null);
-                    } else {
-                      // On desktop, go to dashboard
-                      const role = getAccountType(currentUser);
-                      if (role === 'consultant') {
-                        navigate('/consultant-dashboard');
-                      } else if (role === 'admin') {
-                        navigate('/admin');
-                      } else {
-                        navigate('/buyer-dashboard');
-                      }
-                    }
-                  }}
-                  title={window.innerWidth <= 768 ? "Back to conversations" : "Back to Dashboard"}
-                  sx={{
-                    color: 'white',
-                    minWidth: 'auto',
-                    p: 0.5,
-                    '&:hover': {
-                      background: 'rgba(255, 255, 255, 0.1)',
-                    },
-                  }}
-                >
-                  ← {window.innerWidth <= 768 ? 'Back' : 'Dashboard'}
-                </Button>
                 {selectedUser.profileImage ? (
                   <Avatar src={selectedUser.profileImage} alt={selectedUser.name} sx={{ width: 40, height: 40 }} />
                 ) : (
@@ -893,11 +886,11 @@ const MessagingPage = () => {
                               display: 'flex',
                               justifyContent: isSent ? 'flex-end' : 'flex-start',
                               gap: 1,
-                              mb: 1,
+                              mb: 1.5,
                             }}
                           >
                             {!isSent && (
-                              <Box>
+                              <Box sx={{ flexShrink: 0 }}>
                                 {messageSender?.profileImage ? (
                                   <Avatar
                                     src={messageSender.profileImage}
@@ -912,46 +905,91 @@ const MessagingPage = () => {
                             <Box
                               sx={{
                                 maxWidth: '70%',
-                                background: isSent
-                                  ? 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)'
-                                  : 'white',
-                                color: isSent ? 'white' : '#1a1a1a',
-                                borderRadius: isSent ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                                p: 1.5,
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: isSent ? 'flex-end' : 'flex-start',
                               }}
                             >
-                              <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.5 }}>
-                                {message.content}
+                              <Box
+                                sx={{
+                                  background: isSent
+                                    ? 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)'
+                                    : 'white',
+                                  color: isSent ? 'white' : '#1a1a1a',
+                                  borderRadius: isSent ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                                  p: 1.5,
+                                  px: 2,
+                                  boxShadow: isSent 
+                                    ? '0 2px 12px rgba(13, 180, 188, 0.25)' 
+                                    : '0 2px 8px rgba(0, 0, 0, 0.08)',
+                                  wordBreak: 'break-word',
+                                }}
+                              >
+                                <Typography 
+                                  sx={{ 
+                                    fontSize: '0.95rem', 
+                                    lineHeight: 1.5,
+                                    whiteSpace: 'pre-wrap',
+                                  }}
+                                >
+                                  {message.content}
+                                </Typography>
+                                {message.attachments && message.attachments.length > 0 && (
+                                  <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                    {message.attachments.map((attachment, idx) => (
+                                      <Button
+                                        key={idx}
+                                        component="a"
+                                        href={`data:application/octet-stream;base64,${attachment}`}
+                                        download={`file-${idx}`}
+                                        title="Click to download"
+                                        startIcon={<span>📥</span>}
+                                        sx={{
+                                          color: isSent ? 'white' : '#0db4bc',
+                                          textTransform: 'none',
+                                          fontSize: '0.85rem',
+                                          justifyContent: 'flex-start',
+                                          '&:hover': {
+                                            background: isSent
+                                              ? 'rgba(255, 255, 255, 0.1)'
+                                              : 'rgba(13, 180, 188, 0.08)',
+                                          },
+                                        }}
+                                      >
+                                        Download
+                                      </Button>
+                                    ))}
+                                  </Box>
+                                )}
+                              </Box>
+                              <Typography 
+                                sx={{ 
+                                  fontSize: '0.7rem', 
+                                  color: '#9ca3af',
+                                  mt: 0.5,
+                                  px: 0.5,
+                                }}
+                              >
+                                {new Date(message.createdAt).toLocaleTimeString('en-US', {
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                  hour12: true
+                                })}
                               </Typography>
-                              {message.attachments && message.attachments.length > 0 && (
-                                <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                  {message.attachments.map((attachment, idx) => (
-                                    <Button
-                                      key={idx}
-                                      component="a"
-                                      href={`data:application/octet-stream;base64,${attachment}`}
-                                      download={`file-${idx}`}
-                                      title="Click to download"
-                                      startIcon={<span>📥</span>}
-                                      sx={{
-                                        color: isSent ? 'white' : '#0db4bc',
-                                        textTransform: 'none',
-                                        fontSize: '0.85rem',
-                                        justifyContent: 'flex-start',
-                                        '&:hover': {
-                                          background: isSent
-                                            ? 'rgba(255, 255, 255, 0.1)'
-                                            : 'rgba(102, 126, 234, 0.08)',
-                                        },
-                                      }}
-                                    >
-                                      Download
-                                    </Button>
-                                  ))}
-                                </Box>
-                              )}
                             </Box>
+                            {isSent && (
+                              <Box sx={{ flexShrink: 0, alignSelf: 'flex-end', mb: 3 }}>
+                                {currentUser?.profileImage ? (
+                                  <Avatar
+                                    src={currentUser.profileImage}
+                                    alt={currentUser.name}
+                                    sx={{ width: 32, height: 32 }}
+                                  />
+                                ) : (
+                                  <FaUserCircle style={{ fontSize: '32px', color: '#9ca3af' }} />
+                                )}
+                              </Box>
+                            )}
                           </Box>
                         );
                       })}

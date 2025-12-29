@@ -1,17 +1,36 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Paper, Avatar, IconButton, Button, Divider, Chip } from '@mui/material';
+import { Box, Typography, Paper, Avatar, IconButton, Button, Divider, Chip, TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { ChatbotWidget } from '../components/chatbot';
 import SecurityIcon from '@mui/icons-material/Security';
 import { authService } from '../services/authService';
 import LogoutIcon from '@mui/icons-material/Logout';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
+// Valid options for location and category
+const VALID_LOCATIONS = ['Rawalpindi', 'Islamabad', 'Lahore', 'Karachi', 'Remote (Pakistan)'];
+const VALID_CATEGORIES = ['Education', 'Business', 'Legal'];
+
+// Word counter utility
+const countWords = (text: string): number => {
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+};
+
+const MINIMUM_WORDS = 100;
 
 const PostJobPage = () => {
   const navigate = useNavigate();
   const currentUser = authService.getCurrentUser();
   const [progress, setProgress] = useState(0);
   const [jobPreview, setJobPreview] = useState<any>(null);
+  const [isEditingPreview, setIsEditingPreview] = useState(false);
+  const [editedData, setEditedData] = useState<any>(null);
+  const [isPreviewLocked, setIsPreviewLocked] = useState(false);
 
   const handleLogout = async () => {
     await authService.logout();
@@ -22,7 +41,8 @@ const PostJobPage = () => {
     setProgress(progressValue);
     
     // Only show preview when we have enough data (at least description and category)
-    if (jobData.description && jobData.category) {
+    // If preview is locked by user edits, do not overwrite with chatbot data
+    if (!isPreviewLocked && jobData.description && jobData.category) {
       setJobPreview(jobData);
     }
   };
@@ -41,19 +61,47 @@ const PostJobPage = () => {
         return;
       }
 
+      // Validate description word count (use enhanced or original)
+      const descriptionToCheck = jobPreview.enhancedDescription || jobPreview.description;
+      const wordCount = countWords(descriptionToCheck);
+      if (wordCount < MINIMUM_WORDS) {
+        alert(`Description must be at least ${MINIMUM_WORDS} words. Current: ${wordCount} words.`);
+        return;
+      }
+
+      // Validate category
+      if (!VALID_CATEGORIES.includes(jobPreview.category)) {
+        alert('Please select a valid category: Education, Business, or Legal.');
+        return;
+      }
+
+      // Validate location
+      if (!VALID_LOCATIONS.includes(jobPreview.location)) {
+        alert('Please select a valid location from the provided options.');
+        return;
+      }
+
       // Map budget to min/max with defaults
       const budgetMin = jobPreview.budgetMin || 5000;
       const budgetMax = jobPreview.budgetMax || budgetMin * 2;
 
-      // Enhance the job description and generate professional title using AI
-      const { title, enhancedDescription } = await sarahAI.enhanceJobPosting(
-        jobPreview.description,
-        jobPreview.category,
-        jobPreview.skills || []
-      );
+      // Generate professional title using AI (only if not already generated)
+      let title = jobPreview.title;
+      let enhancedDescription = jobPreview.enhancedDescription || jobPreview.description;
+      
+      if (!title) {
+        const enhancement = await sarahAI.enhanceJobPosting(
+          jobPreview.description,
+          jobPreview.category,
+          jobPreview.skills || []
+        );
+        title = enhancement.title;
+        enhancedDescription = enhancement.enhancedDescription || enhancedDescription;
+      }
 
       const payload = {
         category: jobPreview.category,
+        subCategory: jobPreview.subCategory,
         title: title,
         description: enhancedDescription,
         budget: {
@@ -111,17 +159,29 @@ const PostJobPage = () => {
             px: 2,
           }}
         >
-          <Typography
-            sx={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: '#0db4bc',
-              cursor: 'pointer',
-            }}
-            onClick={() => navigate('/')}
-          >
-            Expert Raah
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton
+              onClick={() => navigate(-1)}
+              sx={{
+                color: '#0db4bc',
+                '&:hover': { bgcolor: 'rgba(13, 180, 188, 0.1)' },
+              }}
+              title="Go Back"
+            >
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography
+              sx={{
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                color: '#0db4bc',
+                cursor: 'pointer',
+              }}
+              onClick={() => navigate('/')}
+            >
+              Expert Raah
+            </Typography>
+          </Box>
           
           {currentUser ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -291,128 +351,343 @@ const PostJobPage = () => {
             sx={{
               p: 3,
               borderRadius: 3,
-              background: '#fff',
+              background: progress < 95 ? '#f9fafb' : '#fff',
               flexShrink: 0,
               minHeight: '200px',
+              position: 'relative',
+              border: progress < 95 ? '2px dashed #d1d5db' : '2px solid #0db4bc',
             }}
           >
-            {jobPreview ? (
-              <Box>
+            {/* Lock Overlay - Show until all steps completed */}
+            {progress < 95 && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  bgcolor: 'rgba(249, 250, 251, 0.95)',
+                  backdropFilter: 'blur(2px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 3,
+                  zIndex: 1,
+                  gap: 2,
+                }}
+              >
+                <SecurityIcon sx={{ fontSize: 64, color: '#9ca3af' }} />
                 <Typography
                   sx={{
                     fontSize: '1.1rem',
                     fontWeight: 600,
-                    color: '#1f2937',
-                    mb: 2,
+                    color: '#6b7280',
+                    textAlign: 'center',
                   }}
                 >
-                  📝 Job Preview
+                  🔒 Job Preview Locked
                 </Typography>
-                <Divider sx={{ mb: 2 }} />
-                
-                {jobPreview.description && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography sx={{ fontSize: '0.875rem', color: '#6b7280', mb: 0.5 }}>
-                      Description:
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.9rem', color: '#374151', lineHeight: 1.6 }}>
-                      {jobPreview.description}
-                    </Typography>
-                  </Box>
-                )}
-                
-                {jobPreview.category && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography sx={{ fontSize: '0.875rem', color: '#6b7280', mb: 0.5 }}>
-                      Category:
-                    </Typography>
-                    <Chip
-                      label={jobPreview.category}
-                      sx={{
-                        bgcolor: '#e0f2fe',
-                        color: '#0369a1',
-                        fontWeight: 600,
-                      }}
-                    />
-                  </Box>
-                )}
-                
-                {jobPreview.skills && jobPreview.skills.length > 0 && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography sx={{ fontSize: '0.875rem', color: '#6b7280', mb: 0.5 }}>
-                      Skills:
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {jobPreview.skills.map((skill: string, index: number) => (
-                        <Chip
-                          key={index}
-                          label={skill}
-                          size="small"
-                          sx={{
-                            bgcolor: '#f0fdf4',
-                            color: '#15803d',
-                          }}
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                )}
-                
-                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                  {jobPreview.budgetMin && (
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontSize: '0.875rem', color: '#6b7280', mb: 0.5 }}>
-                        Budget:
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.95rem', color: '#0db4bc', fontWeight: 600 }}>
-                        PKR {jobPreview.budgetMin?.toLocaleString()} 
-                        {jobPreview.budgetMax && ` - ${jobPreview.budgetMax?.toLocaleString()}`}
-                      </Typography>
-                    </Box>
-                  )}
-                  {jobPreview.timeline && (
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontSize: '0.875rem', color: '#6b7280', mb: 0.5 }}>
-                        Timeline:
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.95rem', color: '#374151', fontWeight: 500 }}>
-                        {jobPreview.timeline}
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-                
-                {jobPreview.location && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography sx={{ fontSize: '0.875rem', color: '#6b7280', mb: 0.5 }}>
-                      Location:
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.95rem', color: '#374151', fontWeight: 500 }}>
-                      {jobPreview.location}
-                    </Typography>
-                  </Box>
-                )}
-                
-                {/* Show Post Job button only when all required fields are filled */}
-                {jobPreview.description && jobPreview.category && jobPreview.timeline && jobPreview.location && (
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={handlePostJob}
+                <Typography
+                  sx={{
+                    fontSize: '0.9rem',
+                    color: '#9ca3af',
+                    textAlign: 'center',
+                    maxWidth: '80%',
+                  }}
+                >
+                  Complete all 6 steps in the chat to unlock editing
+                </Typography>
+              </Box>
+            )}
+            
+            {jobPreview ? (
+              <Box sx={{ opacity: progress < 95 ? 0.3 : 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography
                     sx={{
-                      mt: 2,
-                      py: 1.5,
-                      background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #0a8b91 0%, #087579 100%)',
-                      },
-                      textTransform: 'none',
-                      fontSize: '1rem',
+                      fontSize: '1.1rem',
                       fontWeight: 600,
+                      color: '#1f2937',
                     }}
                   >
-                    Post Job
-                  </Button>
+                    📝 Job Preview
+                  </Typography>
+                  {!isEditingPreview && progress >= 95 && (
+                    <Button
+                      startIcon={<EditIcon />}
+                      onClick={() => {
+                        setIsEditingPreview(true);
+                        setEditedData({ ...jobPreview });
+                      }}
+                      size="small"
+                      sx={{
+                        textTransform: 'none',
+                        color: '#0db4bc',
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  )}
+                  {isPreviewLocked && (
+                    <Button
+                      startIcon={<CancelIcon />}
+                      onClick={() => setIsPreviewLocked(false)}
+                      size="small"
+                      sx={{ ml: 1, textTransform: 'none', color: '#6b7280' }}
+                    >
+                      Unlock Sync
+                    </Button>
+                  )}
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+                
+                {!isEditingPreview ? (
+                  // READ-ONLY VIEW
+                  <>
+                    {(jobPreview.category || jobPreview.subCategory) && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography sx={{ fontSize: '0.875rem', color: '#6b7280', mb: 0.5 }}>
+                          Category:
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                          <Chip
+                            label={jobPreview.category || 'Not set'}
+                            sx={{
+                              bgcolor: '#e0f2fe',
+                              color: '#0369a1',
+                              fontWeight: 600,
+                            }}
+                          />
+                          {jobPreview.subCategory && (
+                            <>
+                              <Typography sx={{ color: '#9ca3af' }}>→</Typography>
+                              <Chip
+                                label={jobPreview.subCategory}
+                                size="small"
+                                sx={{
+                                  bgcolor: '#f0f9ff',
+                                  color: '#0284c7',
+                                  fontWeight: 500,
+                                }}
+                              />
+                            </>
+                          )}
+                        </Box>
+                      </Box>
+                    )}
+                    
+                    {(jobPreview.enhancedDescription || jobPreview.description) && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography sx={{ fontSize: '0.875rem', color: '#6b7280', mb: 0.5 }}>
+                          Description ({countWords(jobPreview.enhancedDescription || jobPreview.description)} words):
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.9rem', color: '#374151', lineHeight: 1.6 }}>
+                          {jobPreview.enhancedDescription || jobPreview.description}
+                        </Typography>
+                        {jobPreview.rawDescription && jobPreview.enhancedDescription && jobPreview.rawDescription !== jobPreview.enhancedDescription && (
+                          <Typography sx={{ fontSize: '0.75rem', color: '#0db4bc', fontStyle: 'italic', mt: 0.5 }}>
+                            ✨ AI-enhanced for clarity and professionalism
+                          </Typography>
+                        )}
+                      </Box>
+                    )}
+                    
+                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                      {(jobPreview.budgetMin || jobPreview.budgetMax) && (
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ fontSize: '0.875rem', color: '#6b7280', mb: 0.5 }}>
+                            Budget:
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.95rem', color: '#0db4bc', fontWeight: 600 }}>
+                            PKR {jobPreview.budgetMin?.toLocaleString() || '0'} 
+                            {jobPreview.budgetMax && ` - ${jobPreview.budgetMax?.toLocaleString()}`}
+                          </Typography>
+                        </Box>
+                      )}
+                      {jobPreview.timeline && (
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ fontSize: '0.875rem', color: '#6b7280', mb: 0.5 }}>
+                            Timeline:
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.95rem', color: '#374151', fontWeight: 500 }}>
+                            {jobPreview.timeline}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                    
+                    {jobPreview.location && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography sx={{ fontSize: '0.875rem', color: '#6b7280', mb: 0.5 }}>
+                          Location:
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.95rem', color: '#374151', fontWeight: 500 }}>
+                          {jobPreview.location}
+                        </Typography>
+                      </Box>
+                    )}
+                    
+                    {jobPreview.skills && jobPreview.skills.length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography sx={{ fontSize: '0.875rem', color: '#6b7280', mb: 0.5 }}>
+                          Skills:
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                          {jobPreview.skills.map((skill: string, index: number) => (
+                            <Chip
+                              key={index}
+                              label={skill}
+                              size="small"
+                              sx={{
+                                bgcolor: '#f0fdf4',
+                                color: '#15803d',
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                    
+                    {/* Show Post Job button only when unlocked and all required fields are filled */}
+                    {progress >= 95 && jobPreview.description && jobPreview.category && jobPreview.timeline && jobPreview.location && countWords(jobPreview.enhancedDescription || jobPreview.description) >= MINIMUM_WORDS && (
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={handlePostJob}
+                        sx={{
+                          mt: 2,
+                          py: 1.5,
+                          background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #0a8b91 0%, #087579 100%)',
+                          },
+                          textTransform: 'none',
+                          fontSize: '1rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Post Job
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  // EDIT MODE
+                  <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <TextField
+                      label="Description"
+                      multiline
+                      rows={6}
+                      value={editedData?.description || ''}
+                      onChange={(e) => setEditedData({ ...editedData, description: e.target.value })}
+                      helperText={`${countWords(editedData?.description || '')} / ${MINIMUM_WORDS} words minimum`}
+                      error={countWords(editedData?.description || '') < MINIMUM_WORDS}
+                      fullWidth
+                      required
+                    />
+                    
+                    <FormControl fullWidth required>
+                      <InputLabel>Category</InputLabel>
+                      <Select
+                        value={editedData?.category || ''}
+                        onChange={(e) => setEditedData({ ...editedData, category: e.target.value })}
+                        label="Category"
+                      >
+                        {VALID_CATEGORIES.map((cat) => (
+                          <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth required>
+                      <InputLabel>Location</InputLabel>
+                      <Select
+                        value={editedData?.location || ''}
+                        onChange={(e) => setEditedData({ ...editedData, location: e.target.value })}
+                        label="Location"
+                      >
+                        {VALID_LOCATIONS.map((loc) => (
+                          <MenuItem key={loc} value={loc}>{loc}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        label="Min Budget (PKR)"
+                        type="number"
+                        value={editedData?.budgetMin || ''}
+                        onChange={(e) => setEditedData({ ...editedData, budgetMin: parseInt(e.target.value) || 0 })}
+                        fullWidth
+                        required
+                      />
+                      <TextField
+                        label="Max Budget (PKR)"
+                        type="number"
+                        value={editedData?.budgetMax || ''}
+                        onChange={(e) => setEditedData({ ...editedData, budgetMax: parseInt(e.target.value) || 0 })}
+                        fullWidth
+                        required
+                      />
+                    </Box>
+
+                    <TextField
+                      label="Timeline"
+                      value={editedData?.timeline || ''}
+                      onChange={(e) => setEditedData({ ...editedData, timeline: e.target.value })}
+                      placeholder="e.g., 2 weeks, 1 month, ASAP"
+                      fullWidth
+                      required
+                    />
+
+                    <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                      <Button
+                        variant="contained"
+                        startIcon={<SaveIcon />}
+                        onClick={() => {
+                          // Validate before saving
+                          const wordCount = countWords(editedData.description);
+                          if (wordCount < MINIMUM_WORDS) {
+                            alert(`Description must be at least ${MINIMUM_WORDS} words. Current: ${wordCount} words.`);
+                            return;
+                          }
+                          if (!editedData.category || !editedData.location || !editedData.timeline) {
+                            alert('Please fill all required fields.');
+                            return;
+                          }
+                          if (!editedData.budgetMin || !editedData.budgetMax || editedData.budgetMin >= editedData.budgetMax) {
+                            alert('Please enter valid budget range (min must be less than max).');
+                            return;
+                          }
+                          setJobPreview(editedData);
+                          setIsEditingPreview(false);
+                          setEditedData(null);
+                          setIsPreviewLocked(true); // Prevent chatbot from overwriting saved changes
+                        }}
+                        fullWidth
+                        sx={{
+                          background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #0a8b91 0%, #087579 100%)',
+                          },
+                        }}
+                      >
+                        Save Changes
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        startIcon={<CancelIcon />}
+                        onClick={() => {
+                          setIsEditingPreview(false);
+                          setEditedData(null);
+                        }}
+                        fullWidth
+                      >
+                        Cancel
+                      </Button>
+                    </Box>
+                  </Box>
                 )}
               </Box>
             ) : (
@@ -439,54 +714,6 @@ const PostJobPage = () => {
                 </Typography>
               </Box>
             )}
-          </Paper>
-
-          {/* Tips Section */}
-          <Paper
-            elevation={2}
-            sx={{
-              p: 3,
-              borderRadius: 3,
-              background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
-              flexShrink: 0,
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                color: '#fff',
-                mb: 2,
-              }}
-            >
-              💡 How it works
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Typography sx={{ color: '#fff', fontWeight: 600 }}>1.</Typography>
-                <Typography sx={{ color: 'rgba(255,255,255,0.95)', fontSize: '0.9rem' }}>
-                  Chat naturally with Sarah about your project
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Typography sx={{ color: '#fff', fontWeight: 600 }}>2.</Typography>
-                <Typography sx={{ color: 'rgba(255,255,255,0.95)', fontSize: '0.9rem' }}>
-                  She'll extract category, skills, budget & timeline
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Typography sx={{ color: '#fff', fontWeight: 600 }}>3.</Typography>
-                <Typography sx={{ color: 'rgba(255,255,255,0.95)', fontSize: '0.9rem' }}>
-                  Review the job details and post it
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Typography sx={{ color: '#fff', fontWeight: 600 }}>4.</Typography>
-                <Typography sx={{ color: 'rgba(255,255,255,0.95)', fontSize: '0.9rem' }}>
-                  Get AI-matched consultant recommendations!
-                </Typography>
-              </Box>
-            </Box>
           </Paper>
         </Box>
       </Box>

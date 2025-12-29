@@ -16,9 +16,10 @@ import ConsultantDashboardPage from './pages/ConsultantDashboardPage';
 import SubmitProposalPage from './pages/SubmitProposalPage';
 import PostJobPage from './pages/PostJobPage';
 import PaymentPage from './pages/PaymentPage';
+import WithdrawalPage from './pages/WithdrawalPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import ProfilePage from './pages/ProfilePage';
-import SettingsPage from './pages/SettingsPage';
+
 import MessagingPage from './pages/MessagingPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -117,11 +118,6 @@ const App = () => {
             <ProfilePage />
           </ProtectedRoute>
         } />
-        <Route path="/settings" element={
-          <ProtectedRoute>
-            <SettingsPage />
-          </ProtectedRoute>
-        } />
         <Route path="/messages" element={
           <ProtectedRoute>
             <MessagingPage />
@@ -130,6 +126,11 @@ const App = () => {
         <Route path="/messages/:userId" element={
           <ProtectedRoute>
             <MessagingPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/withdrawal" element={
+          <ProtectedRoute>
+            <WithdrawalPage />
           </ProtectedRoute>
         } />
         <Route path="/logout" element={<LogoutPage />} />

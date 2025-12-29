@@ -192,6 +192,7 @@ async function seedConsultants() {
           country: 'Pakistan',
           city,
         },
+        remoteWork: faker.datatype.boolean(0.6),  // 60% available for remote work
         availability: faker.helpers.arrayElement([
           'available',
           'limited',

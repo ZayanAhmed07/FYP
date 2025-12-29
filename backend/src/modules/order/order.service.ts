@@ -13,6 +13,7 @@
 import { Consultant } from '../../models/consultant.model';
 import { Job } from '../../models/job.model';
 import { Order } from '../../models/order.model';
+import Wallet from '../../models/wallet.model';
 import { ApiError } from '../../utils/ApiError';
 
 // In-memory store for payment sessions (use Redis in production)
@@ -180,9 +181,34 @@ export const payMilestone = async (id: string, milestoneId: string) => {
   await order.save();
 
   // Update consultant earnings
-  await Consultant.findByIdAndUpdate(order.consultantId, {
-    $inc: { totalEarnings: milestone.amount },
-  });
+  const updatedConsultant = await Consultant.findByIdAndUpdate(
+    order.consultantId,
+    { $inc: { totalEarnings: milestone.amount } },
+    { new: true }
+  ).populate('userId');
+
+  // 💰 Update consultant's wallet with milestone payment
+  if (updatedConsultant) {
+    await Wallet.findOneAndUpdate(
+      { userId: updatedConsultant.userId },
+      {
+        $inc: {
+          availableBalance: milestone.amount,
+          totalEarnings: milestone.amount,
+        },
+        $push: {
+          transactions: {
+            type: 'earning',
+            description: `Milestone payment: ${milestone.description}`,
+            amount: milestone.amount,
+            orderId: order._id,
+            date: new Date(),
+          },
+        },
+      },
+      { upsert: true }
+    );
+  }
 
   return order;
 };
@@ -270,6 +296,28 @@ export const confirmCompletion = async (id: string, userId: string) => {
       totalEarnings: pendingPayment  // Release the pending amount to earnings
     },
   });
+
+  // 💰 Update consultant's wallet with the released payment
+  const consultantUserId = (order.consultantId as any).userId._id;
+  await Wallet.findOneAndUpdate(
+    { userId: consultantUserId },
+    {
+      $inc: {
+        availableBalance: pendingPayment,
+        totalEarnings: pendingPayment,
+      },
+      $push: {
+        transactions: {
+          type: 'earning',
+          description: `Payment received for order #${order._id}`,
+          amount: pendingPayment,
+          orderId: order._id,
+          date: new Date(),
+        },
+      },
+    },
+    { upsert: true } // Create wallet if doesn't exist
+  );
 
   return order.populate([
     { path: 'jobId', select: 'title category' },

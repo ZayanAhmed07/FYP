@@ -12,7 +12,6 @@ import EarningsCard from '../components/consultant/EarningsCard';
 import JobsList from '../components/consultant/JobsList';
 import JobDetails from '../components/consultant/JobDetails';
 import OrdersList from '../components/consultant/OrdersList';
-import MessagesSidebar from '../components/consultant/MessagesSidebar';
 import CompletionModal from '../components/consultant/CompletionModal';
 import { Box, Typography, Button } from '@mui/material';
 
@@ -43,7 +42,7 @@ interface JobFromApi {
 const ConsultantDashboardPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'projects' | 'orders' | 'stats' | 'proposals'
+    'dashboard' | 'projects' | 'orders' | 'proposals'
   >('dashboard');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,27 +82,31 @@ const ConsultantDashboardPage = () => {
       if (user) {
         setCurrentUser(user);
         setIsLoading(false);
-        // Refresh user data from backend to get latest profile image
-        const refreshUser = async () => {
-          try {
-            const response = await httpClient.get('/users/me');
-            if (response.data?.data) {
-              const backendUser = response.data.data;
-              const normalizedUser = {
-                ...backendUser,
-                id: backendUser.id ?? backendUser._id,
-                _id: backendUser._id ?? backendUser.id,
-              };
-              // Update localStorage with latest data
-              localStorage.setItem('expert_raah_user', JSON.stringify(normalizedUser));
-              setCurrentUser(normalizedUser);
+        // Only refresh user data if it's been more than 5 minutes since last update
+        const lastUpdate = localStorage.getItem('expert_raah_user_last_update');
+        const shouldRefresh = !lastUpdate || Date.now() - parseInt(lastUpdate) > 5 * 60 * 1000;
+        
+        if (shouldRefresh) {
+          const refreshUser = async () => {
+            try {
+              const response = await httpClient.get('/users/me');
+              if (response.data?.data) {
+                const backendUser = response.data.data;
+                const normalizedUser = {
+                  ...backendUser,
+                  id: backendUser.id ?? backendUser._id,
+                  _id: backendUser._id ?? backendUser.id,
+                };
+                localStorage.setItem('expert_raah_user', JSON.stringify(normalizedUser));
+                localStorage.setItem('expert_raah_user_last_update', Date.now().toString());
+                setCurrentUser(normalizedUser);
+              }
+            } catch (err) {
+              console.log('Could not refresh user data');
             }
-          } catch (err) {
-            // Silently fail, use cached data
-            console.log('Could not refresh user data');
-          }
-        };
-        refreshUser();
+          };
+          refreshUser();
+        }
       } else {
         // Redirect to login if not authenticated
         navigate('/login');
@@ -178,10 +181,13 @@ const ConsultantDashboardPage = () => {
       const response = await httpClient.get(`/orders/consultant/${consultantId}`);
       const orders = response.data?.data || [];
 
-      const total = orders.reduce((sum: number, order: any) => sum + (order.amountPaid || 0), 0);
-      const paid = orders
-        .filter((o: any) => o.status === 'completed')
-        .reduce((sum: number, order: any) => sum + (order.amountPaid || 0), 0);
+      // Total earnings = sum of all order amounts (completed + in-progress)
+      const total = orders.reduce((sum: number, order: any) => sum + (order.totalAmount || 0), 0);
+      
+      // Paid = sum of amountPaid from all orders (regardless of status)
+      const paid = orders.reduce((sum: number, order: any) => sum + (order.amountPaid || 0), 0);
+      
+      // Pending = sum of amountPending from in-progress orders
       const pending = orders
         .filter((o: any) => o.status === 'in_progress')
         .reduce((sum: number, order: any) => sum + (order.amountPending || 0), 0);
@@ -402,7 +408,9 @@ const ConsultantDashboardPage = () => {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        background: '#f8fafc'
+        background: (theme) => theme.palette.mode === 'dark' 
+          ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+          : '#f8fafc'
       }}>
         <Typography>Loading...</Typography>
       </Box>
@@ -417,7 +425,9 @@ const ConsultantDashboardPage = () => {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        background: '#f8fafc',
+        background: (theme) => theme.palette.mode === 'dark' 
+          ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+          : '#f8fafc',
         flexDirection: 'column',
         gap: 2
       }}>
@@ -434,7 +444,9 @@ const ConsultantDashboardPage = () => {
 
   try {
     return (
-      <Box sx={{ minHeight: '100vh', background: '#f8fafc' }}>
+      <Box sx={{ minHeight: '100vh', background: (theme) => theme.palette.mode === 'dark' 
+        ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+        : '#f8fafc' }}>
       {/* Header */}
       <DashboardHeader
         activeTab={activeTab}
@@ -453,40 +465,79 @@ const ConsultantDashboardPage = () => {
       {/* Main Content */}
       <Box
         sx={{
-          pt: 10,
-          px: 3,
-          pb: 3,
-          maxWidth: activeTab === 'projects' ? '1600px' : '1400px',
+          minHeight: 'calc(100vh - 72px)',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          px: { xs: 1.5, md: 3 },
+          py: { xs: 1.5, md: 3 },
+          maxWidth: { xs: '100%', lg: activeTab === 'projects' ? '1800px' : '1600px' },
           margin: '0 auto',
+          '&::-webkit-scrollbar': { width: '10px' },
+          '&::-webkit-scrollbar-track': { background: 'rgba(13, 180, 188, 0.05)' },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+            borderRadius: '5px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: 'linear-gradient(135deg, #0a8b91 0%, #0db4bc 100%)',
+          },
         }}
       >
         {activeTab === 'dashboard' && (
-          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, flex: '1 1 400px' }}>
-              {/* Proposals Section */}
+          <Box 
+            sx={{ 
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1.5fr' },
+              gridTemplateRows: { xs: 'auto', md: 'auto 1fr' },
+              gap: { xs: 2, md: 3 },
+              height: '100%',
+            }}
+          >
+            {/* Top Left - Proposals Card */}
+            <Box>
               <ProposalStatsCard proposalStats={proposalStats} />
-
-              {/* Rating Section */}
-              <RatingCard consultantProfile={consultantProfile} />
-
-              {/* Earnings Section */}
-              <EarningsCard earnings={earnings} />
             </Box>
 
-            <Box className="glass-card" sx={{ flex: '2 1 600px', p: 3 }}>
+            {/* Top Right - Overview Chart */}
+            <Box 
+              className="glass-card" 
+              sx={{ 
+                p: { xs: 2, md: 3 },
+                gridRow: { md: '1 / 3' },
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0,
+              }}
+            >
               <RevenueProposalsChart
                 proposalStats={proposalStats}
                 earnings={earnings}
                 monthlyData={monthlyStats}
               />
             </Box>
+
+            {/* Bottom Left - Rating & Earnings side by side */}
+            <Box 
+              sx={{ 
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gap: { xs: 2, md: 3 },
+                alignSelf: 'start',
+              }}
+            >
+              {/* Rating Section */}
+              <RatingCard consultantProfile={consultantProfile} />
+
+              {/* Earnings Section */}
+              <EarningsCard earnings={earnings} />
+            </Box>
           </Box>
         )}
 
         {activeTab === 'projects' && (
-          <>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 3 } }}>
             {/* Top filters bar, centered */}
-            <Box className="glass-card" sx={{ p: 3, mb: 3 }}>
+              <Box className="glass-card" sx={{ p: { xs: 2, md: 2.5 } }}>
               <Typography variant="h6" sx={{ fontWeight: 700, color: '#1f2937', mb: 2 }}>
                 Filter Projects
               </Typography>
@@ -611,9 +662,11 @@ const ConsultantDashboardPage = () => {
             </Box>
 
             {/* Centered jobs + details layout */}
-            <Box sx={{ display: 'flex', gap: 3 }}>
+              <Box sx={{ display: 'flex', gap: { xs: 2, md: 3 }, flexDirection: { xs: 'column', md: 'row' } }}>
               {/* Left Column - Job List */}
-              <Box sx={{ flex: '1 1 600px' }}>
+              <Box sx={{ 
+                flex: '1 1 auto',
+              }}>
                 <JobsList
                   jobs={filteredJobs}
                   jobsLoading={jobsLoading}
@@ -624,7 +677,9 @@ const ConsultantDashboardPage = () => {
               </Box>
 
               {/* Right Column - Job Details */}
-              <Box sx={{ flex: '0 0 400px' }}>
+              <Box sx={{ 
+                flex: { xs: '1 1 auto', md: '0 0 400px' },
+              }}>
                 <JobDetails
                   selectedJob={selectedJob}
                   onClearSelection={() => setSelectedJobId(null)}
@@ -632,12 +687,12 @@ const ConsultantDashboardPage = () => {
                 />
               </Box>
             </Box>
-          </>
+          </Box>
         )}
 
         {activeTab === 'orders' && (
-          <Box>
-            <Box sx={{ mb: 3 }}>
+          <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <Box sx={{ mb: 2, flexShrink: 0 }}>
               <Typography variant="h5" sx={{ fontWeight: 700, color: '#1f2937', mb: 1 }}>
                 My Orders
               </Typography>
@@ -646,29 +701,17 @@ const ConsultantDashboardPage = () => {
               </Typography>
             </Box>
 
-            <OrdersList
-              orders={orders}
-              ordersLoading={ordersLoading}
-              ordersError={ordersError}
-              onRequestCompletion={handleRequestCompletion}
-            />
+            <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+              <OrdersList
+                orders={orders}
+                ordersLoading={ordersLoading}
+                ordersError={ordersError}
+                onRequestCompletion={handleRequestCompletion}
+              />
+            </Box>
           </Box>
         )}
 
-        {activeTab === 'stats' && (
-          <Box className="glass-card" sx={{ p: 6, textAlign: 'center' }}>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1f2937', mb: 1 }}>
-              Statistics & Analytics
-            </Typography>
-            <Typography sx={{ color: '#6b7280', fontSize: '0.875rem' }}>
-              Coming soon...
-            </Typography>
-          </Box>
-        )}
-
-        {activeTab !== 'projects' && activeTab !== 'proposals' && activeTab !== 'orders' && (
-          <MessagesSidebar currentUser={currentUser} />
-        )}
       </Box>
 
       {/* Completion Request Modal */}
@@ -689,7 +732,9 @@ const ConsultantDashboardPage = () => {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        background: '#f8fafc',
+        background: (theme) => theme.palette.mode === 'dark' 
+          ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+          : '#f8fafc',
         flexDirection: 'column',
         gap: 2
       }}>

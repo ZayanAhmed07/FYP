@@ -22,6 +22,16 @@ import { Types } from 'mongoose';
  * @returns Created proposal with populated references
  */
 export const createProposal = async (proposalData: any) => {
+  // Check if proposal already exists for this job and consultant
+  const existingProposal = await Proposal.findOne({
+    jobId: proposalData.jobId,
+    consultantId: proposalData.consultantId,
+  });
+
+  if (existingProposal) {
+    throw new ApiError(400, 'You have already submitted a proposal for this job');
+  }
+
   const proposal = await Proposal.create(proposalData);
   
   // Increment proposal count on job

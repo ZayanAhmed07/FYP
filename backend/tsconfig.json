@@ -9,7 +9,7 @@
     // See also https://aka.ms/tsconfig/module
     "module": "commonjs",
     "target": "es2021",
-    "types": ["node"],
+    "types": ["node", "jest"],
     "lib": ["es2021"],
 
     // Other Outputs
@@ -37,5 +37,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "include": ["src", "src/types"]
+  "include": ["src", "src/types"],
+  "exclude": ["node_modules", "dist"]
 }

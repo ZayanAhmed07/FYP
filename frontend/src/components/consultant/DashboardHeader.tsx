@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, IconButton, Badge, Avatar, Menu, MenuItem, Typography, Button } from '@mui/material';
-import { FaEnvelope, FaUserCircle, FaCog, FaUser, FaSignOutAlt } from 'react-icons/fa';
+import { FaEnvelope, FaUserCircle, FaCog, FaUser, FaSignOutAlt, FaSun, FaMoon, FaMoneyBill } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { useThemeMode } from '../../context/ThemeContext';
 
 interface DashboardHeaderProps {
   activeTab: string;
-  onTabChange: (tab: 'dashboard' | 'projects' | 'orders' | 'stats' | 'proposals') => void;
+  onTabChange: (tab: 'dashboard' | 'projects' | 'orders' | 'proposals') => void;
   currentUser: any;
   unreadMessageCount: number;
   onLogout: () => void;
@@ -20,6 +21,7 @@ const DashboardHeader = ({
   onLogout,
 }: DashboardHeaderProps) => {
   const navigate = useNavigate();
+  const { mode, toggleTheme } = useThemeMode();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const tabs = [
@@ -27,7 +29,6 @@ const DashboardHeader = ({
     { id: 'projects' as const, label: 'Browse Jobs' },
     { id: 'proposals' as const, label: 'My Proposals' },
     { id: 'orders' as const, label: 'My Orders' },
-    { id: 'stats' as const, label: 'Statistics' },
   ];
 
   return (
@@ -41,9 +42,15 @@ const DashboardHeader = ({
         top: 0,
         zIndex: 1100,
         backdropFilter: 'blur(20px) saturate(180%)',
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        borderBottom: '2px solid rgba(13, 180, 188, 0.15)',
-        boxShadow: '0 8px 32px rgba(13, 180, 188, 0.15)',
+        backgroundColor: (theme) => theme.palette.mode === 'dark' 
+          ? 'rgba(30, 41, 59, 0.95)' 
+          : 'rgba(255, 255, 255, 0.95)',
+        borderBottom: (theme) => theme.palette.mode === 'dark'
+          ? '2px solid rgba(255, 255, 255, 0.1)'
+          : '2px solid rgba(13, 180, 188, 0.15)',
+        boxShadow: (theme) => theme.palette.mode === 'dark'
+          ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+          : '0 8px 32px rgba(13, 180, 188, 0.15)',
         borderRadius: 0,
       }}
     >
@@ -102,12 +109,18 @@ const DashboardHeader = ({
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 textTransform: 'none',
-                color: activeTab === tab.id ? '#fff' : '#2d5a5f',
+                color: activeTab === tab.id 
+                  ? '#fff' 
+                  : (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#2d5a5f',
                 background:
                   activeTab === tab.id
                     ? 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)'
                     : 'transparent',
-                border: activeTab === tab.id ? 'none' : '1px solid rgba(13, 180, 188, 0.2)',
+                border: activeTab === tab.id 
+                  ? 'none' 
+                  : (theme) => theme.palette.mode === 'dark'
+                    ? '1px solid rgba(255, 255, 255, 0.15)'
+                    : '1px solid rgba(13, 180, 188, 0.2)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
                   background:
@@ -169,6 +182,25 @@ const DashboardHeader = ({
             </Badge>
           </IconButton>
 
+          {/* Theme Toggle */}
+          <IconButton
+            component={motion.button}
+            whileHover={{ scale: 1.1, rotate: 180 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleTheme}
+            sx={{
+              color: '#0db4bc',
+              backgroundColor: 'rgba(13, 180, 188, 0.1)',
+              border: '1px solid rgba(13, 180, 188, 0.2)',
+              '&:hover': {
+                backgroundColor: 'rgba(13, 180, 188, 0.2)',
+                boxShadow: '0 0 20px rgba(13, 180, 188, 0.4)',
+              },
+            }}
+          >
+            {mode === 'dark' ? <FaSun size={18} /> : <FaMoon size={18} />}
+          </IconButton>
+
           {/* Profile */}
           <Box
             component={motion.div}
@@ -208,7 +240,7 @@ const DashboardHeader = ({
                 display: { xs: 'none', sm: 'block' },
                 fontSize: '0.875rem',
                 fontWeight: 600,
-                color: '#2d5a5f',
+                color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#2d5a5f',
               }}
             >
               {currentUser?.name || 'User'}
@@ -227,29 +259,17 @@ const DashboardHeader = ({
             mt: 1,
             borderRadius: '16px',
             backdropFilter: 'blur(20px)',
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            border: '1px solid rgba(13, 180, 188, 0.2)',
+            backgroundColor: (theme) => theme.palette.mode === 'dark'
+              ? 'rgba(30, 41, 59, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
+            border: (theme) => theme.palette.mode === 'dark'
+              ? '1px solid rgba(255, 255, 255, 0.1)'
+              : '1px solid rgba(13, 180, 188, 0.2)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
             minWidth: 200,
           },
         }}
       >
-        <MenuItem
-          onClick={() => {
-            navigate('/settings');
-            setAnchorEl(null);
-          }}
-          sx={{
-            gap: 2,
-            py: 1.5,
-            color: '#2d5a5f',
-            '&:hover': {
-              background: 'rgba(13, 180, 188, 0.1)',
-            },
-          }}
-        >
-          <FaCog /> Settings
-        </MenuItem>
         <MenuItem
           onClick={() => {
             navigate('/profile');
@@ -258,7 +278,7 @@ const DashboardHeader = ({
           sx={{
             gap: 2,
             py: 1.5,
-            color: '#2d5a5f',
+            color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#2d5a5f',
             '&:hover': {
               background: 'rgba(13, 180, 188, 0.1)',
             },
@@ -268,13 +288,29 @@ const DashboardHeader = ({
         </MenuItem>
         <MenuItem
           onClick={() => {
+            navigate('/withdrawal');
+            setAnchorEl(null);
+          }}
+          sx={{
+            gap: 2,
+            py: 1.5,
+            color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#2d5a5f',
+            '&:hover': {
+              background: 'rgba(13, 180, 188, 0.1)',
+            },
+          }}
+        >
+          <FaMoneyBill /> Withdrawals
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
             onLogout();
             setAnchorEl(null);
           }}
           sx={{
             gap: 2,
             py: 1.5,
-            color: '#ef4444',
+            color: (theme) => theme.palette.mode === 'dark' ? '#fca5a5' : '#ef4444',
             '&:hover': {
               background: 'rgba(239, 68, 68, 0.1)',
             },

@@ -31,4 +31,7 @@ router.post('/extract-details', chatbotLimiter, chatbotController.extractJobDeta
 // POST /api/chatbot/enhance-job - Enhance job posting with AI
 router.post('/enhance-job', chatbotLimiter, chatbotController.enhanceJobPosting);
 
+// POST /api/chatbot/enhance-description - Enhance description only
+router.post('/enhance-description', chatbotLimiter, chatbotController.enhanceDescription);
+
 export default router;

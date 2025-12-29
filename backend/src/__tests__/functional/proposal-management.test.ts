@@ -50,10 +50,10 @@ describe('Functional Testing - Proposal Management', () => {
       .post('/api/jobs')
       .set('Authorization', `Bearer ${buyerToken}`)
       .send({
-        title: 'Legal Consultant Needed',
+        title: 'Legal Consultant',
         category: 'Legal',
-        description: 'Need help with contracts',
-        budget: { min: 40000, max: 60000 },
+        description: 'Looking for experienced legal consultant to help with contracts review and compliance',
+        budget: { min: 60000, max: 80000 },
         timeline: '2 weeks',
         location: 'Lahore',
       });
@@ -132,10 +132,10 @@ describe('Functional Testing - Proposal Management', () => {
       .send({
         title: 'Business Consultant',
         category: 'Business',
-        description: 'Business help needed',
+        description: 'Seeking business consultant for strategic planning and market analysis services',
         budget: { min: 50000, max: 70000 },
         timeline: '3 weeks',
-        location: 'Islamabad',
+        location: 'Karachi',
       });
 
     // Get all jobs

@@ -159,7 +159,7 @@ const VerifyIdentityPage = () => {
       sx={{
         minHeight: '100vh',
         display: 'flex',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
       }}
     >
       {/* Left Panel */}
@@ -169,34 +169,39 @@ const VerifyIdentityPage = () => {
           minHeight: '100vh',
           display: { xs: 'none', md: 'flex' },
           flexDirection: 'column',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           alignItems: 'center',
-          p: 6,
+          pt: 20,
+          px: 6,
+          pb: 6,
           position: 'relative',
         }}
       >
         <Box
           sx={{
-            maxWidth: '400px',
+            maxWidth: '500px',
             textAlign: 'center',
           }}
         >
           <Typography
-            variant="h2"
+            variant="h1"
             sx={{
               fontWeight: 700,
               color: 'white',
-              mb: 3,
+              mb: 4,
               lineHeight: 1.2,
+              fontSize: '56px',
+              letterSpacing: '-1px',
             }}
           >
             Step Into<br />Expert Raah
           </Typography>
           <Typography
             sx={{
-              fontSize: '18px',
-              color: 'rgba(255, 255, 255, 0.9)',
-              lineHeight: 1.6,
+              fontSize: '22px',
+              color: 'rgba(255, 255, 255, 0.95)',
+              lineHeight: 1.7,
+              fontWeight: 400,
             }}
           >
             Join our platform to connect with clients seeking expert guidance in Education, Business, and Legal consultancy.
@@ -218,8 +223,10 @@ const VerifyIdentityPage = () => {
             borderRadius: 2,
             textTransform: 'none',
             fontSize: '16px',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
               background: 'rgba(255, 255, 255, 0.2)',
+              transform: 'translateX(-4px)',
             },
           }}
         >
@@ -241,8 +248,8 @@ const VerifyIdentityPage = () => {
             mx: 'auto',
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
-            borderRadius: 3,
-            p: 5,
+            borderRadius: 4,
+            p: 6,
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
           }}
         >
@@ -251,7 +258,9 @@ const VerifyIdentityPage = () => {
             sx={{
               fontWeight: 700,
               color: '#1a1a1a',
-              mb: 1,
+              mb: 2,
+              fontSize: '32px',
+              letterSpacing: '-0.5px',
             }}
           >
             Verify Your Identity
@@ -259,8 +268,9 @@ const VerifyIdentityPage = () => {
           <Typography
             sx={{
               color: '#666',
-              mb: 4,
+              mb: 5,
               fontSize: '16px',
+              lineHeight: 1.7,
             }}
           >
             Complete your consultant profile to help clients find the right expertise in Education, Business, or Legal services.
@@ -272,7 +282,7 @@ const VerifyIdentityPage = () => {
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
               gap: 3,
-              mb: 4,
+              mb: 5,
             }}
           >
             {/* Front Side Upload */}
@@ -287,29 +297,35 @@ const VerifyIdentityPage = () => {
               <label htmlFor="frontId">
                 <Box
                   sx={{
-                    border: '2px dashed #667eea',
-                    borderRadius: 2,
-                    p: 3,
+                    border: '2px dashed #0db4bc',
+                    borderRadius: 3,
+                    p: 4,
                     textAlign: 'center',
                     cursor: 'pointer',
-                    transition: 'all 0.3s ease',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     '&:hover': {
-                      background: 'rgba(102, 126, 234, 0.05)',
-                      borderColor: '#764ba2',
+                      background: 'rgba(13, 180, 188, 0.05)',
+                      borderColor: '#0a8b91',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 12px rgba(13, 180, 188, 0.15)',
                     },
                   }}
                 >
                   <Box
                     sx={{
-                      width: 60,
-                      height: 60,
+                      width: 64,
+                      height: 64,
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       mx: 'auto',
                       mb: 2,
+                      transition: 'transform 0.3s ease',
+                      '&:hover': {
+                        transform: 'scale(1.05)',
+                      },
                     }}
                   >
                     <FaIdCard style={{ fontSize: 28, color: 'white' }} />
@@ -317,8 +333,9 @@ const VerifyIdentityPage = () => {
                   <Typography
                     sx={{
                       fontWeight: 600,
-                      color: '#667eea',
+                      color: '#0db4bc',
                       mb: 0.5,
+                      fontSize: '15px',
                     }}
                   >
                     {frontIdImage ? frontIdImage.name : 'Upload'}
@@ -330,7 +347,8 @@ const VerifyIdentityPage = () => {
                   fontSize: '14px',
                   color: '#666',
                   textAlign: 'center',
-                  mt: 1,
+                  mt: 1.5,
+                  fontWeight: 500,
                 }}
               >
                 Front Side of your Identity Card
@@ -349,29 +367,35 @@ const VerifyIdentityPage = () => {
               <label htmlFor="backId">
                 <Box
                   sx={{
-                    border: '2px dashed #667eea',
-                    borderRadius: 2,
-                    p: 3,
+                    border: '2px dashed #0db4bc',
+                    borderRadius: 3,
+                    p: 4,
                     textAlign: 'center',
                     cursor: 'pointer',
-                    transition: 'all 0.3s ease',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     '&:hover': {
-                      background: 'rgba(102, 126, 234, 0.05)',
-                      borderColor: '#764ba2',
+                      background: 'rgba(13, 180, 188, 0.05)',
+                      borderColor: '#0a8b91',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 12px rgba(13, 180, 188, 0.15)',
                     },
                   }}
                 >
                   <Box
                     sx={{
-                      width: 60,
-                      height: 60,
+                      width: 64,
+                      height: 64,
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       mx: 'auto',
                       mb: 2,
+                      transition: 'transform 0.3s ease',
+                      '&:hover': {
+                        transform: 'scale(1.05)',
+                      },
                     }}
                   >
                     <FaIdCard style={{ fontSize: 28, color: 'white' }} />
@@ -379,8 +403,9 @@ const VerifyIdentityPage = () => {
                   <Typography
                     sx={{
                       fontWeight: 600,
-                      color: '#667eea',
+                      color: '#0db4bc',
                       mb: 0.5,
+                      fontSize: '15px',
                     }}
                   >
                     {backIdImage ? backIdImage.name : 'Upload'}
@@ -392,7 +417,8 @@ const VerifyIdentityPage = () => {
                   fontSize: '14px',
                   color: '#666',
                   textAlign: 'center',
-                  mt: 1,
+                  mt: 1.5,
+                  fontWeight: 500,
                 }}
               >
                 Back Side of your Identity Card
@@ -403,11 +429,11 @@ const VerifyIdentityPage = () => {
           {/* Instructions */}
           <Box
             sx={{
-              background: 'rgba(102, 126, 234, 0.05)',
-              border: '1px solid rgba(102, 126, 234, 0.2)',
-              borderRadius: 2,
-              p: 3,
-              mb: 4,
+              background: 'rgba(13, 180, 188, 0.05)',
+              border: '1px solid rgba(13, 180, 188, 0.2)',
+              borderRadius: 3,
+              p: 3.5,
+              mb: 5,
             }}
           >
             <Typography
@@ -415,7 +441,8 @@ const VerifyIdentityPage = () => {
               sx={{
                 fontWeight: 600,
                 color: '#1a1a1a',
-                mb: 2,
+                mb: 2.5,
+                fontSize: '18px',
               }}
             >
               Instructions
@@ -426,9 +453,10 @@ const VerifyIdentityPage = () => {
                 pl: 2,
                 m: 0,
                 '& li': {
-                  color: '#666',
-                  mb: 1,
-                  lineHeight: 1.6,
+                  color: '#555',
+                  mb: 1.5,
+                  lineHeight: 1.7,
+                  fontSize: '15px',
                 },
               }}
             >
@@ -440,21 +468,22 @@ const VerifyIdentityPage = () => {
           </Box>
 
           {/* Profile Information Section */}
-          <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: 5 }}>
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1,
-                mb: 3,
+                gap: 1.5,
+                mb: 4,
               }}
             >
-              <FaUser style={{ fontSize: 24, color: '#667eea' }} />
+              <FaUser style={{ fontSize: 24, color: '#0db4bc' }} />
               <Typography
                 variant="h6"
                 sx={{
                   fontWeight: 600,
                   color: '#1a1a1a',
+                  fontSize: '20px',
                 }}
               >
                 Professional Profile
@@ -462,12 +491,13 @@ const VerifyIdentityPage = () => {
             </Box>
 
             {/* Title */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 3.5 }}>
               <Typography
                 sx={{
-                  mb: 1,
+                  mb: 1.5,
                   fontWeight: 600,
                   color: '#1a1a1a',
+                  fontSize: '15px',
                 }}
               >
                 Professional Title *
@@ -480,11 +510,13 @@ const VerifyIdentityPage = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
+                    transition: 'all 0.2s ease',
                     '&:hover fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
+                      borderWidth: '2px',
                     },
                   },
                 }}
@@ -492,12 +524,13 @@ const VerifyIdentityPage = () => {
             </Box>
 
             {/* Bio */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 3.5 }}>
               <Typography
                 sx={{
-                  mb: 1,
+                  mb: 1.5,
                   fontWeight: 600,
                   color: '#1a1a1a',
+                  fontSize: '15px',
                 }}
               >
                 Bio *
@@ -512,11 +545,13 @@ const VerifyIdentityPage = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
+                    transition: 'all 0.2s ease',
                     '&:hover fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
+                      borderWidth: '2px',
                     },
                   },
                 }}
@@ -524,13 +559,14 @@ const VerifyIdentityPage = () => {
             </Box>
 
             {/* Specialization */}
-            <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <FaBriefcase style={{ fontSize: 18, color: '#667eea' }} />
+            <Box sx={{ mb: 3.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <FaBriefcase style={{ fontSize: 18, color: '#0db4bc' }} />
                 <Typography
                   sx={{
                     fontWeight: 600,
                     color: '#1a1a1a',
+                    fontSize: '15px',
                   }}
                 >
                   Specialization *
@@ -546,11 +582,13 @@ const VerifyIdentityPage = () => {
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
+                      transition: 'all 0.2s ease',
                       '&:hover fieldset': {
-                        borderColor: '#667eea',
+                        borderColor: '#0db4bc',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#667eea',
+                        borderColor: '#0db4bc',
+                        borderWidth: '2px',
                       },
                     },
                   }}
@@ -568,13 +606,15 @@ const VerifyIdentityPage = () => {
                   sx={{
                     px: 3,
                     borderRadius: 2,
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                     color: 'white',
                     textTransform: 'none',
                     fontSize: '16px',
                     fontWeight: 600,
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     '&:hover': {
-                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                      boxShadow: '0 4px 12px rgba(13, 180, 188, 0.4)',
+                      transform: 'translateY(-2px)',
                     },
                     '&:disabled': {
                       background: '#ccc',
@@ -585,7 +625,7 @@ const VerifyIdentityPage = () => {
                   Add
                 </Button>
               </Box>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                 {profileData.specialization.map((spec, index) => (
                   <Chip
                     key={index}
@@ -593,11 +633,20 @@ const VerifyIdentityPage = () => {
                     onDelete={() => handleRemoveSpecialization(spec)}
                     deleteIcon={<FaTimesCircle />}
                     sx={{
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                       color: 'white',
                       fontWeight: 600,
+                      fontSize: '14px',
+                      py: 2.5,
+                      px: 0.5,
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 8px rgba(13, 180, 188, 0.3)',
+                      },
                       '& .MuiChip-deleteIcon': {
                         color: 'rgba(255, 255, 255, 0.8)',
+                        transition: 'color 0.2s ease',
                         '&:hover': {
                           color: 'white',
                         },
@@ -609,13 +658,14 @@ const VerifyIdentityPage = () => {
             </Box>
 
             {/* Hourly Rate */}
-            <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <FaDollarSign style={{ fontSize: 18, color: '#667eea' }} />
+            <Box sx={{ mb: 3.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <FaDollarSign style={{ fontSize: 18, color: '#0db4bc' }} />
                 <Typography
                   sx={{
                     fontWeight: 600,
                     color: '#1a1a1a',
+                    fontSize: '15px',
                   }}
                 >
                   Hourly Rate (PKR) *
@@ -631,11 +681,13 @@ const VerifyIdentityPage = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
+                    transition: 'all 0.2s ease',
                     '&:hover fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
+                      borderWidth: '2px',
                     },
                   },
                 }}
@@ -643,13 +695,14 @@ const VerifyIdentityPage = () => {
             </Box>
 
             {/* Experience */}
-            <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <FaClock style={{ fontSize: 18, color: '#667eea' }} />
+            <Box sx={{ mb: 3.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <FaClock style={{ fontSize: 18, color: '#0db4bc' }} />
                 <Typography
                   sx={{
                     fontWeight: 600,
                     color: '#1a1a1a',
+                    fontSize: '15px',
                   }}
                 >
                   Years of Experience *
@@ -663,11 +716,13 @@ const VerifyIdentityPage = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
+                    transition: 'all 0.2s ease',
                     '&:hover fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
+                      borderWidth: '2px',
                     },
                   },
                 }}
@@ -675,12 +730,13 @@ const VerifyIdentityPage = () => {
             </Box>
 
             {/* City */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 3.5 }}>
               <Typography
                 sx={{
-                  mb: 1,
+                  mb: 1.5,
                   fontWeight: 600,
                   color: '#1a1a1a',
+                  fontSize: '15px',
                 }}
               >
                 City *
@@ -694,11 +750,13 @@ const VerifyIdentityPage = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
+                    transition: 'all 0.2s ease',
                     '&:hover fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
+                      borderWidth: '2px',
                     },
                   },
                 }}
@@ -712,12 +770,13 @@ const VerifyIdentityPage = () => {
             </Box>
 
             {/* Skills */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 3.5 }}>
               <Typography
                 sx={{
-                  mb: 1,
+                  mb: 1.5,
                   fontWeight: 600,
                   color: '#1a1a1a',
+                  fontSize: '15px',
                 }}
               >
                 Skills *
@@ -732,11 +791,13 @@ const VerifyIdentityPage = () => {
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
+                      transition: 'all 0.2s ease',
                       '&:hover fieldset': {
-                        borderColor: '#667eea',
+                        borderColor: '#0db4bc',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#667eea',
+                        borderColor: '#0db4bc',
+                        borderWidth: '2px',
                       },
                     },
                   }}
@@ -746,20 +807,22 @@ const VerifyIdentityPage = () => {
                   sx={{
                     px: 3,
                     borderRadius: 2,
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                     color: 'white',
                     textTransform: 'none',
                     fontSize: '16px',
                     fontWeight: 600,
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     '&:hover': {
-                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                      boxShadow: '0 4px 12px rgba(13, 180, 188, 0.4)',
+                      transform: 'translateY(-2px)',
                     },
                   }}
                 >
                   Add
                 </Button>
               </Box>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                 {profileData.skills.map((skill, index) => (
                   <Chip
                     key={index}
@@ -767,11 +830,20 @@ const VerifyIdentityPage = () => {
                     onDelete={() => handleRemoveSkill(skill)}
                     deleteIcon={<FaTimesCircle />}
                     sx={{
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                       color: 'white',
                       fontWeight: 600,
+                      fontSize: '14px',
+                      py: 2.5,
+                      px: 0.5,
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 8px rgba(13, 180, 188, 0.3)',
+                      },
                       '& .MuiChip-deleteIcon': {
                         color: 'rgba(255, 255, 255, 0.8)',
+                        transition: 'color 0.2s ease',
                         '&:hover': {
                           color: 'white',
                         },
@@ -784,13 +856,14 @@ const VerifyIdentityPage = () => {
           </Box>
 
           {/* Supporting Documents Section */}
-          <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: 5 }}>
             <Typography
               variant="h6"
               sx={{
                 fontWeight: 600,
                 color: '#1a1a1a',
-                mb: 1,
+                mb: 1.5,
+                fontSize: '20px',
               }}
             >
               Additional Supporting Documents
@@ -799,7 +872,8 @@ const VerifyIdentityPage = () => {
               sx={{
                 color: '#666',
                 mb: 3,
-                fontSize: '14px',
+                fontSize: '15px',
+                lineHeight: 1.6,
               }}
             >
               Upload certificates, licenses, or other credentials (optional)
@@ -821,13 +895,16 @@ const VerifyIdentityPage = () => {
                   px: 4,
                   py: 1.5,
                   borderRadius: 2,
-                  border: '2px solid #667eea',
-                  color: '#667eea',
+                  border: '2px solid #0db4bc',
+                  color: '#0db4bc',
                   textTransform: 'none',
                   fontSize: '16px',
                   fontWeight: 600,
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
-                    background: 'rgba(102, 126, 234, 0.1)',
+                    background: 'rgba(13, 180, 188, 0.1)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(13, 180, 188, 0.2)',
                   },
                 }}
               >
@@ -845,22 +922,29 @@ const VerifyIdentityPage = () => {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      p: 2,
-                      mb: 1,
-                      background: 'rgba(102, 126, 234, 0.05)',
+                      p: 2.5,
+                      mb: 1.5,
+                      background: 'rgba(13, 180, 188, 0.05)',
                       borderRadius: 2,
-                      border: '1px solid rgba(102, 126, 234, 0.2)',
+                      border: '1px solid rgba(13, 180, 188, 0.2)',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        background: 'rgba(13, 180, 188, 0.08)',
+                        transform: 'translateX(4px)',
+                      },
                     }}
                   >
-                    <Typography sx={{ color: '#1a1a1a' }}>{doc.name}</Typography>
+                    <Typography sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '15px' }}>{doc.name}</Typography>
                     <Button
                       onClick={() => handleRemoveSupportingDoc(index)}
                       sx={{
                         minWidth: 'auto',
-                        p: 0.5,
+                        p: 1,
                         color: '#ef4444',
+                        transition: 'all 0.2s ease',
                         '&:hover': {
                           background: 'rgba(239, 68, 68, 0.1)',
+                          transform: 'scale(1.1)',
                         },
                       }}
                     >
@@ -876,14 +960,14 @@ const VerifyIdentityPage = () => {
           {error && (
             <Box
               sx={{
-                p: 2,
-                mb: 3,
-                borderRadius: 2,
+                p: 3,
+                mb: 4,
+                borderRadius: 3,
                 background: 'rgba(239, 68, 68, 0.1)',
                 border: '1px solid rgba(239, 68, 68, 0.3)',
               }}
             >
-              <Typography sx={{ color: '#ef4444' }}>{error}</Typography>
+              <Typography sx={{ color: '#ef4444', fontSize: '15px', lineHeight: 1.6 }}>{error}</Typography>
             </Box>
           )}
 
@@ -893,19 +977,22 @@ const VerifyIdentityPage = () => {
             onClick={handleVerify}
             disabled={loading}
             sx={{
-              py: 1.5,
-              borderRadius: 2,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              py: 2,
+              borderRadius: 3,
+              background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
               color: 'white',
               textTransform: 'none',
               fontSize: '18px',
               fontWeight: 600,
-              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+              boxShadow: '0 4px 15px rgba(13, 180, 188, 0.4)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               '&:hover': {
-                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)',
+                boxShadow: '0 6px 20px rgba(13, 180, 188, 0.6)',
                 transform: 'translateY(-2px)',
               },
-              transition: 'all 0.3s ease',
+              '&:active': {
+                transform: 'translateY(0px)',
+              },
             }}
           >
             {loading ? 'Submitting...' : 'Submit for Verification'}

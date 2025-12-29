@@ -19,6 +19,8 @@ export const getAllConsultants = async (query: any) => {
     availability,
     minRating,
     isVerified,
+    city,
+    search,
   } = query;
 
   const filter: any = {};
@@ -27,14 +29,88 @@ export const getAllConsultants = async (query: any) => {
   if (availability) filter.availability = availability;
   if (minRating) filter.rating = { $gte: Number(minRating) };
   if (isVerified !== undefined) filter.isVerified = isVerified === 'true';
+  if (city) filter.city = city;
 
-  const consultants = await Consultant.find(filter)
-    .populate('userId', 'name email profileImage isOnline isBanned')
-    .limit(Number(limit))
-    .skip((Number(page) - 1) * Number(limit))
-    .sort({ rating: -1, createdAt: -1 });
+  let consultants;
+  let total;
 
-  const total = await Consultant.countDocuments(filter);
+  // Use aggregation for search to include user name
+  if (search) {
+    const searchRegex = new RegExp(search, 'i');
+    
+    const pipeline: any[] = [
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userDetails',
+        },
+      },
+      {
+        $unwind: '$userDetails',
+      },
+      {
+        $match: {
+          ...filter,
+          $or: [
+            { title: searchRegex },
+            { bio: searchRegex },
+            { specialization: searchRegex },
+            { skills: searchRegex },
+            { 'userDetails.name': searchRegex },
+            { 'userDetails.email': searchRegex },
+          ],
+        },
+      },
+      { $sort: { rating: -1, createdAt: -1 } },
+      { $skip: (Number(page) - 1) * Number(limit) },
+      { $limit: Number(limit) },
+      {
+        $project: {
+          _id: 1,
+          userId: {
+            _id: '$userDetails._id',
+            name: '$userDetails.name',
+            email: '$userDetails.email',
+            profileImage: '$userDetails.profileImage',
+            isOnline: '$userDetails.isOnline',
+            isBanned: '$userDetails.isBanned',
+          },
+          title: 1,
+          bio: 1,
+          specialization: 1,
+          hourlyRate: 1,
+          experience: 1,
+          skills: 1,
+          city: 1,
+          rating: 1,
+          averageRating: 1,
+          totalReviews: 1,
+          availability: 1,
+          isVerified: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ];
+
+    consultants = await Consultant.aggregate(pipeline);
+    
+    // Count total matching documents
+    const countPipeline = pipeline.slice(0, 3); // Only include lookup, unwind, and match stages
+    const countResult = await Consultant.aggregate([...countPipeline, { $count: 'total' }]);
+    total = countResult.length > 0 ? countResult[0].total : 0;
+  } else {
+    // Regular query without search
+    consultants = await Consultant.find(filter)
+      .populate('userId', 'name email profileImage isOnline isBanned')
+      .limit(Number(limit))
+      .skip((Number(page) - 1) * Number(limit))
+      .sort({ rating: -1, createdAt: -1 });
+
+    total = await Consultant.countDocuments(filter);
+  }
 
   return {
     consultants,

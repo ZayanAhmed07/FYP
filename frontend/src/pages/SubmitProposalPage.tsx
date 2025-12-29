@@ -72,12 +72,24 @@ const SubmitProposalPage = () => {
       setError('Please enter a valid bid amount in PKR.');
       return;
     }
+    if (numericBid < 1000) {
+      setError('Bid amount must be at least 1000 PKR.');
+      return;
+    }
     if (!deliveryTime.trim()) {
       setError('Please specify a delivery time (e.g., 7 days).');
       return;
     }
+    if (deliveryTime.trim().length < 3) {
+      setError('Delivery time must be at least 3 characters.');
+      return;
+    }
     if (!coverLetter.trim()) {
       setError('Please write a brief cover letter.');
+      return;
+    }
+    if (coverLetter.trim().length < 100) {
+      setError('Cover letter must be at least 100 characters.');
       return;
     }
 
@@ -85,8 +97,8 @@ const SubmitProposalPage = () => {
       setLoading(true);
       await httpClient.post('/proposals', {
         jobId,
-        bidAmount: numericBid,
-        deliveryTime,
+        proposedAmount: numericBid,
+        estimatedDelivery: deliveryTime,
         coverLetter,
       });
       setSuccess('Proposal submitted successfully!');
@@ -109,7 +121,7 @@ const SubmitProposalPage = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
         py: 4,
       }}
     >
@@ -200,7 +212,7 @@ const SubmitProposalPage = () => {
                   px: 2,
                   py: 0.5,
                   borderRadius: 2,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                   color: 'white',
                   fontSize: '14px',
                 }}
@@ -213,8 +225,8 @@ const SubmitProposalPage = () => {
                   px: 2,
                   py: 0.5,
                   borderRadius: 2,
-                  background: 'rgba(102, 126, 234, 0.1)',
-                  color: '#667eea',
+                  background: 'rgba(13, 180, 188, 0.1)',
+                  color: '#0db4bc',
                   fontSize: '14px',
                 }}
               >
@@ -274,14 +286,23 @@ const SubmitProposalPage = () => {
                   color: '#1a1a1a',
                 }}
               >
-                Your Bid Amount (PKR)
+                Your Bid Amount (PKR) *
+              </Typography>
+              <Typography
+                sx={{
+                  mb: 1,
+                  fontSize: '13px',
+                  color: '#666',
+                }}
+              >
+                Minimum: 1000 PKR
               </Typography>
               <TextField
                 type="number"
-                inputProps={{ min: 1 }}
+                inputProps={{ min: 1000 }}
                 value={bidAmount}
                 onChange={(e) => setBidAmount(e.target.value)}
-                placeholder="e.g., 150000"
+                placeholder="e.g., 15000"
                 disabled={loading}
                 required
                 fullWidth
@@ -289,10 +310,10 @@ const SubmitProposalPage = () => {
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
                     '&:hover fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
                     },
                   },
                 }}
@@ -307,13 +328,22 @@ const SubmitProposalPage = () => {
                   color: '#1a1a1a',
                 }}
               >
-                Delivery Time
+                Delivery Time *
+              </Typography>
+              <Typography
+                sx={{
+                  mb: 1,
+                  fontSize: '13px',
+                  color: '#666',
+                }}
+              >
+                Minimum: 3 characters (e.g., "7 days", "2 weeks", "1 month")
               </Typography>
               <TextField
                 type="text"
                 value={deliveryTime}
                 onChange={(e) => setDeliveryTime(e.target.value)}
-                placeholder="e.g., 7 days"
+                placeholder="e.g., 7 days, 2 weeks, or 1 month"
                 disabled={loading}
                 required
                 fullWidth
@@ -321,10 +351,10 @@ const SubmitProposalPage = () => {
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
                     '&:hover fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
                     },
                   },
                 }}
@@ -339,14 +369,23 @@ const SubmitProposalPage = () => {
                   color: '#1a1a1a',
                 }}
               >
-                Cover Letter
+                Cover Letter *
+              </Typography>
+              <Typography
+                sx={{
+                  mb: 1,
+                  fontSize: '13px',
+                  color: '#666',
+                }}
+              >
+                Minimum: 100 characters ({coverLetter.length}/100)
               </Typography>
               <TextField
                 multiline
                 rows={6}
                 value={coverLetter}
                 onChange={(e) => setCoverLetter(e.target.value)}
-                placeholder="Explain why you're a great fit for this project..."
+                placeholder="Explain why you're a great fit for this project... (minimum 100 characters)"
                 disabled={loading}
                 required
                 fullWidth
@@ -354,10 +393,10 @@ const SubmitProposalPage = () => {
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
                     '&:hover fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
+                      borderColor: '#0db4bc',
                     },
                   },
                 }}
@@ -379,13 +418,13 @@ const SubmitProposalPage = () => {
                   px: 4,
                   py: 1.5,
                   borderRadius: 2,
-                  border: '2px solid #667eea',
-                  color: '#667eea',
+                  border: '2px solid #0db4bc',
+                  color: '#0db4bc',
                   textTransform: 'none',
                   fontSize: '16px',
                   fontWeight: 600,
                   '&:hover': {
-                    background: 'rgba(102, 126, 234, 0.1)',
+                    background: 'rgba(13, 180, 188, 0.1)',
                     transform: 'translateY(-2px)',
                   },
                   transition: 'all 0.3s ease',
@@ -400,14 +439,14 @@ const SubmitProposalPage = () => {
                   px: 4,
                   py: 1.5,
                   borderRadius: 2,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                   color: 'white',
                   textTransform: 'none',
                   fontSize: '16px',
                   fontWeight: 600,
-                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                  boxShadow: '0 4px 15px rgba(13, 180, 188, 0.4)',
                   '&:hover': {
-                    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)',
+                    boxShadow: '0 6px 20px rgba(13, 180, 188, 0.6)',
                     transform: 'translateY(-2px)',
                   },
                   transition: 'all 0.3s ease',

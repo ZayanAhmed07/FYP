@@ -29,6 +29,8 @@ afterAll(async () => {
 }, 60000);
 
 // Clear all collections after each test
+// NOTE: Tests that need data to persist across multiple test cases
+// should use beforeAll for setup and manage their own cleanup
 afterEach(async () => {
   const collections = mongoose.connection.collections;
   for (const key in collections) {

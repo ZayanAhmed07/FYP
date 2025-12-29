@@ -21,7 +21,13 @@ export interface IConsultant {
   availability: 'available' | 'limited' | 'unavailable';  // Current availability status
   experience: string;               // Years/description of experience
   skills: string[];                 // Technical skills and competencies (maps to diagram)
-  city?: string;                    // Location/city of consultant
+  skillsEmbedding?: number[];       // Cached embedding vector for AI matching (avoids API calls)
+  embeddingGeneratedAt?: Date;      // Timestamp of last embedding generation (for cache freshness)
+  location?: {                      // Consultant location (supports remote work)
+    country: string;
+    city: string;
+  };
+  remoteWork?: boolean;             // Available for remote/national work
   
   // Verification Documents (for Admin verification via VerifyConsultant())
   idCardFront?: string;             // URL to ID card front image
@@ -69,8 +75,14 @@ const consultantSchema = new Schema<ConsultantDocument, ConsultantModel>(
       default: 'available' 
     },
     experience: { type: String, required: true },
-    skills: { type: [String], default: [] },
-    city: { type: String },
+    skills: { type: [String], default: [], index: true },  // Index for skill-based queries
+    skillsEmbedding: { type: [Number], default: undefined },  // Cached embedding for semantic matching
+    embeddingGeneratedAt: { type: Date, default: undefined }, // Timestamp for cache invalidation
+    location: {
+      country: { type: String },
+      city: { type: String, index: true },  // Index for location matching
+    },
+    remoteWork: { type: Boolean, default: false },  // Remote work availability
     
     // Verification documents (uploadverificationdocs() in diagram)
     idCardFront: { type: String },

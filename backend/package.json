@@ -12,7 +12,11 @@
     "build": "tsc --project tsconfig.json",
     "start": "node dist/server.js",
     "lint": "eslint --config .eslintrc.cjs --ext .ts src",
-    "format": "prettier --write src/**/*.{ts,tsx,json}"
+    "format": "prettier --write src/**/*.{ts,tsx,json}",
+    "seed:consultants": "ts-node src/scripts/seed-consultants.ts",
+    "fix:locations": "ts-node src/scripts/fix-consultant-locations.ts",
+    "test:matching": "ts-node src/scripts/test-matching-system.ts",
+    "generate:embeddings": "ts-node src/scripts/generate-embeddings.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,11 +24,13 @@
   "description": "",
   "dependencies": {
     "@faker-js/faker": "^9.9.0",
+    "@google/generative-ai": "^0.24.1",
     "@types/nodemailer": "^7.0.4",
     "@types/passport": "^1.0.17",
     "@types/passport-google-oauth20": "^2.0.17",
     "@types/socket.io": "^3.0.1",
     "axios": "^1.13.2",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "celebrate": "^15.0.3",
     "cookie-parser": "^1.4.7",
@@ -46,6 +52,7 @@
     "passport-google-oauth20": "^2.0.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
+    "stripe": "^20.1.0",
     "winston": "^3.18.3"
   },
   "devDependencies": {
