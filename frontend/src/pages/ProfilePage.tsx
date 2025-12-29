@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUserCircle, FaCamera } from 'react-icons/fa';
+import { FaUserCircle, FaCamera, FaSun, FaMoon, FaArrowLeft } from 'react-icons/fa';
 import { Box, Typography, TextField, Button, Avatar, Chip, IconButton } from '@mui/material';
+import { motion } from 'framer-motion';
 import { authService } from '../services/authService';
 import { httpClient } from '../api/httpClient';
+import { useThemeMode } from '../context/ThemeContext';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+ 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [formData, setFormData] = useState({ name: '', email: '' });
   const [profileImage, setProfileImage] = useState<File | null>(null);
@@ -301,13 +305,17 @@ const ProfilePage = () => {
       <Box
         sx={{
           minHeight: '100vh',
-          background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+          background: (theme) => theme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+            : 'linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Typography sx={{ color: 'white', fontSize: '1.2rem' }}>Loading...</Typography>
+        <Typography sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a', fontSize: '1.2rem' }}>
+          Loading...
+        </Typography>
       </Box>
     );
   }
@@ -316,7 +324,9 @@ const ProfilePage = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+        background: (theme) => theme.palette.mode === 'dark'
+          ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+          : 'linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%)',
         py: 4,
         px: { xs: 2, md: 4 },
       }}
@@ -324,40 +334,82 @@ const ProfilePage = () => {
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         {/* Header */}
         <Box
+          component={motion.div}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             mb: 4,
+            flexWrap: 'wrap',
+            gap: 2,
           }}
         >
-          <Typography variant="h3" sx={{ fontWeight: 700, color: 'white' }}>
+          <Typography 
+            variant="h3" 
+            sx={{ 
+              fontWeight: 800, 
+              background: 'linear-gradient(135deg, #0db4bc 0%, #47afbf 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
             Account Settings
           </Typography>
+          
+          {/* Back Button */}
           <Button
+            component={motion.button}
+            whileHover={{ scale: 1.03, x: -4 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => navigate(-1)}
+            startIcon={<FaArrowLeft />}
             sx={{
-              color: 'white',
-              border: '2px solid white',
+              color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#0db4bc',
+              background: (theme) => theme.palette.mode === 'dark'
+                ? 'rgba(255, 255, 255, 0.1)'
+                : 'rgba(13, 180, 188, 0.1)',
+              border: (theme) => theme.palette.mode === 'dark'
+                ? '2px solid rgba(255, 255, 255, 0.2)'
+                : '2px solid rgba(13, 180, 188, 0.3)',
+              px: 3,
+              py: 1.2,
+              borderRadius: '14px',
+              textTransform: 'none',
+              fontWeight: 600,
               '&:hover': {
-                background: 'rgba(255, 255, 255, 0.1)',
+                background: (theme) => theme.palette.mode === 'dark'
+                  ? 'rgba(255, 255, 255, 0.2)'
+                  : 'rgba(13, 180, 188, 0.2)',
               },
             }}
           >
-            ← Back to Dashboard
+            Back to Dashboard
           </Button>
         </Box>
 
         {/* Main Content Grid */}
         <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
           {/* Sidebar */}
-          <Box sx={{ width: { md: '280px' }, flexShrink: 0 }}>
+          <Box sx={{ width: { md: '300px' }, flexShrink: 0 }}>
             <Box
+              component={motion.div}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
               sx={{
-                background: 'rgba(255, 255, 255, 0.95)',
+                background: (theme) => theme.palette.mode === 'dark'
+                  ? 'rgba(30, 41, 59, 0.8)'
+                  : 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(20px)',
                 borderRadius: '24px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                boxShadow: (theme) => theme.palette.mode === 'dark'
+                  ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+                  : '0 8px 32px rgba(13, 180, 188, 0.15)',
+                border: (theme) => theme.palette.mode === 'dark'
+                  ? '1px solid rgba(255, 255, 255, 0.1)'
+                  : '1px solid rgba(13, 180, 188, 0.1)',
                 p: 4,
                 textAlign: 'center',
               }}
@@ -367,42 +419,92 @@ const ProfilePage = () => {
                   <Avatar
                     src={previewUrl}
                     alt="Profile"
-                    sx={{ width: 120, height: 120, border: '4px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    sx={{ 
+                      width: 140, 
+                      height: 140, 
+                      border: '4px solid #0db4bc', 
+                      boxShadow: '0 8px 24px rgba(13, 180, 188, 0.3)',
+                    }}
                   />
                 ) : (
-                  <FaUserCircle style={{ fontSize: '120px', color: '#9ca3af' }} />
+                  <Box
+                    sx={{
+                      width: 140,
+                      height: 140,
+                      borderRadius: '50%',
+                      border: '4px solid #0db4bc',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: (theme) => theme.palette.mode === 'dark'
+                        ? 'rgba(13, 180, 188, 0.1)'
+                        : 'rgba(13, 180, 188, 0.05)',
+                    }}
+                  >
+                    <FaUserCircle style={{ fontSize: '80px', color: '#0db4bc' }} />
+                  </Box>
                 )}
-                <IconButton
-                  component="label"
-                  title="Click to change profile picture"
-                  sx={{
-                    position: 'absolute',
-                    bottom: 0,
-                    right: 0,
-                    background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
-                    color: 'white',
-                    width: 40,
-                    height: 40,
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #0a8b91 0%, #2d5a5f 100%)',
-                    },
-                  }}
-                >
-                  <FaCamera />
-                  <input 
-                    type="file" 
-                    accept="image/*" 
+                <>
+                  <IconButton
+                    component={motion.button}
+                    whileHover={{ scale: 1.1, rotate: 15 }}
+                    whileTap={{ scale: 0.9 }}
+                    title="Click to change profile picture"
+                    onClick={() => fileInputRef.current?.click()}
+                    sx={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                      color: 'white',
+                      width: 44,
+                      height: 44,
+                      boxShadow: '0 4px 12px rgba(13, 180, 188, 0.4)',
+                      border: (theme) => theme.palette.mode === 'dark'
+                        ? '3px solid #1e293b'
+                        : '3px solid white',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #0a8b91 0%, #0db4bc 100%)',
+                        boxShadow: '0 6px 20px rgba(13, 180, 188, 0.5)',
+                      },
+                    }}
+                  >
+                    <FaCamera size={18} />
+                  </IconButton>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
                     onChange={handleImageChange}
                     style={{ display: 'none' }}
                   />
-                </IconButton>
+                </>
               </Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a' }}>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 700, 
+                  mb: 0.5, 
+                  color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a',
+                }}
+              >
                 {currentUser.name}
               </Typography>
-              <Typography sx={{ color: '#6b7280', fontSize: '0.9rem' }}>
+              <Typography sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280', fontSize: '0.9rem' }}>
                 {currentUser.email}
               </Typography>
+              <Chip
+                label={currentUser.accountType === 'consultant' ? '👔 Consultant' : '💼 Buyer'}
+                sx={{
+                  mt: 2,
+                  background: 'linear-gradient(135deg, rgba(13, 180, 188, 0.15) 0%, rgba(13, 180, 188, 0.25) 100%)',
+                  color: '#0db4bc',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  border: '1.5px solid rgba(13, 180, 188, 0.3)',
+                  px: 1,
+                }}
+              />
             </Box>
           </Box>
 
@@ -413,28 +515,48 @@ const ProfilePage = () => {
               <Box sx={{ mb: 3 }}>
                 {success && (
                   <Box
+                    component={motion.div}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     sx={{
-                      p: 2,
-                      background: '#f0fdf4',
-                      border: '1px solid #86efac',
-                      borderRadius: '12px',
-                      color: '#166534',
+                      p: 3,
+                      background: (theme) => theme.palette.mode === 'dark'
+                        ? 'rgba(34, 197, 94, 0.15)'
+                        : '#f0fdf4',
+                      border: '2px solid #22c55e',
+                      borderRadius: '16px',
+                      color: (theme) => theme.palette.mode === 'dark' ? '#86efac' : '#166534',
+                      fontWeight: 600,
                       mb: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
                     }}
                   >
+                    <Box sx={{ fontSize: '1.5rem' }}>✅</Box>
                     {success}
                   </Box>
                 )}
                 {error && (
                   <Box
+                    component={motion.div}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     sx={{
-                      p: 2,
-                      background: '#fef2f2',
-                      border: '1px solid #fecaca',
-                      borderRadius: '12px',
-                      color: '#dc2626',
+                      p: 3,
+                      background: (theme) => theme.palette.mode === 'dark'
+                        ? 'rgba(239, 68, 68, 0.15)'
+                        : '#fef2f2',
+                      border: '2px solid #ef4444',
+                      borderRadius: '16px',
+                      color: (theme) => theme.palette.mode === 'dark' ? '#fca5a5' : '#dc2626',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
                     }}
                   >
+                    <Box sx={{ fontSize: '1.5rem' }}>⚠️</Box>
                     {error}
                   </Box>
                 )}
@@ -443,17 +565,41 @@ const ProfilePage = () => {
 
             {/* Personal Information Card */}
             <Box
+              component={motion.div}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
               sx={{
-                background: 'rgba(255, 255, 255, 0.95)',
+                background: (theme) => theme.palette.mode === 'dark'
+                  ? 'rgba(30, 41, 59, 0.8)'
+                  : 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(20px)',
                 borderRadius: '24px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                boxShadow: (theme) => theme.palette.mode === 'dark'
+                  ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+                  : '0 8px 32px rgba(13, 180, 188, 0.1)',
+                border: (theme) => theme.palette.mode === 'dark'
+                  ? '1px solid rgba(255, 255, 255, 0.1)'
+                  : '1px solid rgba(13, 180, 188, 0.1)',
                 p: 4,
                 mb: 3,
               }}
             >
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: '#1a1a1a' }}>
-                Personal Information
+              <Typography 
+                variant="h5" 
+                sx={{ 
+                  fontWeight: 700, 
+                  mb: 1,
+                  color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}
+              >
+                👤 Personal Information
+              </Typography>
+              <Typography sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280', mb: 3, fontSize: '0.9rem' }}>
+                Your account details are managed by the system
               </Typography>
               <TextField
                 fullWidth
@@ -465,9 +611,21 @@ const ProfilePage = () => {
                 sx={{
                   mb: 3,
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    backgroundColor: '#f9fafb',
-                    '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                    borderRadius: '14px',
+                    backgroundColor: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(15, 23, 42, 0.6)'
+                      : '#f9fafb',
+                    '& fieldset': { 
+                      borderColor: (theme) => theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.1)'
+                        : 'rgba(0, 0, 0, 0.12)' 
+                    },
+                    '& input': {
+                      color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280',
                   },
                 }}
               />
@@ -481,9 +639,21 @@ const ProfilePage = () => {
                 placeholder="Enter your email address"
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    backgroundColor: '#f9fafb',
-                    '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                    borderRadius: '14px',
+                    backgroundColor: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(15, 23, 42, 0.6)'
+                      : '#f9fafb',
+                    '& fieldset': { 
+                      borderColor: (theme) => theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.1)'
+                        : 'rgba(0, 0, 0, 0.12)' 
+                    },
+                    '& input': {
+                      color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280',
                   },
                 }}
               />
@@ -494,18 +664,24 @@ const ProfilePage = () => {
               <>
                 {!consultantProfile && (
                   <Box
+                    component={motion.div}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 }}
                     sx={{
-                      background: 'linear-gradient(135deg, rgba(13, 180, 188, 0.1) 0%, rgba(10, 139, 145, 0.1) 100%)',
+                      background: (theme) => theme.palette.mode === 'dark'
+                        ? 'linear-gradient(135deg, rgba(13, 180, 188, 0.15) 0%, rgba(10, 139, 145, 0.2) 100%)'
+                        : 'linear-gradient(135deg, rgba(13, 180, 188, 0.1) 0%, rgba(13, 180, 188, 0.15) 100%)',
                       border: '2px solid #0db4bc',
-                      borderRadius: '16px',
+                      borderRadius: '20px',
                       p: 3,
                       mb: 3,
                     }}
                   >
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, color: '#0db4bc' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, color: '#0db4bc', display: 'flex', alignItems: 'center', gap: 1 }}>
                       📝 Complete Your Professional Profile
                     </Typography>
-                    <Typography sx={{ color: '#6b7280' }}>
+                    <Typography sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280' }}>
                       To submit proposals and attract clients, please complete your professional profile below. 
                       All fields marked with * are required.
                     </Typography>
@@ -513,19 +689,30 @@ const ProfilePage = () => {
                 )}
                 
                 <Box
+                  component={motion.div}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
                   sx={{
-                    background: 'rgba(255, 255, 255, 0.95)',
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(30, 41, 59, 0.8)'
+                      : 'rgba(255, 255, 255, 0.95)',
                     backdropFilter: 'blur(20px)',
                     borderRadius: '24px',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                    boxShadow: (theme) => theme.palette.mode === 'dark'
+                      ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+                      : '0 8px 32px rgba(13, 180, 188, 0.1)',
+                    border: (theme) => theme.palette.mode === 'dark'
+                      ? '1px solid rgba(255, 255, 255, 0.1)'
+                      : '1px solid rgba(13, 180, 188, 0.1)',
                     p: 4,
                     mb: 3,
                   }}
                 >
-                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
-                    Professional Profile
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a' }}>
+                    💼 Professional Profile
                   </Typography>
-                  <Typography sx={{ color: '#6b7280', mb: 3 }}>
+                  <Typography sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280', mb: 3 }}>
                     Build your consultant portfolio to attract clients
                   </Typography>
                   
@@ -539,10 +726,23 @@ const ProfilePage = () => {
                     sx={{
                       mb: 3,
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
-                        '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                        borderRadius: '14px',
+                        backgroundColor: (theme) => theme.palette.mode === 'dark'
+                          ? 'rgba(15, 23, 42, 0.6)'
+                          : 'white',
+                        '& input': {
+                          color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a',
+                        },
+                        '& fieldset': { 
+                          borderColor: (theme) => theme.palette.mode === 'dark'
+                            ? 'rgba(255, 255, 255, 0.1)'
+                            : 'rgba(0, 0, 0, 0.12)' 
+                        },
                         '&:hover fieldset': { borderColor: '#0db4bc' },
                         '&.Mui-focused fieldset': { borderColor: '#0db4bc' },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280',
                       },
                     }}
                   />
@@ -560,16 +760,32 @@ const ProfilePage = () => {
                     sx={{
                       mb: 3,
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
-                        '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
+                        borderRadius: '14px',
+                        backgroundColor: (theme) => theme.palette.mode === 'dark'
+                          ? 'rgba(15, 23, 42, 0.6)'
+                          : 'white',
+                        '& textarea': {
+                          color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a',
+                        },
+                        '& fieldset': { 
+                          borderColor: (theme) => theme.palette.mode === 'dark'
+                            ? 'rgba(255, 255, 255, 0.1)'
+                            : 'rgba(0, 0, 0, 0.12)' 
+                        },
                         '&:hover fieldset': { borderColor: '#0db4bc' },
                         '&.Mui-focused fieldset': { borderColor: '#0db4bc' },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280',
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280',
                       },
                     }}
                   />
 
                   <Box sx={{ mb: 3 }}>
-                    <Typography sx={{ fontWeight: 600, mb: 1.5, color: '#1a1a1a' }}>
+                    <Typography sx={{ fontWeight: 600, mb: 1.5, color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a' }}>
                       Specialization / Areas of Expertise *
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
@@ -581,24 +797,40 @@ const ProfilePage = () => {
                         placeholder="e.g., Education, Business, Legal"
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            borderRadius: '12px',
-                            '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
-                            '&:hover fieldset': { borderColor: '#667eea' },
-                            '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                            borderRadius: '14px',
+                            backgroundColor: (theme) => theme.palette.mode === 'dark'
+                              ? 'rgba(15, 23, 42, 0.6)'
+                              : 'white',
+                            '& input': {
+                              color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a',
+                            },
+                            '& fieldset': { 
+                              borderColor: (theme) => theme.palette.mode === 'dark'
+                                ? 'rgba(255, 255, 255, 0.1)'
+                                : 'rgba(0, 0, 0, 0.12)' 
+                            },
+                            '&:hover fieldset': { borderColor: '#0db4bc' },
+                            '&.Mui-focused fieldset': { borderColor: '#0db4bc' },
                           },
                         }}
                       />
                       <Button
                         onClick={addSpecialization}
+                        component={motion.button}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         variant="contained"
                         sx={{
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                           color: 'white',
                           px: 3,
-                          borderRadius: '12px',
+                          borderRadius: '14px',
                           textTransform: 'none',
+                          fontWeight: 600,
+                          boxShadow: '0 4px 12px rgba(13, 180, 188, 0.3)',
                           '&:hover': {
-                            background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
+                            background: 'linear-gradient(135deg, #0a8b91 0%, #0db4bc 100%)',
+                            boxShadow: '0 6px 16px rgba(13, 180, 188, 0.4)',
                           },
                         }}
                       >
@@ -611,13 +843,17 @@ const ProfilePage = () => {
                           key={spec}
                           label={spec}
                           onDelete={() => removeSpecialization(spec)}
+                          component={motion.div}
+                          whileHover={{ scale: 1.05, y: -2 }}
                           sx={{
-                            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-                            color: '#667eea',
-                            fontWeight: 600,
+                            background: 'linear-gradient(135deg, rgba(13, 180, 188, 0.15) 0%, rgba(13, 180, 188, 0.25) 100%)',
+                            color: '#0db4bc',
+                            fontWeight: 700,
+                            fontSize: '0.85rem',
+                            border: '1.5px solid rgba(13, 180, 188, 0.3)',
                             '& .MuiChip-deleteIcon': {
-                              color: '#667eea',
-                              '&:hover': { color: '#5568d3' },
+                              color: '#0db4bc',
+                              '&:hover': { color: '#0a8b91' },
                             },
                           }}
                         />
@@ -635,10 +871,23 @@ const ProfilePage = () => {
                     sx={{
                       mb: 3,
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
-                        '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
-                        '&:hover fieldset': { borderColor: '#667eea' },
-                        '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                        borderRadius: '14px',
+                        backgroundColor: (theme) => theme.palette.mode === 'dark'
+                          ? 'rgba(15, 23, 42, 0.6)'
+                          : 'white',
+                        '& input': {
+                          color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a',
+                        },
+                        '& fieldset': { 
+                          borderColor: (theme) => theme.palette.mode === 'dark'
+                            ? 'rgba(255, 255, 255, 0.1)'
+                            : 'rgba(0, 0, 0, 0.12)' 
+                        },
+                        '&:hover fieldset': { borderColor: '#0db4bc' },
+                        '&.Mui-focused fieldset': { borderColor: '#0db4bc' },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280',
                       },
                     }}
                   />
@@ -654,34 +903,58 @@ const ProfilePage = () => {
                     inputProps={{ min: 0 }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
-                        '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
-                        '&:hover fieldset': { borderColor: '#667eea' },
-                        '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                        borderRadius: '14px',
+                        backgroundColor: (theme) => theme.palette.mode === 'dark'
+                          ? 'rgba(15, 23, 42, 0.6)'
+                          : 'white',
+                        '& input': {
+                          color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a',
+                        },
+                        '& fieldset': { 
+                          borderColor: (theme) => theme.palette.mode === 'dark'
+                            ? 'rgba(255, 255, 255, 0.1)'
+                            : 'rgba(0, 0, 0, 0.12)' 
+                        },
+                        '&:hover fieldset': { borderColor: '#0db4bc' },
+                        '&.Mui-focused fieldset': { borderColor: '#0db4bc' },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280',
                       },
                     }}
                   />
                 </Box>
 
                 <Box
+                  component={motion.div}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
                   sx={{
-                    background: 'rgba(255, 255, 255, 0.95)',
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(30, 41, 59, 0.8)'
+                      : 'rgba(255, 255, 255, 0.95)',
                     backdropFilter: 'blur(20px)',
                     borderRadius: '24px',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                    boxShadow: (theme) => theme.palette.mode === 'dark'
+                      ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+                      : '0 8px 32px rgba(13, 180, 188, 0.1)',
+                    border: (theme) => theme.palette.mode === 'dark'
+                      ? '1px solid rgba(255, 255, 255, 0.1)'
+                      : '1px solid rgba(13, 180, 188, 0.1)',
                     p: 4,
                     mb: 3,
                   }}
                 >
-                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1a1a1a' }}>
-                    Skills & Expertise
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a' }}>
+                    🎯 Skills & Expertise
                   </Typography>
-                  <Typography sx={{ color: '#6b7280', mb: 3 }}>
+                  <Typography sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280', mb: 3 }}>
                     Add relevant skills to showcase your capabilities
                   </Typography>
                   
                   <Box>
-                    <Typography sx={{ fontWeight: 600, mb: 1.5, color: '#1a1a1a' }}>
+                    <Typography sx={{ fontWeight: 600, mb: 1.5, color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a' }}>
                       Skills
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
@@ -693,24 +966,40 @@ const ProfilePage = () => {
                         placeholder="e.g., Contract Law, Market Research, Curriculum Design"
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            borderRadius: '12px',
-                            '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.12)' },
-                            '&:hover fieldset': { borderColor: '#667eea' },
-                            '&.Mui-focused fieldset': { borderColor: '#667eea' },
+                            borderRadius: '14px',
+                            backgroundColor: (theme) => theme.palette.mode === 'dark'
+                              ? 'rgba(15, 23, 42, 0.6)'
+                              : 'white',
+                            '& input': {
+                              color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1a1a1a',
+                            },
+                            '& fieldset': { 
+                              borderColor: (theme) => theme.palette.mode === 'dark'
+                                ? 'rgba(255, 255, 255, 0.1)'
+                                : 'rgba(0, 0, 0, 0.12)' 
+                            },
+                            '&:hover fieldset': { borderColor: '#0db4bc' },
+                            '&.Mui-focused fieldset': { borderColor: '#0db4bc' },
                           },
                         }}
                       />
                       <Button
                         onClick={addSkill}
+                        component={motion.button}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         variant="contained"
                         sx={{
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                           color: 'white',
                           px: 3,
-                          borderRadius: '12px',
+                          borderRadius: '14px',
                           textTransform: 'none',
+                          fontWeight: 600,
+                          boxShadow: '0 4px 12px rgba(13, 180, 188, 0.3)',
                           '&:hover': {
-                            background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
+                            background: 'linear-gradient(135deg, #0a8b91 0%, #0db4bc 100%)',
+                            boxShadow: '0 6px 16px rgba(13, 180, 188, 0.4)',
                           },
                         }}
                       >
@@ -723,13 +1012,17 @@ const ProfilePage = () => {
                           key={skill}
                           label={skill}
                           onDelete={() => removeSkill(skill)}
+                          component={motion.div}
+                          whileHover={{ scale: 1.05, y: -2 }}
                           sx={{
-                            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-                            color: '#667eea',
-                            fontWeight: 600,
+                            background: 'linear-gradient(135deg, rgba(13, 180, 188, 0.15) 0%, rgba(13, 180, 188, 0.25) 100%)',
+                            color: '#0db4bc',
+                            fontWeight: 700,
+                            fontSize: '0.85rem',
+                            border: '1.5px solid rgba(13, 180, 188, 0.3)',
                             '& .MuiChip-deleteIcon': {
-                              color: '#667eea',
-                              '&:hover': { color: '#5568d3' },
+                              color: '#0db4bc',
+                              '&:hover': { color: '#0a8b91' },
                             },
                           }}
                         />
@@ -741,21 +1034,39 @@ const ProfilePage = () => {
             )}
 
             {/* Save All Changes Button - Single button for entire profile */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+            <Box 
+              component={motion.div}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}
+            >
               <Button
                 onClick={() => navigate(-1)}
+                component={motion.button}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 disabled={loading}
                 sx={{
-                  color: '#6b7280',
-                  border: '2px solid #e5e7eb',
+                  color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280',
+                  background: (theme) => theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.05)'
+                    : 'white',
+                  border: (theme) => theme.palette.mode === 'dark'
+                    ? '2px solid rgba(255, 255, 255, 0.1)'
+                    : '2px solid #e5e7eb',
                   px: 4,
                   py: 1.5,
-                  borderRadius: '12px',
+                  borderRadius: '14px',
                   textTransform: 'none',
                   fontWeight: 600,
                   '&:hover': {
-                    borderColor: '#d1d5db',
-                    background: '#f9fafb',
+                    borderColor: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.2)'
+                      : '#d1d5db',
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : '#f9fafb',
                   },
                 }}
               >
@@ -763,26 +1074,34 @@ const ProfilePage = () => {
               </Button>
               <Button
                 onClick={handleSubmit}
+                component={motion.button}
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.97 }}
                 disabled={loading}
                 variant="contained"
                 sx={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
                   color: 'white',
-                  px: 4,
+                  px: 5,
                   py: 1.5,
-                  borderRadius: '12px',
+                  borderRadius: '14px',
                   textTransform: 'none',
                   fontWeight: 700,
+                  fontSize: '1rem',
+                  boxShadow: '0 8px 24px rgba(13, 180, 188, 0.4)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 16px rgba(102, 126, 234, 0.3)',
+                    background: 'linear-gradient(135deg, #0a8b91 0%, #0db4bc 100%)',
+                    boxShadow: '0 12px 32px rgba(13, 180, 188, 0.5)',
                   },
                   '&:disabled': {
-                    background: 'rgba(0, 0, 0, 0.12)',
-                    color: 'rgba(0, 0, 0, 0.26)',
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(0, 0, 0, 0.12)',
+                    color: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.3)'
+                      : 'rgba(0, 0, 0, 0.26)',
                   },
-                  transition: 'all 0.2s ease',
+                  transition: 'all 0.3s ease',
                 }}
               >
                 {loading ? 'Saving Changes...' : 'Save All Changes'}

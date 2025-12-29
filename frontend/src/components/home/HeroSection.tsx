@@ -18,7 +18,7 @@ const HeroSection = () => {
 
   const handleButtonClick = () => {
     if (isAuthenticated && user) {
-      if (user.roles.includes('admin') || user.accountType === 'admin') {
+      if (user.roles?.includes('admin') || user.accountType === 'admin') {
         navigate('/admin');
       } else if (user.accountType === 'consultant') {
         navigate('/consultant-dashboard');

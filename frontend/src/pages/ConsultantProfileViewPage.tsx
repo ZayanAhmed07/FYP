@@ -36,7 +36,7 @@ interface ConsultantProfile {
   totalProjects?: number;
   completedProjects: number;
   city?: string;
-  location?: string;
+  location?: string | { country?: string; city?: string };
 }
 
 const ConsultantProfileViewPage = () => {
@@ -46,9 +46,16 @@ const ConsultantProfileViewPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  console.log('🚀 ConsultantProfileViewPage mounting with consultantId:', consultantId);
+
   useEffect(() => {
+    console.log('🔄 useEffect triggered with consultantId:', consultantId);
     if (consultantId) {
       fetchConsultantProfile();
+    } else {
+      console.warn('⚠️ No consultantId found in URL params');
+      setError('No consultant ID provided');
+      setLoading(false);
     }
   }, [consultantId]);
 
@@ -56,9 +63,21 @@ const ConsultantProfileViewPage = () => {
     try {
       console.log('🔍 Fetching consultant profile for ID:', consultantId);
       setLoading(true);
+      setError(''); // Clear any previous errors
+      
       const response = await httpClient.get(`/consultants/${consultantId}`);
       console.log('✅ Consultant profile API response:', response.data);
-      setConsultant(response.data.data);
+      
+      const consultantData = response.data.data;
+      console.log('📊 Parsed consultant data:', consultantData);
+      
+      if (!consultantData) {
+        console.error('❌ No consultant data in response');
+        setError('Consultant profile not found');
+        return;
+      }
+      
+      setConsultant(consultantData);
 
       // Record profile view for analytics
       if (consultantId) {
@@ -66,6 +85,7 @@ const ConsultantProfileViewPage = () => {
       }
     } catch (err: any) {
       console.error('❌ Error fetching consultant profile:', err);
+      console.error('❌ Error response:', err.response);
       setError(err.response?.data?.message || 'Failed to load consultant profile');
     } finally {
       setLoading(false);
@@ -79,6 +99,7 @@ const ConsultantProfileViewPage = () => {
   };
 
   if (loading) {
+    console.log('🔄 Rendering loading state');
     return (
       <Box
         sx={{
@@ -100,6 +121,7 @@ const ConsultantProfileViewPage = () => {
   }
 
   if (error || !consultant) {
+    console.log('❌ Rendering error state:', error, 'consultant:', consultant);
     return (
       <Box
         sx={{
@@ -151,7 +173,63 @@ const ConsultantProfileViewPage = () => {
     );
   }
 
+  // Validate consultant data structure
+  if (!consultant.userId || !consultant.userId._id) {
+    console.error('❌ Invalid consultant data structure - missing userId:', consultant);
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 3,
+        }}
+      >
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          sx={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: '24px',
+            p: 4,
+            textAlign: 'center',
+            maxWidth: '500px',
+          }}
+        >
+          <Typography sx={{ color: '#ef4444', fontSize: '1.125rem', mb: 3, fontWeight: 600 }}>
+            Consultant profile data is incomplete
+          </Typography>
+          <Button
+            onClick={() => navigate(-1)}
+            startIcon={<FaArrowLeft />}
+            sx={{
+              background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+              color: '#fff',
+              px: 4,
+              py: 1.5,
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontSize: '1rem',
+              fontWeight: 600,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #0a8b91 0%, #0db4bc 100%)',
+              },
+            }}
+          >
+            Go Back
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
+
   const rating = consultant.averageRating || consultant.rating;
+
+  console.log('✅ Rendering consultant profile for:', consultant.userId?.name);
 
   return (
     <Box
@@ -278,7 +356,9 @@ const ConsultantProfileViewPage = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                   <FaMapMarkerAlt style={{ color: '#ef4444', fontSize: '18px' }} />
                   <Typography sx={{ color: '#6b7280', fontSize: '1rem' }}>
-                    {consultant.location || consultant.city}
+                    {typeof consultant.location === 'object' && consultant.location
+                      ? `${consultant.location.city || ''}${consultant.location.city && consultant.location.country ? ', ' : ''}${consultant.location.country || ''}`
+                      : consultant.location || consultant.city}
                   </Typography>
                 </Box>
               )}

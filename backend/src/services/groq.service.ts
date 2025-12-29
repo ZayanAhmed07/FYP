@@ -258,9 +258,15 @@ Create:
 2. An enhanced description that is:
    - Professional and consultant-friendly
    - Clear about requirements and deliverables
-   - Well-structured with proper grammar
+   - Well-structured with proper grammar and spelling
+   - Free from grammatical errors, typos, and spelling mistakes
+   - Uses proper punctuation and capitalization
    - Maintains all original information
    - Easy for consultants to understand
+   - Expands abbreviations and unclear terms
+   - Improves sentence structure and clarity
+
+IMPORTANT: Fix all grammar and spelling mistakes. Make the text professional and easy to read.
 
 Return ONLY a JSON object:
 {

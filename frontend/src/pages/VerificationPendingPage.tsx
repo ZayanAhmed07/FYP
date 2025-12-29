@@ -9,7 +9,7 @@ const VerificationPendingPage = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -35,7 +35,7 @@ const VerificationPendingPage = () => {
             width: 100,
             height: 100,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -78,8 +78,8 @@ const VerificationPendingPage = () => {
         {/* Info Card */}
         <Box
           sx={{
-            background: 'rgba(102, 126, 234, 0.05)',
-            border: '2px solid rgba(102, 126, 234, 0.2)',
+            background: 'rgba(13, 180, 188, 0.05)',
+            border: '2px solid rgba(13, 180, 188, 0.2)',
             borderRadius: 2,
             p: 3,
             mb: 4,
@@ -96,7 +96,7 @@ const VerificationPendingPage = () => {
             <CheckCircleIcon
               sx={{
                 fontSize: 32,
-                color: '#667eea',
+                color: '#0db4bc',
                 flexShrink: 0,
                 mt: 0.5,
               }}
@@ -147,14 +147,14 @@ const VerificationPendingPage = () => {
               px: 4,
               py: 1.5,
               borderRadius: 2,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
               color: 'white',
               textTransform: 'none',
               fontSize: '16px',
               fontWeight: 600,
-              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+              boxShadow: '0 4px 15px rgba(13, 180, 188, 0.4)',
               '&:hover': {
-                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)',
+                boxShadow: '0 6px 20px rgba(13, 180, 188, 0.6)',
                 transform: 'translateY(-2px)',
               },
               transition: 'all 0.3s ease',
@@ -168,13 +168,13 @@ const VerificationPendingPage = () => {
               px: 4,
               py: 1.5,
               borderRadius: 2,
-              border: '2px solid #667eea',
-              color: '#667eea',
+              border: '2px solid #0db4bc',
+              color: '#0db4bc',
               textTransform: 'none',
               fontSize: '16px',
               fontWeight: 600,
               '&:hover': {
-                background: 'rgba(102, 126, 234, 0.1)',
+                background: 'rgba(13, 180, 188, 0.1)',
                 transform: 'translateY(-2px)',
               },
               transition: 'all 0.3s ease',

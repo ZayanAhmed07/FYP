@@ -36,8 +36,12 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
   
-  // Return user data without token
-  res.status(200).json(ApiResponse.success(200, 'Login successful', { user: result.user }));
+  // Return user data (include token in test environment for E2E tests)
+  const responseData = env.nodeEnv === 'test' 
+    ? { user: result.user, token: result.token }
+    : { user: result.user };
+    
+  res.status(200).json(ApiResponse.success(200, 'Login successful', responseData));
 });
 
 /**
@@ -59,8 +63,12 @@ export const register = catchAsync(async (req: Request, res: Response) => {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
   
-  // Return user data without token
-  res.status(201).json(ApiResponse.success(201, 'Registration successful', { user: result.user }));
+  // Return user data (include token in test environment for E2E tests)
+  const responseData = env.nodeEnv === 'test' 
+    ? { user: result.user, token: result.token }
+    : { user: result.user };
+    
+  res.status(201).json(ApiResponse.success(201, 'Registration successful', responseData));
 });
 
 export const forgotPassword = catchAsync(async (req: Request, res: Response) => {
@@ -137,8 +145,9 @@ export const googleAuthCallback = (req: Request, res: Response) => {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
   
-  // Redirect to frontend without token in URL
-  res.redirect(`${env.frontendUrl}/auth/callback?user=${encodeURIComponent(JSON.stringify({
+  // Redirect to frontend with token in URL for initial setup
+  // The token will also be in the HttpOnly cookie for subsequent requests
+  res.redirect(`${env.frontendUrl}/auth/callback?token=${encodeURIComponent(token)}&user=${encodeURIComponent(JSON.stringify({
     id: user._id,
     name: user.name,
     email: user.email,

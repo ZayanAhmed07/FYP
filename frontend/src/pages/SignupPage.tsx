@@ -523,6 +523,7 @@ const SignupPage = () => {
                         onChange={(e) => setName(e.target.value)}
                         required
                         disabled={loading}
+                        autoComplete="off"
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: '14px',
@@ -554,6 +555,7 @@ const SignupPage = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         required
                         disabled={loading}
+                        autoComplete="off"
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: '14px',
@@ -736,6 +738,7 @@ const SignupPage = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       disabled={loading}
+                      autoComplete="off"
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: '14px',
@@ -767,6 +770,7 @@ const SignupPage = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       disabled={loading}
+                      autoComplete="off"
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">

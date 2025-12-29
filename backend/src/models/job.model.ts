@@ -25,6 +25,8 @@ export interface IJob {
   timeline: string;                 // Expected delivery timeline
   location: string;                 // Project location/region
   skills: string[];                 // Required skills for the project
+  skillsEmbedding?: number[];       // Cached embedding vector for AI matching (avoids API calls)
+  embeddingGeneratedAt?: Date;      // Timestamp of last embedding generation (for cache freshness)
   attachments?: string[];           // URLs to attached files/documents
   status: 'open' | 'in_progress' | 'completed' | 'cancelled';  // Project status (projectstatus in diagram)
   proposalsCount: number;           // Number of bids received
@@ -60,6 +62,8 @@ const jobSchema = new Schema<JobDocument, JobModel>(
     timeline: { type: String, required: true },
     location: { type: String, required: true },
     skills: { type: [String], default: [] },
+    skillsEmbedding: { type: [Number], default: undefined },  // Cached embedding for semantic matching
+    embeddingGeneratedAt: { type: Date, default: undefined }, // Timestamp for cache invalidation
     attachments: { type: [String], default: [] },
     status: { 
       type: String, 

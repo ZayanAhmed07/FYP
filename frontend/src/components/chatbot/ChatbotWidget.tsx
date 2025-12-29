@@ -11,6 +11,16 @@ import type { ChatMessage as ChatMessageType, ConversationState, ConversationSte
 import { SKILL_KEYWORDS } from '../../types/chatbotTypes';
 import { sarahAI } from '../../services/rachelAI.service';
 
+// Valid options for location
+const VALID_LOCATIONS = ['Rawalpindi', 'Islamabad', 'Lahore', 'Karachi', 'Remote (Pakistan)'];
+const MINIMUM_WORDS = 100;
+
+// Word counter utility
+const countWords = (text: string): number => {
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+};
+
 interface ChatbotWidgetProps {
     initialOpen?: boolean;
     onJobDataChange?: (jobData: any, progress: number, currentStep: ConversationStep) => void;
@@ -52,6 +62,13 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
     }, [state.messages.length]);
 
     const addMessage = (text: string, sender: 'user' | 'assistant', isTyping = false) => {
+        // Check if the last message is identical to what we're trying to add (for duplicate prevention)
+        const lastMessage = state.messages[state.messages.length - 1];
+        if (lastMessage && lastMessage.text === text && lastMessage.sender === sender && !isTyping) {
+            console.warn('[Duplicate Prevention] Skipping duplicate message:', text);
+            return lastMessage.id;
+        }
+        
         const newMessage: ChatMessageType = {
             id: Date.now().toString(),
             text,
@@ -59,7 +76,10 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
             timestamp: new Date(),
             isTyping,
         };
-        setState(prev => ({ ...prev, messages: [...prev.messages, newMessage] }));
+        setState(prev => ({
+            ...prev,
+            messages: [...prev.messages, newMessage],
+        }));
         return newMessage.id;
     };
 
@@ -70,8 +90,16 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
         }));
     };
 
+    // Sub-categories for each main category
+    const SUB_CATEGORIES = {
+        Education: ['Tutoring', 'Test Preparation', 'Academic Consulting', 'Career Counseling', 'Curriculum Development'],
+        Business: ['Marketing Strategy', 'Financial Planning', 'Business Development', 'Project Management', 'HR Consulting'],
+        Legal: ['Contract Review', 'Legal Compliance', 'Litigation Support', 'Corporate Law', 'Intellectual Property'],
+    };
+
     const getNextStep = (current: ConversationStep): ConversationStep => {
-        const steps: ConversationStep[] = ['welcome', 'description', 'category', 'budget', 'timeline', 'location', 'summary', 'complete'];
+        // Strict 6-step flow: category -> subcategory -> description -> location -> budget -> timeline -> summary
+        const steps: ConversationStep[] = ['welcome', 'category', 'description', 'location', 'budget', 'timeline', 'summary', 'complete'];
         const currentIndex = steps.indexOf(current);
         return steps[currentIndex + 1] || 'complete';
     };
@@ -79,11 +107,11 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
     const calculateProgress = (step: ConversationStep): number => {
         const progressMap: Record<ConversationStep, number> = {
             welcome: 0,
-            description: 15,
-            category: 30,
-            budget: 50,
-            timeline: 70,
-            location: 85,
+            category: 16,      // Step 1: Consultancy Type
+            description: 33,   // Step 2 & 3: Sub-category + Description
+            location: 50,      // Step 4: Location
+            budget: 66,        // Step 5: Budget
+            timeline: 83,      // Step 6: Timeline
             summary: 95,
             complete: 100,
         };
@@ -102,16 +130,18 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
         return typingId;
     };
 
-    const getAssistantMessage = (step: ConversationStep): string => {
+    const getAssistantMessage = (step: ConversationStep, additionalData?: any): string => {
         const messages: Record<ConversationStep, string> = {
-            welcome: "Hi! 👋 I'm Sarah, your Raah assistant. I'll help you post your job and connect with qualified Pakistani consultants in Education, Business, and Legal fields. Let's start! What kind of help do you need?",
-            description: "Excellent! Tell me more about your project. What specific tasks or outcomes are you looking for? The more details you provide, the better I can match you with the right consultant.",
-            category: "Got it! Which category best describes your needs?",
-            budget: "Perfect! What's your budget for this project? You can say something like '10000 to 50000' or just '25000'. I work in PKR (Pakistani Rupees).",
-            timeline: "Understood! When do you need this completed? For example: '1 week', '2 months', 'ASAP', or a specific date.",
-            location: "Great! Where would you like the consultant to work? Choose: Rawalpindi, Islamabad, Lahore, Karachi, or Remote.",
-            summary: `Thank you! Let me summarize what we've collected:\n\n📋 Description: ${state.jobData.description}\n📁 Category: ${state.jobData.category}\n🎯 Skills Detected: ${state.jobData.skills?.length ? state.jobData.skills.join(', ') : 'None'}\n💰 Budget: PKR ${state.jobData.budgetMin?.toLocaleString()} - ${state.jobData.budgetMax?.toLocaleString()}\n⏰ Timeline: ${state.jobData.timeline}\n📍 Location: ${state.jobData.location}\n\nWould you like to post this job and connect with qualified Pakistani consultants?`,
-            complete: "Perfect! Redirecting you to finalize your job posting...",
+            welcome: "Hi! 👋 I'm Sarah, your Raah assistant. I'll help you post your job and connect with qualified Pakistani consultants in Education, Business, and Legal fields.\n\nLet's get started! **Step 1 of 6**: What type of consultancy do you need?",
+            category: "Great choice! What type of consultancy do you need? Choose from the options below:",
+            description: additionalData?.subCategory 
+                ? `Perfect! You've selected **${additionalData.subCategory}** in **${additionalData.category || state.jobData.category}**.\n\n**Step 3 of 6**: Now, please describe your project in detail. What are your requirements, goals, and expectations? (Minimum 100 words)`
+                : `**Step 2 of 6**: What specific area within ${additionalData?.category || state.jobData.category || 'your selected field'} do you need help with?`,
+            location: `Excellent! I've enhanced your description to:\n\n"${additionalData?.enhancedDescription || state.jobData.enhancedDescription}"\n\n**Step 4 of 6**: Where would you like the consultant to work?`,
+            budget: "Great! **Step 5 of 6**: What's your budget for this project? You can say something like '10000 to 50000' or just '25000'. I work in PKR (Pakistani Rupees).",
+            timeline: "Perfect! **Step 6 of 6**: When do you need this completed? For example: '2 weeks', '1 month', 'ASAP', or a specific date.",
+            summary: `Excellent! Here's your complete job posting:\n\n📁 **Category**: ${state.jobData.category || 'Not set'} - ${state.jobData.subCategory || 'Not set'}\n📋 **Description**: ${state.jobData.enhancedDescription || state.jobData.description || 'Not set'}\n💰 **Budget**: PKR ${state.jobData.budgetMin?.toLocaleString() || '0'} - ${state.jobData.budgetMax?.toLocaleString() || '0'}\n⏰ **Timeline**: ${state.jobData.timeline || 'Not set'}\n📍 **Location**: ${state.jobData.location || 'Not set'}\n\nYou can review and edit the preview on the right. Click "Post Job" when ready!`,
+            complete: "Perfect! Your job has been prepared. Review the details and click Post Job to publish it.",
         };
         return messages[step];
     };
@@ -119,19 +149,44 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
     const handleCategorySelect = async (category: string) => {
         addMessage(category, 'user');
         
-        // Auto-detect skills from description based on category
-        const detectedSkills = extractSkillsFromDescription(state.jobData.description || '', category);
+        setState(prev => ({
+            ...prev,
+            jobData: { 
+                ...prev.jobData, 
+                category
+            },
+            currentStep: 'description', // Go to subcategory selection (shown as description step)
+            progress: calculateProgress('description'),
+        }));
+        // Acknowledge selection to avoid confusion that the previous reply belongs to next step
+        await simulateTyping(`✅ Category set to ${category}.`);
+        await simulateTyping(getAssistantMessage('description', { category }));
+    };
+
+    const handleSubCategorySelect = async (subCategory: string) => {
+        addMessage(subCategory, 'user');
         
         setState(prev => ({
             ...prev,
             jobData: { 
                 ...prev.jobData, 
-                category,
-                skills: detectedSkills 
+                subCategory
             },
+        }));
+        await simulateTyping(`✅ Sub-category set to ${subCategory}.`);
+        await simulateTyping(getAssistantMessage('description', { subCategory, category: state.jobData.category }));
+    };
+
+    const handleLocationSelect = async (location: string) => {
+        addMessage(location, 'user');
+        
+        setState(prev => ({
+            ...prev,
+            jobData: { ...prev.jobData, location },
             currentStep: 'budget',
             progress: calculateProgress('budget'),
         }));
+        await simulateTyping(`✅ Location set to ${location}.`);
         await simulateTyping(getAssistantMessage('budget'));
     };
 
@@ -176,181 +231,103 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
         if (!inputValue.trim() || isTyping) return;
 
         const userMessage = inputValue.trim();
+        
+        // Add user message only once
         addMessage(userMessage, 'user');
         setInputValue('');
 
         const currentStep = state.currentStep;
 
         try {
-            // Use Groq AI for intelligent responses
-            const aiResponse = await sarahAI.getResponse(userMessage, state.messages, currentStep);
+            let updatedJobData = { ...state.jobData };
+            let nextStep = currentStep;
 
-            // Handle welcome - collect initial description
+            // Step 1: Welcome -> Category selection is automatic (buttons shown on welcome)
             if (currentStep === 'welcome') {
-                const description = state.jobData.description || '';
-                const combinedDescription = description ? `${description} ${userMessage}` : userMessage;
-                
-                // Check if description is detailed enough (at least 20 words)
-                const wordCount = combinedDescription.trim().split(/\s+/).length;
-                
-                if (wordCount < 20) {
-                    setState(prev => ({
-                        ...prev,
-                        jobData: { ...prev.jobData, description: combinedDescription },
-                        currentStep: 'description',
-                        progress: calculateProgress('description'),
-                    }));
-                    await simulateTyping(aiResponse || getAssistantMessage('description'), true);
-                    return;
-                }
-                
-                // Description is detailed enough, proceed to category detection
-                const detectedCategory = await sarahAI.detectCategory(combinedDescription);
-                
-                if (detectedCategory) {
-                    const detectedSkills = await sarahAI.extractSkills(combinedDescription, detectedCategory);
-                    
-                    setState(prev => ({
-                        ...prev,
-                        jobData: {
-                            ...prev.jobData,
-                            description: combinedDescription,
-                            category: detectedCategory,
-                            skills: detectedSkills
-                        },
-                        currentStep: 'budget',
-                        progress: calculateProgress('budget'),
-                    }));
-                    
-                    await simulateTyping(aiResponse || `Great! I can see you need help with ${detectedCategory}. ${getAssistantMessage('budget')}`, true);
-                    return;
-                } else {
-                    setState(prev => ({
-                        ...prev,
-                        jobData: { ...prev.jobData, description: combinedDescription },
-                        currentStep: 'category',
-                        progress: calculateProgress('category'),
-                    }));
-                    await simulateTyping(aiResponse || getAssistantMessage('category'), true);
-                    return;
-                }
-            }
-
-            // Handle description step - append more details
-            if (currentStep === 'description') {
-                const previousDescription = state.jobData.description || '';
-                const fullDescription = `${previousDescription} ${userMessage}`.trim();
-                
-                const detectedCategory = await sarahAI.detectCategory(fullDescription);
-                
-                if (detectedCategory) {
-                    const detectedSkills = await sarahAI.extractSkills(fullDescription, detectedCategory);
-                    
-                    setState(prev => ({
-                        ...prev,
-                        jobData: {
-                            ...prev.jobData,
-                            description: fullDescription,
-                            category: detectedCategory,
-                            skills: detectedSkills
-                        },
-                        currentStep: 'budget',
-                        progress: calculateProgress('budget'),
-                    }));
-                    
-                    await simulateTyping(aiResponse || `Excellent! I can see you need help with ${detectedCategory}. ${getAssistantMessage('budget')}`, true);
-                    return;
-                } else {
-                    setState(prev => ({
-                        ...prev,
-                        jobData: { ...prev.jobData, description: fullDescription },
-                        currentStep: 'category',
-                        progress: calculateProgress('category'),
-                    }));
-                    await simulateTyping(aiResponse || getAssistantMessage('category'), true);
-                    return;
-                }
-            }
-
-            // Handle other steps
-            let updatedJobData = { ...state.jobData };
-            const nextStep = getNextStep(currentStep);
-
-            switch (currentStep) {
-                case 'budget':
-                    const budgetInfo = parseBudget(userMessage);
-                    if (budgetInfo) {
-                        updatedJobData.budgetMin = budgetInfo.min;
-                        updatedJobData.budgetMax = budgetInfo.max;
-                    } else {
-                        await simulateTyping(aiResponse || "I didn't quite catch that. Please tell me your budget like '10000 to 50000' or just '25000' in PKR.", true);
-                        return;
-                    }
-                    break;
-                case 'timeline':
-                    updatedJobData.timeline = userMessage;
-                    break;
-                case 'location':
-                    updatedJobData.location = normalizeLocation(userMessage);
-                    break;
-            }
-
-            setState(prev => ({
-                ...prev,
-                jobData: updatedJobData,
-                currentStep: nextStep,
-                progress: calculateProgress(nextStep),
-            }));
-
-            await simulateTyping(aiResponse || getAssistantMessage(nextStep), true);
-
-        } catch (error) {
-            console.error('Sarah AI error:', error);
-            // Fallback to hardcoded logic
-            const detectedCategory = detectCategoryFromText(userMessage);
-            let updatedJobData = { ...state.jobData };
-            const nextStep = getNextStep(currentStep);
-
-            if ((currentStep === 'welcome' || currentStep === 'description') && detectedCategory) {
-                const skillsDetected = extractSkillsFromDescription(userMessage, detectedCategory);
-                updatedJobData = {
-                    ...updatedJobData,
-                    description: userMessage,
-                    category: detectedCategory,
-                    skills: skillsDetected
-                };
-                setState(prev => ({
-                    ...prev,
-                    jobData: updatedJobData,
-                    currentStep: 'budget',
-                    progress: calculateProgress('budget'),
-                }));
-                await simulateTyping(`I can see you need help with ${detectedCategory}! ${getAssistantMessage('budget')}`);
+                // User shouldn't be typing during welcome, buttons should be used
+                await simulateTyping("Please select a consultancy type from the options above.");
                 return;
             }
 
-            // Continue with original logic for other steps
-            switch (currentStep) {
-                case 'welcome':
-                case 'description':
-                    updatedJobData.description = userMessage;
-                    break;
-                case 'budget':
-                    const budgetInfo = parseBudget(userMessage);
-                    if (budgetInfo) {
-                        updatedJobData.budgetMin = budgetInfo.min;
-                        updatedJobData.budgetMax = budgetInfo.max;
-                    } else {
-                        await simulateTyping("I didn't quite catch that. Please tell me your budget like '10000 to 50000' or just '25000' in PKR.");
-                        return;
-                    }
-                    break;
-                case 'timeline':
-                    updatedJobData.timeline = userMessage;
-                    break;
-                case 'location':
-                    updatedJobData.location = normalizeLocation(userMessage);
-                    break;
+            // Step 2 & 3: Sub-category -> Description (150+ words minimum)
+            if (currentStep === 'description') {
+                // If no subcategory selected yet, they shouldn't be typing
+                if (!state.jobData.subCategory) {
+                    await simulateTyping("Please select a sub-category from the options above first.");
+                    return;
+                }
+
+                // Collect description
+                const description = state.jobData.rawDescription 
+                    ? `${state.jobData.rawDescription} ${userMessage}`.trim()
+                    : userMessage;
+                
+                const wordCount = countWords(description);
+                
+                if (wordCount < MINIMUM_WORDS) {
+                    updatedJobData.rawDescription = description;
+                    setState(prev => ({
+                        ...prev,
+                        jobData: updatedJobData,
+                    }));
+                    await simulateTyping(`You've provided ${wordCount} words. Please add ${MINIMUM_WORDS - wordCount} more words to give me a complete understanding of your project.`, true);
+                    return;
+                }
+                
+                // Description meets minimum, enhance it with AI
+                try {
+                    const aiResponse = await sarahAI.enhanceDescription(description, state.jobData.category || '');
+                    updatedJobData.rawDescription = description;
+                    updatedJobData.description = description;
+                    updatedJobData.enhancedDescription = aiResponse.enhanced || description;
+                    
+                    // Extract skills
+                    const detectedSkills = await sarahAI.extractSkills(description, state.jobData.category || '');
+                    updatedJobData.skills = detectedSkills;
+                    
+                    nextStep = 'location';
+                } catch (error) {
+                    console.error('AI enhancement error:', error);
+                    // Fallback: use original description
+                    updatedJobData.rawDescription = description;
+                    updatedJobData.description = description;
+                    updatedJobData.enhancedDescription = description;
+                    updatedJobData.skills = extractSkillsFromDescription(description, state.jobData.category || '');
+                    nextStep = 'location';
+                }
+                
+                setState(prev => ({
+                    ...prev,
+                    jobData: updatedJobData,
+                    currentStep: nextStep,
+                    progress: calculateProgress(nextStep),
+                }));
+                await simulateTyping(getAssistantMessage(nextStep, { enhancedDescription: updatedJobData.enhancedDescription }));
+                return;
+            }
+
+            // Step 4: Location (handled by buttons)
+            if (currentStep === 'location') {
+                await simulateTyping("Please select a location from the options above.");
+                return;
+            }
+
+            // Step 5: Budget
+            if (currentStep === 'budget') {
+                const budgetInfo = parseBudget(userMessage);
+                if (budgetInfo) {
+                    updatedJobData.budgetMin = budgetInfo.min;
+                    updatedJobData.budgetMax = budgetInfo.max;
+                    nextStep = 'timeline';
+                } else {
+                    await simulateTyping("I didn't quite catch that. Please tell me your budget like '10000 to 50000' or just '25000' in PKR.", true);
+                    return;
+                }
+            }
+            // Step 6: Timeline
+            else if (currentStep === 'timeline') {
+                updatedJobData.timeline = userMessage;
+                nextStep = 'summary';
             }
 
             setState(prev => ({
@@ -360,7 +337,11 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                 progress: calculateProgress(nextStep),
             }));
 
-            await simulateTyping(getAssistantMessage(nextStep));
+            await simulateTyping(getAssistantMessage(nextStep), true);
+
+        } catch (error) {
+            console.error('Sarah AI error:', error);
+            await simulateTyping("I encountered an error. Please try again or rephrase your message.");
         }
     };
 
@@ -444,12 +425,22 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
     // Initialize welcome message for embedded mode - only once
     useEffect(() => {
         if (initialOpen && state.messages.length === 0) {
-            const timer = setTimeout(() => {
-                simulateTyping(getAssistantMessage('welcome'));
+            const timer = setTimeout(async () => {
+                await simulateTyping(getAssistantMessage('welcome'));
             }, 500);
             return () => clearTimeout(timer);
         }
     }, []); // Empty dependency array to run only once
+
+    // Initialize welcome message when chatbot opens in floating mode
+    useEffect(() => {
+        if (state.isOpen && !initialOpen && state.messages.length === 0) {
+            const timer = setTimeout(async () => {
+                await simulateTyping(getAssistantMessage('welcome'));
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [state.isOpen]); // Run when isOpen changes
 
     // If initialOpen is true, render embedded mode (no floating button)
     if (initialOpen) {
@@ -511,8 +502,8 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                                 <ChatMessage key={message.id} message={message} />
                             ))}
 
-                            {/* Category Selection */}
-                            {state.currentStep === 'category' && !isTyping && (
+                            {/* Category Selection - Step 1 */}
+                            {(state.currentStep === 'welcome' || state.currentStep === 'category') && !isTyping && (
                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
                                     {['Education', 'Business', 'Legal'].map(category => (
                                         <Chip
@@ -533,7 +524,51 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                                 </Box>
                             )}
 
-                            {/* Summary View - No buttons, just show summary */}
+                            {/* Sub-Category Selection - Step 2 */}
+                            {state.currentStep === 'description' && state.jobData.category && !state.jobData.subCategory && !isTyping && (
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+                                    {SUB_CATEGORIES[state.jobData.category as keyof typeof SUB_CATEGORIES]?.map(subCat => (
+                                        <Chip
+                                            key={subCat}
+                                            label={subCat}
+                                            onClick={() => handleSubCategorySelect(subCat)}
+                                            sx={{
+                                                bgcolor: '#0db4bc',
+                                                color: 'white',
+                                                '&:hover': {
+                                                    bgcolor: '#0a8b91',
+                                                },
+                                                cursor: 'pointer',
+                                                fontWeight: 600,
+                                            }}
+                                        />
+                                    ))}
+                                </Box>
+                            )}
+
+                            {/* Location Selection - Step 4 */}
+                            {state.currentStep === 'location' && !isTyping && (
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+                                    {VALID_LOCATIONS.map(location => (
+                                        <Chip
+                                            key={location}
+                                            label={location}
+                                            onClick={() => handleLocationSelect(location)}
+                                            sx={{
+                                                bgcolor: '#0db4bc',
+                                                color: 'white',
+                                                '&:hover': {
+                                                    bgcolor: '#0a8b91',
+                                                },
+                                                cursor: 'pointer',
+                                                fontWeight: 600,
+                                            }}
+                                        />
+                                    ))}
+                                </Box>
+                            )}
+
+                            {/* Summary View */}
                             {state.currentStep === 'summary' && !isTyping && (
                                 <Box sx={{ mt: 2, p: 2, bgcolor: '#f0f9ff', borderRadius: 2 }}>
                                     <Typography sx={{ fontSize: '0.875rem', color: '#0369a1', fontWeight: 500 }}>
@@ -550,12 +585,29 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                             <Box sx={{ display: 'flex', gap: 1 }}>
                                 <TextField
                                     fullWidth
-                                    placeholder="Message Sarah"
+                                    placeholder={
+                                        state.currentStep === 'category' ? "Select a category above" :
+                                        state.currentStep === 'description' && !state.jobData.subCategory ? "Select a sub-category above" :
+                                        state.currentStep === 'location' ? "Select a location above" :
+                                        state.currentStep === 'summary' ? "Review and click Post Job" :
+                                        state.currentStep === 'budget' ? "e.g., 10000 to 50000" :
+                                        state.currentStep === 'timeline' ? "e.g., 2 weeks, 1 month" :
+                                        "Type your message here..."
+                                    }
                                     value={inputValue}
                                     onChange={(e) => setInputValue(e.target.value)}
                                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                                    disabled={isTyping || state.currentStep === 'category' || state.currentStep === 'summary' || state.currentStep === 'complete'}
+                                    disabled={
+                                        isTyping || 
+                                        state.currentStep === 'category' || 
+                                        (state.currentStep === 'description' && !state.jobData.subCategory) ||
+                                        state.currentStep === 'location' || 
+                                        state.currentStep === 'summary' || 
+                                        state.currentStep === 'complete'
+                                    }
                                     size="small"
+                                    multiline={state.currentStep === 'description' && state.jobData.subCategory}
+                                    maxRows={4}
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 3,
@@ -572,7 +624,14 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                                 />
                                 <IconButton
                                     onClick={handleSendMessage}
-                                    disabled={!inputValue.trim() || isTyping || state.currentStep === 'category' || state.currentStep === 'summary'}
+                                    disabled={
+                                        !inputValue.trim() || 
+                                        isTyping || 
+                                        state.currentStep === 'category' || 
+                                        (state.currentStep === 'description' && !state.jobData.subCategory) ||
+                                        state.currentStep === 'location' || 
+                                        state.currentStep === 'summary'
+                                    }
                                     sx={{
                                         bgcolor: 'primary.main',
                                         color: 'white',
@@ -588,7 +647,12 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                                 </IconButton>
                             </Box>
                             <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
-                                Raah Assistant can make mistakes. Check important info.
+                                {state.currentStep === 'description' && state.jobData.subCategory && (
+                                    <span style={{ color: '#0db4bc', fontWeight: 600 }}>
+                                        {countWords((state.jobData.rawDescription ? state.jobData.rawDescription + ' ' : '') + inputValue)} / {MINIMUM_WORDS} words minimum
+                                    </span>
+                                )}
+                                {state.currentStep !== 'description' && "Raah Assistant can make mistakes. Check important info."}
                             </Typography>
                         </Box>
                     </Box>
@@ -715,8 +779,8 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                                             <ChatMessage key={message.id} message={message} />
                                         ))}
 
-                                        {/* Category Selection */}
-                                        {state.currentStep === 'category' && !isTyping && (
+                                        {/* Category Selection - Step 1 */}
+                                        {(state.currentStep === 'welcome' || state.currentStep === 'category') && !isTyping && (
                                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
                                                 {['Education', 'Business', 'Legal'].map(category => (
                                                     <Chip
@@ -724,18 +788,64 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                                                         label={category}
                                                         onClick={() => handleCategorySelect(category)}
                                                         sx={{
-                                                            cursor: 'pointer',
+                                                            bgcolor: '#0db4bc',
+                                                            color: 'white',
                                                             '&:hover': {
-                                                                bgcolor: 'primary.main',
-                                                                color: 'white',
+                                                                bgcolor: '#0a8b91',
                                                             },
+                                                            cursor: 'pointer',
+                                                            fontWeight: 600,
                                                         }}
                                                     />
                                                 ))}
                                             </Box>
                                         )}
 
-                                        {/* Summary Actions */}
+                                        {/* Sub-Category Selection - Step 2 */}
+                                        {state.currentStep === 'description' && state.jobData.category && !state.jobData.subCategory && !isTyping && (
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+                                                {SUB_CATEGORIES[state.jobData.category as keyof typeof SUB_CATEGORIES]?.map(subCat => (
+                                                    <Chip
+                                                        key={subCat}
+                                                        label={subCat}
+                                                        onClick={() => handleSubCategorySelect(subCat)}
+                                                        sx={{
+                                                            bgcolor: '#0db4bc',
+                                                            color: 'white',
+                                                            '&:hover': {
+                                                                bgcolor: '#0a8b91',
+                                                            },
+                                                            cursor: 'pointer',
+                                                            fontWeight: 600,
+                                                        }}
+                                                    />
+                                                ))}
+                                            </Box>
+                                        )}
+
+                                        {/* Location Selection - Step 4 */}
+                                        {state.currentStep === 'location' && !isTyping && (
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+                                                {VALID_LOCATIONS.map(location => (
+                                                    <Chip
+                                                        key={location}
+                                                        label={location}
+                                                        onClick={() => handleLocationSelect(location)}
+                                                        sx={{
+                                                            bgcolor: '#0db4bc',
+                                                            color: 'white',
+                                                            '&:hover': {
+                                                                bgcolor: '#0a8b91',
+                                                            },
+                                                            cursor: 'pointer',
+                                                            fontWeight: 600,
+                                                        }}
+                                                    />
+                                                ))}
+                                            </Box>
+                                        )}
+
+                                        {/* Summary View */}
                                         {state.currentStep === 'summary' && !isTyping && (
                                             <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
                                                 <Chip
@@ -767,12 +877,29 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                                         <Box sx={{ display: 'flex', gap: 1 }}>
                                             <TextField
                                                 fullWidth
-                                                placeholder="Message Sarah"
+                                                placeholder={
+                                                    state.currentStep === 'category' ? "Select a category above" :
+                                                    state.currentStep === 'description' && !state.jobData.subCategory ? "Select a sub-category above" :
+                                                    state.currentStep === 'location' ? "Select a location above" :
+                                                    state.currentStep === 'summary' ? "Review and click Post Job" :
+                                                    state.currentStep === 'budget' ? "e.g., 10000 to 50000" :
+                                                    state.currentStep === 'timeline' ? "e.g., 2 weeks, 1 month" :
+                                                    "Type your message here..."
+                                                }
                                                 value={inputValue}
                                                 onChange={(e) => setInputValue(e.target.value)}
                                                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                                                disabled={isTyping || state.currentStep === 'category' || state.currentStep === 'summary' || state.currentStep === 'complete'}
+                                                disabled={
+                                                    isTyping || 
+                                                    state.currentStep === 'category' || 
+                                                    (state.currentStep === 'description' && !state.jobData.subCategory) ||
+                                                    state.currentStep === 'location' || 
+                                                    state.currentStep === 'summary' || 
+                                                    state.currentStep === 'complete'
+                                                }
                                                 size="small"
+                                                multiline={state.currentStep === 'description' && state.jobData.subCategory}
+                                                maxRows={4}
                                                 sx={{
                                                     '& .MuiOutlinedInput-root': {
                                                         borderRadius: 3,
@@ -789,7 +916,14 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                                             />
                                             <IconButton
                                                 onClick={handleSendMessage}
-                                                disabled={!inputValue.trim() || isTyping || state.currentStep === 'category' || state.currentStep === 'summary'}
+                                                disabled={
+                                                    !inputValue.trim() || 
+                                                    isTyping || 
+                                                    state.currentStep === 'category' || 
+                                                    (state.currentStep === 'description' && !state.jobData.subCategory) ||
+                                                    state.currentStep === 'location' || 
+                                                    state.currentStep === 'summary'
+                                                }
                                                 sx={{
                                                     bgcolor: 'primary.main',
                                                     color: 'white',
@@ -805,7 +939,12 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                                             </IconButton>
                                         </Box>
                                         <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
-                                            Raah Assistant can make mistakes. Check important info.
+                                            {state.currentStep === 'description' && state.jobData.subCategory && (
+                                                <span style={{ color: '#0db4bc', fontWeight: 600 }}>
+                                                    {countWords((state.jobData.rawDescription ? state.jobData.rawDescription + ' ' : '') + inputValue)} / {MINIMUM_WORDS} words minimum
+                                                </span>
+                                            )}
+                                            {state.currentStep !== 'description' && "Raah Assistant can make mistakes. Check important info."}
                                         </Typography>
                                     </Box>
                                 </Box>

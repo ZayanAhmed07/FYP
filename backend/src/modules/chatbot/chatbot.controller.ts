@@ -168,3 +168,28 @@ export const enhanceJobPosting = catchAsync(async (req: Request, res: Response) 
     data: enhanced,
   });
 });
+
+/**
+ * Enhance description only (for real-time preview)
+ */
+export const enhanceDescription = catchAsync(async (req: Request, res: Response) => {
+  const { description, category } = req.body;
+
+  if (!description || !category) {
+    return res.status(400).json({
+      success: false,
+      error: 'Description and category are required',
+    });
+  }
+
+  const enhanced = await groqService.enhanceJobPosting(
+    description,
+    category,
+    []
+  );
+
+  res.status(200).json({
+    success: true,
+    data: { enhanced: enhanced.enhancedDescription },
+  });
+});

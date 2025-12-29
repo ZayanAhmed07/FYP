@@ -114,9 +114,27 @@ export const jobValidation = {
       .trim()
       .isLength({ min: 50, max: 10000 })
       .withMessage('Job description must be between 50 and 10000 characters'),
-    body('budget')
-      .isInt({ min: 1000 })
-      .withMessage('Budget must be at least 1000 PKR'),
+    body('budget.min')
+      .isInt({ min: 0 })
+      .withMessage('Minimum budget must be at least 0 PKR'),
+    body('budget.max')
+      .isInt({ min: 0 })
+      .withMessage('Maximum budget must be at least 0 PKR')
+      .custom((value, { req }) => {
+        if (value < req.body.budget.min) {
+          throw new Error('Maximum budget must be greater than or equal to minimum budget');
+        }
+        return true;
+      }),
+    body('timeline')
+      .notEmpty()
+      .withMessage('Timeline is required'),
+    body('location')
+      .notEmpty()
+      .withMessage('Location is required'),
+    body('category')
+      .notEmpty()
+      .withMessage('Category is required'),
     validate,
   ],
 
@@ -131,10 +149,14 @@ export const jobValidation = {
       .trim()
       .isLength({ min: 50, max: 10000 })
       .withMessage('Job description must be between 50 and 10000 characters'),
-    body('budget')
+    body('budget.min')
       .optional()
-      .isInt({ min: 1000 })
-      .withMessage('Budget must be at least 1000 PKR'),
+      .isInt({ min: 0 })
+      .withMessage('Minimum budget must be at least 0 PKR'),
+    body('budget.max')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Maximum budget must be at least 0 PKR'),
     validate,
   ],
 

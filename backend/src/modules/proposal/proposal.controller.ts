@@ -4,6 +4,7 @@ import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
 import * as proposalService from './proposal.service';
 import { Consultant } from '../../models/consultant.model';
+import { Job } from '../../models/job.model';
 
 export const createProposal = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
@@ -18,8 +19,13 @@ export const createProposal = catchAsync(async (req: Request, res: Response) => 
     throw new ApiError(404, 'Consultant profile not found. Please create a consultant profile first.');
   }
 
+  // Map frontend field names to model field names
+  const { proposedAmount, estimatedDelivery, ...rest } = req.body;
+  
   const proposal = await proposalService.createProposal({
-    ...req.body,
+    ...rest,
+    bidAmount: proposedAmount,
+    deliveryTime: estimatedDelivery,
     consultantId: consultant._id,
   });
 
@@ -47,7 +53,10 @@ export const getProposalsByConsultant = catchAsync(async (req: Request, res: Res
 });
 
 export const getProposalsByBuyer = catchAsync(async (req: Request, res: Response) => {
-  const proposals = await proposalService.getProposalsByBuyer(req.params.buyerId!);
+  // The buyerId param is the User ID (buyerId in Job model references User._id)
+  const buyerId = req.params.buyerId!;
+  
+  const proposals = await proposalService.getProposalsByBuyer(buyerId);
   res.status(200).json({ success: true, data: proposals });
 });
 

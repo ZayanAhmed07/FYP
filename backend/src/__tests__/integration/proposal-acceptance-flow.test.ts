@@ -51,7 +51,7 @@ describe('Integration Testing - Proposal Acceptance to Order Flow', () => {
       .send({
         title: 'Business Strategy Consultant',
         category: 'Business',
-        description: 'Need business strategy help',
+        description: 'Need comprehensive business strategy help for company growth and market expansion planning',
         budget: { min: 60000, max: 80000 },
         timeline: '3 weeks',
         location: 'Karachi',

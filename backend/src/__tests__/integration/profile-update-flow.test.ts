@@ -46,7 +46,7 @@ describe('Integration Testing - Profile Update Integration', () => {
       .send({
         title: 'Test Job',
         category: 'Legal',
-        description: 'Test description',
+        description: 'Looking for an experienced legal consultant to review contracts and provide legal advice for business operations',
         budget: { min: 30000, max: 50000 },
         timeline: '1 week',
         location: 'Lahore',

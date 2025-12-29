@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
 import * as jobService from './job.service';
+import { Job } from '../../models/job.model';
 
 export const createJob = catchAsync(async (req: Request, res: Response) => {
   const buyerId = req.user?.id;
@@ -53,8 +54,13 @@ export const deleteJob = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(401, 'Authentication required');
   }
 
-  // Verify ownership before delete
-  const existingJob = await jobService.getJobById(req.params.id!);
+  // Verify ownership before delete - don't populate to get the actual ObjectId
+  const existingJob = await Job.findById(req.params.id);
+  
+  if (!existingJob) {
+    throw new ApiError(404, 'Job not found');
+  }
+  
   if (existingJob.buyerId.toString() !== userId) {
     throw new ApiError(403, 'You do not have permission to delete this job');
   }

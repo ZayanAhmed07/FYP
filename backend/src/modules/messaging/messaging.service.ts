@@ -234,24 +234,36 @@ export const getUnreadMessageCount = async (userId: string) => {
 
 export const getConversations = async (userId: string) => {
   const conversations = await Conversation.find({ participants: userId })
-    .populate('participants', 'name profileImage')
-    .sort({ lastMessageAt: -1 });
+    .populate('participants', 'name email profileImage isOnline')
+    .sort({ lastMessageAt: -1, createdAt: -1 });
   
   const conversationData = conversations.map((conv) => {
+    // Find other user (not the current user)
     const otherUser = conv.participants.find((p: any) => p._id.toString() !== userId.toString());
+    
+    // Build unread count map
     const unreadCount: Record<string, number> = {};
     unreadCount[userId] = conv.unreadCount.get(userId.toString()) || 0;
     
     return {
+      _id: conv._id.toString(), // Keep _id for frontend compatibility
       id: conv._id.toString(),
       participants: conv.participants.map((p: any) => ({
+        _id: p._id.toString(),
         id: p._id.toString(),
         name: p.name,
+        email: p.email,
         profileImage: p.profileImage,
+        isOnline: p.isOnline || false,
       })),
+      lastMessage: conv.lastMessage ? {
+        _id: conv._id.toString(),
+        content: conv.lastMessage,
+        createdAt: conv.lastMessageAt?.toISOString(),
+      } : undefined,
       unreadCount,
-      lastMessageAt: conv.lastMessageAt,
-      createdAt: conv.createdAt,
+      updatedAt: conv.lastMessageAt?.toISOString() || conv.createdAt?.toISOString(),
+      createdAt: conv.createdAt?.toISOString(),
     };
   });
   

@@ -24,11 +24,11 @@ describe('Functional Testing - Job Management', () => {
       .post('/api/jobs')
       .set('Authorization', `Bearer ${buyerToken}`)
       .send({
-        title: 'Business Consultant Needed',
+        title: 'Business Consultant',
         category: 'Business',
-        description: 'Need help with business strategy',
-        budget: { min: 70000, max: 90000 },
-        timeline: '3 weeks',
+        description: 'Looking for business consultant to help with strategy planning and market expansion',
+        budget: { min: 50000, max: 80000 },
+        timeline: '2 weeks',
         location: 'Lahore',
         skills: ['Business Strategy', 'Market Analysis'],
       });
@@ -47,9 +47,9 @@ describe('Functional Testing - Job Management', () => {
       .send({
         title: 'Legal Consultant',
         category: 'Legal',
-        description: 'Legal advice needed',
-        budget: { min: 50000, max: 70000 },
-        timeline: '2 weeks',
+        description: 'Need legal advice and consultation for business contract review and compliance',
+        budget: { min: 60000, max: 90000 },
+        timeline: '3 weeks',
         location: 'Islamabad',
       });
 
@@ -73,8 +73,8 @@ describe('Functional Testing - Job Management', () => {
       .send({
         title: 'Education Consultant',
         category: 'Education',
-        description: 'Need educational guidance',
-        budget: { min: 30000, max: 50000 },
+        description: 'Looking for educational guidance and consulting services for curriculum development',
+        budget: { min: 40000, max: 60000 },
         timeline: '1 week',
         location: 'Karachi',
       });
@@ -139,7 +139,7 @@ describe('Functional Testing - Job Management', () => {
       .send({
         title: 'Job 1',
         category: 'Legal',
-        description: 'First job',
+        description: 'This is the first job posting for testing purposes with legal consultation requirements',
         budget: { min: 30000, max: 50000 },
         timeline: '1 week',
         location: 'Lahore',
@@ -151,7 +151,7 @@ describe('Functional Testing - Job Management', () => {
       .send({
         title: 'Job 2',
         category: 'Business',
-        description: 'Second job',
+        description: 'This is the second job posting for testing purposes with business consultation requirements',
         budget: { min: 40000, max: 60000 },
         timeline: '2 weeks',
         location: 'Islamabad',

@@ -76,10 +76,10 @@ const JobsList = ({ jobs, jobsLoading, jobsError, selectedJobId, onSelectJob }: 
           border: '2px dashed rgba(13, 180, 188, 0.2)',
         }}
       >
-        <Typography variant="h6" sx={{ color: '#6b7280', mb: 1, fontWeight: 600 }}>
+        <Typography variant="h6" sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280', mb: 1, fontWeight: 600 }}>
           No jobs available at the moment
         </Typography>
-        <Typography sx={{ color: '#9ca3af', fontSize: '0.875rem' }}>
+        <Typography sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#6b7280' : '#9ca3af', fontSize: '0.875rem' }}>
           Check back soon for new opportunities matching your expertise
         </Typography>
       </Box>
@@ -118,7 +118,7 @@ const JobsList = ({ jobs, jobsLoading, jobsError, selectedJobId, onSelectJob }: 
                   variant="h6"
                   sx={{
                     fontWeight: 700,
-                    color: '#1f2937',
+                    color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1f2937',
                     mb: 1,
                     fontSize: '1.125rem',
                   }}
@@ -152,7 +152,7 @@ const JobsList = ({ jobs, jobsLoading, jobsError, selectedJobId, onSelectJob }: 
 
             <Typography
               sx={{
-                color: '#6b7280',
+                color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280',
                 fontSize: '0.875rem',
                 lineHeight: 1.6,
                 mb: 2,
@@ -166,13 +166,13 @@ const JobsList = ({ jobs, jobsLoading, jobsError, selectedJobId, onSelectJob }: 
             <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <FaMapMarkerAlt size={14} color="#0db4bc" />
-                <Typography sx={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                <Typography sx={{ fontSize: '0.75rem', color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280' }}>
                   {job.location}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <FaClock size={14} color="#0db4bc" />
-                <Typography sx={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                <Typography sx={{ fontSize: '0.75rem', color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280' }}>
                   {job.timeline || 'Not specified'}
                 </Typography>
               </Box>
@@ -207,11 +207,11 @@ const JobsList = ({ jobs, jobsLoading, jobsError, selectedJobId, onSelectJob }: 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <FaFileAlt size={12} color="#6b7280" />
-                  <Typography sx={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280' }}>
                     {job.proposalsCount || 0} proposals
                   </Typography>
                 </Box>
-                <Typography sx={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                <Typography sx={{ fontSize: '0.75rem', color: (theme) => theme.palette.mode === 'dark' ? '#6b7280' : '#9ca3af' }}>
                   {getDaysAgo(job.createdAt)}
                 </Typography>
               </Box>

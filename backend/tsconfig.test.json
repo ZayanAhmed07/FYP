@@ -1,14 +1,17 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["jest", "node"],
+    "types": ["jest", "node", "supertest"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false,
-    "strict": false
+    "strict": false,
+    "skipLibCheck": true,
+    "rootDir": "."
   },
-  "include": ["src/**/*.ts", "src/__tests__/**/*.ts"]
+  "include": ["src/__tests__/**/*.ts", "src/__tests__/**/*.test.ts", "src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
 
 

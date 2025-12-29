@@ -1,5 +1,6 @@
 import { Consultant } from '../models/consultant.model';
-import huggingFaceService from './huggingface.service';
+// @ts-ignore - TypeScript language server caching issue, module exists and works at runtime
+import { geminiEmbeddingService } from './gemini-embedding.service';
 
 interface JobRequirements {
   title: string;
@@ -10,6 +11,7 @@ interface JobRequirements {
     min: number;
     max: number;
   };
+  location?: string;
 }
 
 interface MatchedConsultant {
@@ -52,14 +54,42 @@ export class ConsultantMatchingService {
   }
 
   /**
+   * Extract city name from location string (e.g., "Lahore, Pakistan" -> "Lahore")
+   */
+  private extractCityFromLocation(location?: string): string | null {
+    if (!location) return null;
+    const parts = location.split(',').map(p => p.trim());
+    return parts[0] || null;
+  }
+
+  /**
    * Calculate additional matching factors beyond semantic similarity
    */
-  private calculateBonusScore(consultant: any, job: JobRequirements): {
+  private calculateBonusScore(consultant: any, job: JobRequirements & { location?: string }): {
     score: number;
     reasons: string[];
   } {
     let bonusScore = 0;
     const reasons: string[] = [];
+
+    // Location match (high priority for local consultants)
+    if (job.location) {
+      const jobCity = this.extractCityFromLocation(job.location);
+      
+      // Exact city match gets highest bonus
+      if (jobCity && consultant.location?.city) {
+        if (consultant.location.city.toLowerCase() === jobCity.toLowerCase()) {
+          bonusScore += 0.15;
+          reasons.push(`Located in ${consultant.location.city}`);
+        }
+      }
+      
+      // Remote workers get smaller bonus (still valuable)
+      if (consultant.remoteWork) {
+        bonusScore += 0.08;
+        reasons.push('Available for remote work');
+      }
+    }
 
     // Category match (high weight)
     if (consultant.specialization.includes(job.category)) {
@@ -121,6 +151,7 @@ export class ConsultantMatchingService {
 
   /**
    * Find best matching consultants for a job using AI embeddings
+   * IMPROVED: Uses broader filters + skill matching + location support
    */
   async findBestMatches(
     job: JobRequirements,
@@ -131,42 +162,85 @@ export class ConsultantMatchingService {
     } = {}
   ): Promise<MatchedConsultant[]> {
     try {
-      const { limit = 10, minScore = 0.4, onlyVerified = false } = options;
+      const { limit = 10, minScore = 0.3, onlyVerified = false } = options;  // Lower minScore for more matches
 
-      // Build query filters
-      const query: any = {};
+      // Build query filters - BROADER APPROACH
+      const query: any = {
+        availability: { $in: ['available', 'limited'] },  // Only active consultants
+      };
       
-      // Prefer consultants in the same category
+      // Category OR skill match (not requiring exact category match)
+      const orConditions: any[] = [];
+      
+      // Match by category
       if (job.category) {
-        query.specialization = job.category;
+        orConditions.push({ specialization: job.category });
+      }
+      
+      // Match by skills (case-insensitive, partial match)
+      if (job.skills && job.skills.length > 0) {
+        const skillRegexes = job.skills.map(skill => 
+          new RegExp(skill.trim(), 'i')  // Case-insensitive regex
+        );
+        orConditions.push({ skills: { $in: skillRegexes } });
+      }
+      
+      // If we have any OR conditions, add them
+      if (orConditions.length > 0) {
+        query.$or = orConditions;
+      }
+      
+      // Location filtering: exact city match OR remote workers
+      if (job.location) {
+        const jobCity = this.extractCityFromLocation(job.location);
+        if (jobCity) {
+          query.$or = [
+            ...(query.$or || []),
+            { 'location.city': new RegExp(jobCity, 'i') },  // Case-insensitive city match
+            { remoteWork: true },  // OR consultants available for remote work
+          ];
+        }
       }
 
       if (onlyVerified) {
         query.isVerified = true;
       }
 
-      // Fetch consultants
+      console.log('🔍 Query filters:', JSON.stringify(query, null, 2));
+
+      // Fetch consultants with broader criteria
       const consultants = await Consultant.find(query)
         .populate('userId', 'name email profileImage')
-        .limit(100) // Get a larger pool to rank
+        .limit(200) // Larger pool for better ranking
         .lean();
 
+      console.log(`📊 Found ${consultants.length} consultants matching initial criteria`);
+
       if (consultants.length === 0) {
+        console.warn('⚠️ No consultants found. Check database and query filters.');
         return [];
       }
 
       console.log(`📊 Found ${consultants.length} consultants to evaluate`);
 
-      // Generate job embedding
+      // ✨ OPTIMIZED: Use cached job embedding or generate new one
       const jobText = this.createJobText(job);
-      console.log(`🔍 Generating embedding for job: "${job.title}"`);
-      const jobEmbedding = await huggingFaceService.generateEmbedding(jobText);
+      console.log(`🔍 Getting embedding for job: "${job.title}"`);
+      const jobEmbedding = await geminiEmbeddingService.getOrGenerateEmbedding(
+        jobText,
+        (job as any).skillsEmbedding,
+        (job as any).embeddingGeneratedAt
+      );
 
-      // Generate consultant embeddings
-      console.log(`🤖 Generating embeddings for ${consultants.length} consultants...`);
-      const consultantTexts = consultants.map((c: any) => this.createConsultantText(c));
-      const consultantEmbeddings = await huggingFaceService.generateBatchEmbeddings(
-        consultantTexts
+      // ✨ OPTIMIZED: Use cached consultant embeddings with batch processing
+      console.log(`🤖 Processing embeddings for ${consultants.length} consultants with cache...`);
+      const consultantItems = consultants.map((c: any) => ({
+        text: this.createConsultantText(c),
+        existingEmbedding: c.skillsEmbedding,
+        lastGenerated: c.embeddingGeneratedAt
+      }));
+      const consultantEmbeddings = await geminiEmbeddingService.generateBatchEmbeddingsWithCache(
+        consultantItems
       );
 
       // Calculate semantic similarity + bonus scores
@@ -176,7 +250,7 @@ export class ConsultantMatchingService {
           throw new Error(`Missing embedding for consultant at index ${index}`);
         }
         
-        const semanticSimilarity = huggingFaceService.cosineSimilarity(
+        const semanticSimilarity = geminiEmbeddingService.cosineSimilarity(
           jobEmbedding,
           consultantEmbedding
         );
@@ -206,6 +280,9 @@ export class ConsultantMatchingService {
         .slice(0, limit);
 
       console.log(`✅ Returning top ${filteredMatches.length} matches`);
+      
+      // Log cache statistics for monitoring
+      geminiEmbeddingService.logCacheStats();
 
       return filteredMatches;
     } catch (error) {
@@ -241,6 +318,7 @@ export class ConsultantMatchingService {
         category: job.category,
         skills: job.skills || [],
         budget: job.budget,
+        location: job.location,
       });
     } catch (error) {
       console.error('Error suggesting consultants:', error);

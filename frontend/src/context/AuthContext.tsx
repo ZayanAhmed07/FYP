@@ -90,11 +90,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     bootstrap();
 
-    // Listen for storage changes (for OAuth callbacks) - always bootstrap on token change
+    // Listen for storage changes (for OAuth callbacks and logout) - always bootstrap on token change
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === TOKEN_KEY && e.newValue) {
-        // Always bootstrap when token changes to ensure state is updated
-        bootstrap();
+      if (e.key === TOKEN_KEY) {
+        if (e.newValue) {
+          // Token added - bootstrap to get user
+          bootstrap();
+        } else {
+          // Token removed - clear user state
+          setUser(null);
+        }
+      } else if (e.key === 'expert_raah_user' && !e.newValue) {
+        // User data cleared - ensure state is cleared
+        setUser(null);
       }
     };
 
@@ -143,7 +151,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const isOnAuthPage = currentPath === '/login' || currentPath === '/signup' || currentPath === '/';
 
     // Don't redirect from common pages that all users can access
-    const commonPages = ['/messages', '/profile', '/settings', '/notifications', '/consultant/', '/payment', '/post-job', '/submit-proposal'];
+    const commonPages = ['/messages', '/profile', '/notifications', '/consultant/', '/payment', '/withdrawal', '/post-job', '/submit-proposal'];
     const isOnCommonPage = commonPages.some(page => currentPath.startsWith(page));
 
     // Don't redirect from consultant profile pages (viewing profiles should be allowed for all)
@@ -229,12 +237,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Clear all authentication data
     storage.clearToken(TOKEN_KEY);
     localStorage.removeItem('expert_raah_user');
+    localStorage.removeItem('expert_raah_user_last_update');
 
     // Clear user state first
     setUser(null);
 
     // Clear React Query cache
     queryClient.clear();
+
+    // Trigger storage event to notify other components
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: TOKEN_KEY,
+      oldValue: 'cleared',
+      newValue: null,
+      storageArea: localStorage,
+      url: window.location.href
+    }));
 
     // Navigate to home page
     navigate('/', { replace: true });

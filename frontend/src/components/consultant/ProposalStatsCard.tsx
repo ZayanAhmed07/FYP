@@ -76,7 +76,7 @@ const ProposalStatsCard = ({ proposalStats }: ProposalStatsCardProps) => {
         <Typography
           sx={{
             fontSize: '0.875rem',
-            color: '#6b7280',
+            color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280',
             fontWeight: 600,
           }}
         >
@@ -125,7 +125,7 @@ const ProposalStatsCard = ({ proposalStats }: ProposalStatsCardProps) => {
                 variant="h4"
                 sx={{
                   fontWeight: 700,
-                  color: '#1f2937',
+                  color: (theme) => theme.palette.mode === 'dark' ? '#e5e7eb' : '#1f2937',
                   mb: 0.5,
                 }}
               >
@@ -134,7 +134,7 @@ const ProposalStatsCard = ({ proposalStats }: ProposalStatsCardProps) => {
               <Typography
                 sx={{
                   fontSize: '0.75rem',
-                  color: '#6b7280',
+                  color: (theme) => theme.palette.mode === 'dark' ? '#9ca3af' : '#6b7280',
                   fontWeight: 500,
                 }}
               >

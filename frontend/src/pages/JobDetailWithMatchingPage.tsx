@@ -85,6 +85,12 @@ const JobDetailWithMatchingPage = () => {
   const [matchingLoading, setMatchingLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Debug: Track matches state changes
+  useEffect(() => {
+    console.log('📊 Matches state changed:', matches.length, 'consultants');
+    console.log('🔄 Loading states - Job:', loading, 'Matching:', matchingLoading);
+  }, [matches, loading, matchingLoading]);
+
   useEffect(() => {
     const fetchJobAndMatches = async () => {
       if (!jobId) {
@@ -95,24 +101,39 @@ const JobDetailWithMatchingPage = () => {
 
       try {
         // Fetch job details
+        console.log('🔍 Fetching job details for:', jobId);
         const jobResponse = await httpClient.get(`/jobs/${jobId}`);
         const jobData = jobResponse.data?.data;
+        console.log('✅ Job data received:', jobData);
         setJob(jobData);
         setLoading(false);
 
         // Fetch AI-matched consultants
         setMatchingLoading(true);
         try {
+          console.log('🤖 Fetching AI matches for job:', jobId);
           const matchResponse = await httpClient.get(`/consultants/suggest/${jobId}`);
-          setMatches(matchResponse.data?.data || []);
-        } catch (matchErr) {
-          console.error('Error fetching matches (non-fatal):', matchErr);
+          const matchData = matchResponse.data?.data || [];
+          console.log('✅ Matches received:', matchData.length, 'consultants');
+          console.log('Match data:', matchData);
+          
+          // Only set if we actually have data
+          if (Array.isArray(matchData)) {
+            setMatches(matchData);
+          } else {
+            console.warn('⚠️ Match data is not an array:', matchData);
+            setMatches([]);
+          }
+        } catch (matchErr: any) {
+          console.error('❌ Error fetching matches (non-fatal):', matchErr);
+          console.error('Error response:', matchErr.response?.data);
           // Continue even if matching fails - show job details without matches
           setMatches([]);
+        } finally {
+          setMatchingLoading(false);
         }
-        setMatchingLoading(false);
       } catch (err: any) {
-        console.error('Error fetching job:', err);
+        console.error('❌ Error fetching job:', err);
         setError(err.response?.data?.message || 'Failed to load job details');
         setLoading(false);
         setMatchingLoading(false);
@@ -422,6 +443,9 @@ const JobDetailWithMatchingPage = () => {
 
           {matchingLoading ? (
             <Box>
+              <Typography sx={{ color: '#fff', mb: 2, textAlign: 'center' }}>
+                🤖 AI is analyzing and matching consultants...
+              </Typography>
               {[1, 2, 3].map((i) => (
                 <Skeleton
                   key={i}
@@ -449,10 +473,11 @@ const JobDetailWithMatchingPage = () => {
               </Typography>
             </Card>
           ) : (
-            <AnimatePresence>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {matches.map((match, index) => (
-                  <Box key={match.consultant._id}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {matches.map((match, index) => {
+                console.log('🎨 Rendering consultant:', match.consultant.userId?.name, 'Score:', match.matchScore);
+                return (
+                  <Box key={`${match.consultant._id}-${index}`}>
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -588,7 +613,7 @@ const JobDetailWithMatchingPage = () => {
                                 </Box>
 
                                 <Chip
-                                  label={`$${match.consultant.hourlyRate}/hr`}
+                                  label={`Rs ${match.consultant.hourlyRate}/hr`}
                                   size="small"
                                   sx={{
                                     bgcolor: '#10b981',
@@ -784,7 +809,13 @@ const JobDetailWithMatchingPage = () => {
                             </Button>
                             <Button
                               variant="outlined"
-                              onClick={() => navigate(`/consultant/${match.consultant._id}`)}
+                              onClick={() => {
+                                console.log('🔍 Navigating to consultant profile');
+                                console.log('Full match object:', match);
+                                console.log('Consultant ID:', match.consultant._id);
+                                console.log('Consultant userId:', match.consultant.userId);
+                                navigate(`/consultant/${match.consultant._id}`);
+                              }}
                               sx={{
                                 borderColor: '#0db4bc',
                                 color: '#0db4bc',
@@ -807,9 +838,9 @@ const JobDetailWithMatchingPage = () => {
                       </Card>
                     </motion.div>
                   </Box>
-                ))}
-              </Box>
-            </AnimatePresence>
+                );
+              })}
+            </Box>
           )}
         </motion.div>
 
