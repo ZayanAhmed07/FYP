@@ -164,7 +164,7 @@ export const createStripeCheckoutSession = catchAsync(async (req: Request, res: 
     amount,
     successUrl: `${frontendUrl}/buyer-dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
     cancelUrl: `${frontendUrl}/buyer-dashboard?payment=cancelled`,
-    customerEmail: user?.email || undefined,
+    customerEmail: (user as any)?.email || undefined,
     metadata: {
       userId,
     },
@@ -191,7 +191,7 @@ export const verifyStripePayment = catchAsync(async (req: Request, res: Response
     return res.status(401).json({ success: false, message: 'Authentication required' });
   }
 
-  let orderId: string;
+  let orderId: string = '';
   let amount: number;
 
   // Retrieve payment details from Stripe
@@ -202,7 +202,7 @@ export const verifyStripePayment = catchAsync(async (req: Request, res: Response
       return res.status(400).json({ success: false, message: 'Payment not completed' });
     }
 
-    orderId = paymentIntent.metadata.orderId;
+    orderId = paymentIntent.metadata.orderId || '';
     amount = paymentIntent.amount / 100; // Convert from cents
   } else if (sessionId) {
     const session = await stripeService.retrieveCheckoutSession(sessionId);

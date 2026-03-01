@@ -307,10 +307,7 @@ export const getConsultantStats = async (consultantId: string) => {
       $match: {
         $or: [
           { consultantId: new Types.ObjectId(consultantId) },
-          { consultantId: consultantId }
-        ],
-        // Check both current year and previous year
-        $or: [
+          { consultantId: consultantId },
           {
             createdAt: {
               $gte: new Date(currentYear, 0, 1), // January 1st of current year

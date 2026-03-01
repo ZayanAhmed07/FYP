@@ -5,9 +5,9 @@
 
 import request from 'supertest';
 import app from '../../app';
-import { Job } from '../../modules/job/job.model';
-import { Proposal } from '../../modules/proposal/proposal.model';
-import { Order } from '../../modules/order/order.model';
+import { Job } from '../../models/job.model';
+import { Proposal } from '../../models/proposal.model';
+import { Order } from '../../models/order.model';
 import mongoose from 'mongoose';
 
 /**
