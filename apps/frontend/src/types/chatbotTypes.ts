@@ -8,7 +8,10 @@ export interface ChatMessage {
 
 export interface JobData {
     description: string;
+    rawDescription?: string;
+    enhancedDescription?: string;
     category: string;
+    subCategory?: string;
     budgetMin: number;
     budgetMax: number;
     timeline: string;

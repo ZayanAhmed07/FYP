@@ -12,9 +12,9 @@ import {
   TextField,
   Modal,
   IconButton,
-  CircularProgress,
-  Grid
+  CircularProgress
 } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 import { FaTimes, FaEnvelope, FaCheckCircle, FaEye } from 'react-icons/fa';
 import { httpClient } from '../../api/httpClient';
 

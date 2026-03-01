@@ -21,6 +21,7 @@ type AuthResponse = {
     isVerified?: boolean;
     profileImage?: string;
   };
+  token?: string;
 };
 
 const login = async (payload: { email: string; password: string }): Promise<AuthResponse> => {
