@@ -1,0 +1,124 @@
+INFORMATION SECURITY ANALYSIS REPORT
+Final Year Project (FYP-2): Expert Raah
+
+------------------------------------------------------------
+SECTION 1 — FYP Overview
+
+Project Title: Expert Raah
+
+System Purpose:
+Expert Raah is a web-based platform designed to connect clients with consultants in domains such as Education, Business, and Legal. The system facilitates expert matching, profile management, secure communication, and payment processing, providing a seamless experience for both consultants and clients.
+
+Target Users:
+- Consultants (subject matter experts)
+- Clients seeking professional advice
+- Platform administrators
+
+Platform/Technologies Used:
+- Frontend: React.js, TypeScript, Material UI
+- Backend: Node.js, Express.js, TypeScript
+- Database: MongoDB (NoSQL)
+- Authentication: Passport.js, JWT
+- Real-time: Socket.IO
+- Security: Helmet, CORS, bcrypt
+- Deployment: Docker, cloud hosting
+
+Type of Data Handled:
+- User profiles (consultants, clients)
+- Authentication credentials
+- Consultation records
+- Payment information
+- Real-time chat messages
+- Administrative logs
+
+------------------------------------------------------------
+SECTION 2 — Identify Information Assets
+
+| Asset              | Description                                 | Importance |
+|--------------------|---------------------------------------------|------------|
+| User Accounts      | Profiles of consultants and clients          | High       |
+| Database           | Stores all platform data                     | High       |
+| Backend Server     | Handles business logic and APIs              | High       |
+| Frontend Application| User interface for clients and consultants  | High       |
+| Admin Panel        | Manages users, content, and settings         | High       |
+| API Services       | REST endpoints for frontend/backend comms    | High       |
+| Cloud Storage      | Stores uploaded documents and images         | Medium     |
+| Authentication System| Manages login, JWT, sessions               | High       |
+
+------------------------------------------------------------
+SECTION 3 — Threats, Attacks & Vulnerabilities
+
+| Asset              | Possible Threat      | Possible Attack      | Vulnerability           |
+|--------------------|---------------------|----------------------|-------------------------|
+| User Accounts      | Phishing, Insider   | Credential theft     | Weak passwords, session hijack |
+| Database           | SQL/NoSQL Injection | Data breach          | Poor input validation   |
+| Backend Server     | DDoS, Malware       | Service disruption   | Unpatched dependencies  |
+| Frontend Application| Phishing           | Social engineering   | Insecure links          |
+| Admin Panel        | Unauthorized access | Privilege escalation | Hardcoded credentials   |
+| API Services       | API abuse           | Data exfiltration    | Unsecured endpoints     |
+| Cloud Storage      | Data leakage        | Unauthorized access  | Misconfigured permissions|
+| Authentication System| Credential theft  | Brute force attack   | Missing rate limiting   |
+
+------------------------------------------------------------
+SECTION 4 — CIA Triad Analysis
+
+| CIA Principle   | Risk in System                  | Impact if Compromised         |
+|-----------------|---------------------------------|-------------------------------|
+| Confidentiality | Data leakage, unauthorized access| User privacy loss, legal issues|
+| Integrity       | Data tampering, fake records     | Incorrect decisions, fraud    |
+| Availability    | Server crash, DDoS, power failure| Service downtime, user frustration|
+
+Examples:
+- Confidentiality: Exposure of client consultation records or payment info.
+- Integrity: Unauthorized modification of consultant profiles or transaction logs.
+- Availability: DDoS attack preventing access to platform services.
+
+------------------------------------------------------------
+SECTION 5 — Software Security Analysis
+
+| Vulnerability         | Location in System           | Risk Level |
+|----------------------|------------------------------|------------|
+| Weak authentication   | Passport config, login routes| High       |
+| Hardcoded secrets     | Config files, admin panel    | High       |
+| Missing encryption    | Payment, sensitive data      | High       |
+| No input validation   | API endpoints, database ops  | High       |
+| Missing rate limiting | Login, API routes            | Medium     |
+| Missing logging       | Backend services             | Medium     |
+| Insecure API endpoints| REST routes                  | Medium     |
+| Outdated dependencies | Backend/frontend packages    | Medium     |
+
+------------------------------------------------------------
+SECTION 6 — Security Safeguards & Countermeasures
+
+| Security Goal   | Countermeasure           | How it Protects System         |
+|-----------------|--------------------------|-------------------------------|
+| Confidentiality | JWT authentication       | Prevents unauthorized access  |
+| Confidentiality | HTTPS encryption         | Secures data in transit       |
+| Integrity       | Input validation         | Prevents data tampering       |
+| Integrity       | Password hashing (bcrypt)| Protects against credential theft|
+| Availability    | Rate limiting            | Mitigates brute force/DDoS    |
+| Availability    | Backup systems           | Enables recovery after failure|
+| Confidentiality | Access control           | Restricts sensitive data      |
+| Integrity       | Logging and monitoring   | Detects unauthorized changes  |
+| Availability    | Firewalls                | Blocks malicious traffic      |
+
+------------------------------------------------------------
+SECTION 7 — Reflection
+
+1. Which CIA principle is most critical for this system and why?
+Confidentiality is most critical, as the platform handles sensitive user data, consultation records, and payment information. Breaches could result in privacy violations and legal consequences.
+
+2. Which threats are most realistic?
+Credential theft, SQL/NoSQL injection, DDoS attacks, and API abuse are realistic given the web-based nature and reliance on REST APIs and cloud infrastructure.
+
+3. What security improvements should be implemented before final deployment?
+- Enforce strong password policies and multi-factor authentication.
+- Ensure all secrets are stored securely and not hardcoded.
+- Implement comprehensive input validation and sanitization.
+- Enable HTTPS and encrypt sensitive data at rest and in transit.
+- Add rate limiting and logging for all critical endpoints.
+- Regularly update dependencies and conduct security audits.
+- Set up automated backups and disaster recovery plans.
+
+------------------------------------------------------------
+[Prepared by Cybersecurity Expert | Based on actual code and architecture analysis]
