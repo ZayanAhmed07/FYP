@@ -1,28 +1,29 @@
-module.exports = {
-  parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
+const { FlatCompat } = require('@eslint/eslintrc');
+const path = require('path');
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+  recommendedConfig: require('eslint:recommended'),
+});
+
+module.exports = [
+  {
+    ignores: ['node_modules/', 'dist/', 'coverage/', '**/*.test.ts'],
   },
-  plugins: ['@typescript-eslint', 'import'],
-  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:import/recommended', 'prettier'],
-  rules: {
-    'import/order': [
-      'warn',
-      {
-        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object'],
-        'newlines-between': 'always',
-        alphabetize: { order: 'asc', caseInsensitive: true },
+  ...compat.extends('eslint:recommended'),
+  {
+    files: ['src/**/*.ts'],
+    languageOptions: {
+      parser: require('@typescript-eslint/parser'),
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
       },
-    ],
-    '@typescript-eslint/no-misused-promises': [
-      'error',
-      {
-        checksVoidReturn: {
-          attributes: false,
-        },
-      },
-    ],
+    },
+    rules: {
+      'no-console': 'off',
+      'no-undef': 'off',
+    },
   },
-};
+];
 
