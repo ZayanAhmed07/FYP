@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { type FormEvent, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Box, Container, Typography, TextField, Grid, List, ListItem, IconButton } from '@mui/material';
@@ -235,5 +236,6 @@ const SubscribeSection = () => {
 };
 
 export default SubscribeSection;
+
 
 

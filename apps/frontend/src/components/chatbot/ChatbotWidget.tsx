@@ -606,7 +606,7 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                                         state.currentStep === 'complete'
                                     }
                                     size="small"
-                                    multiline={state.currentStep === 'description' && state.jobData.subCategory}
+                                    multiline={state.currentStep === 'description' && !!state.jobData.subCategory}
                                     maxRows={4}
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
@@ -898,7 +898,7 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                                                     state.currentStep === 'complete'
                                                 }
                                                 size="small"
-                                                multiline={state.currentStep === 'description' && state.jobData.subCategory}
+                                                multiline={state.currentStep === 'description' && !!state.jobData.subCategory}
                                                 maxRows={4}
                                                 sx={{
                                                     '& .MuiOutlinedInput-root': {

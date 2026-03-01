@@ -357,8 +357,8 @@ const ConsultantProfileViewPage = () => {
                   <FaMapMarkerAlt style={{ color: '#ef4444', fontSize: '18px' }} />
                   <Typography sx={{ color: '#6b7280', fontSize: '1rem' }}>
                     {typeof consultant.location === 'object' && consultant.location
-                      ? `${consultant.location.city || ''}${consultant.location.city && consultant.location.country ? ', ' : ''}${consultant.location.country || ''}`
-                      : consultant.location || consultant.city}
+                      ? `${(consultant.location as any).city || ''}${(consultant.location as any).city && (consultant.location as any).country ? ', ' : ''}${(consultant.location as any).country || ''}`
+                      : String(consultant.location || consultant.city || '')}
                   </Typography>
                 </Box>
               )}
