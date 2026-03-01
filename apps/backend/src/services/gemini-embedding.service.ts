@@ -22,7 +22,10 @@ export class GeminiEmbeddingService {
   private cacheMissCount = 0;
 
   constructor() {
-    const apiKey = 'REDACTED';
+    const apiKey = process.env.GOOGLE_API_KEY;
+    if (!apiKey) {
+      throw new Error('GOOGLE_API_KEY environment variable is not set');
+    }
     this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
