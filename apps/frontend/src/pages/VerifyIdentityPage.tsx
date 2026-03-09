@@ -6,10 +6,20 @@ import { FaUser, FaBriefcase, FaDollarSign, FaClock, FaUpload, FaTimesCircle } f
 import { httpClient } from '../api/httpClient';
 
 const VerifyIdentityPage = () => {
-  // Removed CNIC upload fields
+  // CNIC Upload State
+  const [idCardFront, setIdCardFront] = useState<File | null>(null);
+  const [idCardBack, setIdCardBack] = useState<File | null>(null);
   const [supportingDocs, setSupportingDocs] = useState<File[]>([]);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // CNIC Verification State
+  const [verifyingFront, setVerifyingFront] = useState(false);
+  const [verifyingBack, setVerifyingBack] = useState(false);
+  const [frontVerification, setFrontVerification] = useState<any>(null);
+  const [backVerification, setBackVerification] = useState<any>(null);
   
   // Profile fields
   const [profileData, setProfileData] = useState({
@@ -32,6 +42,105 @@ const VerifyIdentityPage = () => {
   
   const navigate = useNavigate();
 
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  // Verify CNIC with Groq
+  const verifyCNICImage = async (file: File, side: 'front' | 'back') => {
+    try {
+      const base64Image = await fileToBase64(file);
+      
+      const response = await httpClient.post('/consultants/verify-cnic', {
+        image: base64Image
+      });
+      
+      return response.data.data;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.error || 'Verification failed');
+    }
+  };
+
+  // Handle CNIC Front Upload
+  const handleIdCardFrontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size must be less than 5MB');
+      return;
+    }
+
+    // Validate file type
+    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+      setError('Only JPG, JPEG, and PNG files are allowed');
+      return;
+    }
+
+    setIdCardFront(file);
+    setFrontVerification(null);
+    setVerifyingFront(true);
+    setError('');
+
+    try {
+      const result = await verifyCNICImage(file, 'front');
+      setFrontVerification(result);
+      
+      if (result.verification_result === 'rejected') {
+        setError('Please enter a valid CNIC');
+      }
+    } catch (err: any) {
+      setError('Please enter a valid CNIC');
+      setIdCardFront(null);
+    } finally {
+      setVerifyingFront(false);
+    }
+  };
+
+  // Handle CNIC Back Upload
+  const handleIdCardBackUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size must be less than 5MB');
+      return;
+    }
+
+    // Validate file type
+    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+      setError('Only JPG, JPEG, and PNG files are allowed');
+      return;
+    }
+
+    setIdCardBack(file);
+    setBackVerification(null);
+    setVerifyingBack(true);
+    setError('');
+
+    try {
+      const result = await verifyCNICImage(file, 'back');
+      setBackVerification(result);
+      
+      if (result.verification_result === 'rejected') {
+        setError('Please enter a valid CNIC');
+      }
+    } catch (err: any) {
+      setError('Please enter a valid CNIC');
+      setIdCardBack(null);
+    } finally {
+      setVerifyingBack(false);
+    }
+  };
+
   const handleFileUpload = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -42,6 +151,39 @@ const VerifyIdentityPage = () => {
 
   const handleRemoveSupportingDoc = (index: number) => {
     setSupportingDocs(supportingDocs.filter((_, i) => i !== index));
+  };
+
+  // Handle Photo Upload
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Photo size must be less than 5MB');
+      return;
+    }
+
+    // Validate file type
+    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+      setError('Only JPG, JPEG, and PNG files are allowed for photos');
+      return;
+    }
+
+    setPhoto(file);
+    setError('');
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setPhotoPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setPhoto(null);
+    setPhotoPreview('');
   };
 
   const handleAddSpecialization = () => {
@@ -80,6 +222,30 @@ const VerifyIdentityPage = () => {
 
   const handleVerify = async () => {
     setError('');
+    
+    // Validate CNIC uploads
+    if (!idCardFront) {
+      setError('Please upload the front side of your CNIC');
+      return;
+    }
+    
+    if (!idCardBack) {
+      setError('Please upload the back side of your CNIC');
+      return;
+    }
+
+    // Check CNIC verification results
+    if (!frontVerification || frontVerification.verification_result !== 'approved') {
+      setError('Please enter a valid CNIC');
+      return;
+    }
+
+    if (!backVerification || backVerification.verification_result !== 'approved') {
+      setError('Please enter a valid CNIC');
+      return;
+    }
+
+    // Validate profile fields
     if (!profileData.title || !profileData.bio || !profileData.hourlyRate || !profileData.experience || !profileData.city) {
       setError('Please fill all required profile fields including city');
       return;
@@ -92,9 +258,14 @@ const VerifyIdentityPage = () => {
       setError('Please add at least one skill');
       return;
     }
+    if (!photo) {
+      setError('Please upload a profile photo');
+      return;
+    }
+    
     setLoading(true);
     try {
-      // Convert supporting docs to base64
+      // Convert files to base64
       const toBase64 = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -103,9 +274,14 @@ const VerifyIdentityPage = () => {
           reader.onerror = error => reject(error);
         });
       };
-      const supportingDocsBase64 = await Promise.all(
-        supportingDocs.map(doc => toBase64(doc))
-      );
+
+      const [idCardFrontBase64, idCardBackBase64, photoBase64, ...supportingDocsBase64] = await Promise.all([
+        toBase64(idCardFront),
+        toBase64(idCardBack),
+        toBase64(photo),
+        ...supportingDocs.map(doc => toBase64(doc))
+      ]);
+
       const payload = {
         title: profileData.title,
         bio: profileData.bio,
@@ -114,8 +290,16 @@ const VerifyIdentityPage = () => {
         specialization: profileData.specialization,
         skills: profileData.skills,
         city: profileData.city,
+        photo: photoBase64,
+        idCardFront: idCardFrontBase64,
+        idCardBack: idCardBackBase64,
+        idCardFrontMimeType: idCardFront.type,
+        idCardBackMimeType: idCardBack.type,
+        idCardFrontFileName: idCardFront.name,
+        idCardBackFileName: idCardBack.name,
         supportingDocuments: supportingDocsBase64,
       };
+      
       await httpClient.post('/consultants/verify-profile', payload);
       navigate('/verification-pending');
     } catch (err: any) {
@@ -247,7 +431,204 @@ const VerifyIdentityPage = () => {
             Complete your consultant profile to help clients find the right expertise in Education, Business, or Legal services.
           </Typography>
 
-          {/* Upload Section Removed: CNIC upload fields deleted */}
+          {/* CNIC Upload Section with AI Verification */}
+          <Box sx={{ mb: 5 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                color: '#1a1a1a',
+                mb: 3,
+                fontSize: '20px',
+              }}
+            >
+              Upload CNIC (National Identity Card)
+            </Typography>
+
+            {/* CNIC Front */}
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  color: '#333',
+                  mb: 1.5,
+                  fontSize: '15px',
+                }}
+              >
+                Front Side *
+              </Typography>
+              <Box
+                sx={{
+                  border: '2px dashed #0db4bc',
+                  borderRadius: 2,
+                  p: 3,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  background: idCardFront ? 'rgba(13, 180, 188, 0.05)' : 'transparent',
+                  '&:hover': {
+                    borderColor: '#0a8b91',
+                    background: 'rgba(13, 180, 188, 0.05)',
+                  },
+                }}
+                onClick={() => document.getElementById('id-card-front')?.click()}
+              >
+                <input
+                  type="file"
+                  id="id-card-front"
+                  accept="image/jpeg,image/jpg,image/png"
+                  onChange={handleIdCardFrontUpload}
+                  style={{ display: 'none' }}
+                />
+                {verifyingFront ? (
+                  <Box>
+                    <Typography sx={{ color: '#0db4bc', fontWeight: 500 }}>
+                      🔍 Verifying...
+                    </Typography>
+                  </Box>
+                ) : idCardFront ? (
+                  <Box>
+                    <Typography sx={{ color: '#333', fontWeight: 500, mb: 1 }}>
+                      ✓ {idCardFront.name}
+                    </Typography>
+                    {frontVerification && (
+                      <Box sx={{ mt: 2, textAlign: 'left' }}>
+                        {frontVerification.verification_result === 'approved' ? (
+                          <Box
+                            sx={{
+                              p: 2,
+                              borderRadius: 2,
+                              background: 'rgba(46, 125, 50, 0.1)',
+                              border: '1px solid rgba(46, 125, 50, 0.3)',
+                            }}
+                          >
+                            <Typography sx={{ color: '#2e7d32', fontWeight: 600, mb: 0.5 }}>
+                              ✅ Verification passed
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Box
+                            sx={{
+                              p: 2,
+                              borderRadius: 2,
+                              background: 'rgba(211, 47, 47, 0.1)',
+                              border: '1px solid rgba(211, 47, 47, 0.3)',
+                            }}
+                          >
+                            <Typography sx={{ color: '#d32f2f', fontWeight: 600, mb: 0.5 }}>
+                              ❌ Please enter a valid CNIC
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    )}
+                  </Box>
+                ) : (
+                  <Box>
+                    <FaUpload style={{ fontSize: '32px', color: '#0db4bc', marginBottom: '12px' }} />
+                    <Typography sx={{ color: '#666', fontWeight: 500 }}>
+                      Click to upload CNIC front side
+                    </Typography>
+                    <Typography sx={{ color: '#999', fontSize: '13px', mt: 0.5 }}>
+                      JPG, JPEG or PNG (Max 5MB)
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+
+            {/* CNIC Back */}
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  color: '#333',
+                  mb: 1.5,
+                  fontSize: '15px',
+                }}
+              >
+                Back Side *
+              </Typography>
+              <Box
+                sx={{
+                  border: '2px dashed #0db4bc',
+                  borderRadius: 2,
+                  p: 3,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  background: idCardBack ? 'rgba(13, 180, 188, 0.05)' : 'transparent',
+                  '&:hover': {
+                    borderColor: '#0a8b91',
+                    background: 'rgba(13, 180, 188, 0.05)',
+                  },
+                }}
+                onClick={() => document.getElementById('id-card-back')?.click()}
+              >
+                <input
+                  type="file"
+                  id="id-card-back"
+                  accept="image/jpeg,image/jpg,image/png"
+                  onChange={handleIdCardBackUpload}
+                  style={{ display: 'none' }}
+                />
+                {verifyingBack ? (
+                  <Box>
+                    <Typography sx={{ color: '#0db4bc', fontWeight: 500 }}>
+                      🔍 Verifying...
+                    </Typography>
+                  </Box>
+                ) : idCardBack ? (
+                  <Box>
+                    <Typography sx={{ color: '#333', fontWeight: 500, mb: 1 }}>
+                      ✓ {idCardBack.name}
+                    </Typography>
+                    {backVerification && (
+                      <Box sx={{ mt: 2, textAlign: 'left' }}>
+                        {backVerification.verification_result === 'approved' ? (
+                          <Box
+                            sx={{
+                              p: 2,
+                              borderRadius: 2,
+                              background: 'rgba(46, 125, 50, 0.1)',
+                              border: '1px solid rgba(46, 125, 50, 0.3)',
+                            }}
+                          >
+                            <Typography sx={{ color: '#2e7d32', fontWeight: 600, mb: 0.5 }}>
+                              ✅ Verification passed
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Box
+                            sx={{
+                              p: 2,
+                              borderRadius: 2,
+                              background: 'rgba(211, 47, 47, 0.1)',
+                              border: '1px solid rgba(211, 47, 47, 0.3)',
+                            }}
+                          >
+                            <Typography sx={{ color: '#d32f2f', fontWeight: 600, mb: 0.5 }}>
+                              ❌ Please enter a valid CNIC
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    )}
+                  </Box>
+                ) : (
+                  <Box>
+                    <FaUpload style={{ fontSize: '32px', color: '#0db4bc', marginBottom: '12px' }} />
+                    <Typography sx={{ color: '#666', fontWeight: 500 }}>
+                      Click to upload CNIC back side
+                    </Typography>
+                    <Typography sx={{ color: '#999', fontSize: '13px', mt: 0.5 }}>
+                      JPG, JPEG or PNG (Max 5MB)
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          </Box>
 
           {/* Instructions */}
           <Box
@@ -287,6 +668,113 @@ const VerifyIdentityPage = () => {
               <li>Upload the back side of your ID card for complete verification.</li>
               <li>Ensure all details are visible and not blurred.</li>
               <li>Accepted formats: JPG, PNG, or PDF (max size: 5MB).</li>
+            </Box>
+          </Box>
+
+          {/* Profile Photo Section */}
+          <Box sx={{ mb: 5 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                mb: 3,
+              }}
+            >
+              <FaUser style={{ fontSize: 24, color: '#0db4bc' }} />
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 600,
+                  color: '#1a1a1a',
+                  fontSize: '20px',
+                }}
+              >
+                Profile Photo
+              </Typography>
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  color: '#333',
+                  mb: 1.5,
+                  fontSize: '15px',
+                }}
+              >
+                Upload Your Photo *
+              </Typography>
+              <Box
+                sx={{
+                  border: '2px dashed #0db4bc',
+                  borderRadius: 2,
+                  p: 3,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  background: photo ? 'rgba(13, 180, 188, 0.05)' : 'transparent',
+                  '&:hover': {
+                    borderColor: '#0a8b91',
+                    background: 'rgba(13, 180, 188, 0.05)',
+                  },
+                }}
+                onClick={() => document.getElementById('photo-upload')?.click()}
+              >
+                <input
+                  type="file"
+                  id="photo-upload"
+                  accept="image/jpeg,image/jpg,image/png"
+                  onChange={handlePhotoUpload}
+                  style={{ display: 'none' }}
+                />
+                {photoPreview ? (
+                  <Box>
+                    <Box
+                      component="img"
+                      src={photoPreview}
+                      alt="Preview"
+                      sx={{
+                        width: '120px',
+                        height: '120px',
+                        borderRadius: 2,
+                        objectFit: 'cover',
+                        mb: 2,
+                        mx: 'auto',
+                        border: '2px solid #0db4bc',
+                      }}
+                    />
+                    <Typography sx={{ color: '#333', fontWeight: 500, mb: 1 }}>
+                      ✓ {photo.name}
+                    </Typography>
+                    <Button
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemovePhoto();
+                      }}
+                      sx={{
+                        color: '#ef4444',
+                        textTransform: 'none',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                      }}
+                    >
+                      Remove & Upload Again
+                    </Button>
+                  </Box>
+                ) : (
+                  <Box>
+                    <FaUpload style={{ fontSize: '32px', color: '#0db4bc', marginBottom: '12px' }} />
+                    <Typography sx={{ color: '#666', fontWeight: 500 }}>
+                      Click to upload your professional photo
+                    </Typography>
+                    <Typography sx={{ color: '#999', fontSize: '13px', mt: 0.5 }}>
+                      JPG, JPEG or PNG (Max 5MB)
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
             </Box>
           </Box>
 

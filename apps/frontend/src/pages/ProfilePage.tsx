@@ -43,7 +43,10 @@ const ProfilePage = () => {
       
       // Fetch consultant profile if user is a consultant
       if (user.accountType === 'consultant') {
-        fetchConsultantProfile(user.id);
+        const userId = user.id || (user as any)._id;
+        if (userId) {
+          fetchConsultantProfile(userId);
+        }
       }
     } else {
       navigate('/login');

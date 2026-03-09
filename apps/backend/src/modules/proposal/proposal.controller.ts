@@ -5,6 +5,8 @@ import { catchAsync } from '../../utils/catchAsync';
 import * as proposalService from './proposal.service';
 import { Consultant } from '../../models/consultant.model';
 import { Job } from '../../models/job.model';
+import groqService from '../../services/groq.service';
+import env from '../../config/env';
 
 export const createProposal = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
@@ -78,5 +80,40 @@ export const rejectProposal = catchAsync(async (req: Request, res: Response) => 
 export const deleteProposal = catchAsync(async (req: Request, res: Response) => {
   await proposalService.deleteProposal(req.params.id!);
   res.status(200).json({ success: true, message: 'Proposal deleted successfully' });
+});
+
+export const enhanceCoverLetter = catchAsync(async (req: Request, res: Response) => {
+  const { coverLetter, jobTitle, jobDescription } = req.body || {};
+
+  if (!coverLetter || !String(coverLetter).trim()) {
+    throw new ApiError(400, 'Cover letter text is required');
+  }
+
+  if (!jobTitle || !String(jobTitle).trim()) {
+    throw new ApiError(400, 'Job title is required');
+  }
+
+  if (!env.GROQ_API_KEY) {
+    throw new ApiError(503, 'AI enhancement service is not configured');
+  }
+
+  try {
+    const enhancedText = await groqService.enhanceProposalCoverLetter({
+      coverLetter: String(coverLetter),
+      jobTitle: String(jobTitle),
+      jobDescription: jobDescription ? String(jobDescription) : '',
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        originalText: String(coverLetter),
+        enhancedText,
+      },
+    });
+  } catch (error: any) {
+    const message = error?.message || 'Unable to enhance cover letter right now';
+    throw new ApiError(502, message);
+  }
 });
 

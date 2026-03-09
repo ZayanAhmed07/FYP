@@ -311,6 +311,59 @@ Return ONLY a JSON object:
       };
     }
   }
+
+  async enhanceProposalCoverLetter(input: {
+    coverLetter: string;
+    jobTitle: string;
+    jobDescription?: string;
+  }): Promise<string> {
+    const { coverLetter, jobTitle, jobDescription } = input;
+
+    const prompt = `You are an expert proposal writer. Enhance this cover letter for a ${jobTitle} position.
+Keep the core message but make it more professional, compelling, and well-structured.
+Maintain the consultant's key points and experience.
+Make it concise (250-400 words).
+
+Job title: ${jobTitle}
+Job description: ${jobDescription || 'Not provided'}
+
+Original cover letter:
+${coverLetter}`;
+
+    try {
+      const completion = await this.groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.6,
+        max_tokens: 800,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a professional proposal writing assistant. Return only the enhanced cover letter text, no markdown fences.',
+          },
+          { role: 'user', content: prompt },
+        ],
+      });
+
+      return completion.choices[0]?.message?.content?.trim() || coverLetter;
+    } catch (primaryError) {
+      const fallback = await this.groq.chat.completions.create({
+        model: 'mixtral-8x7b-32768',
+        temperature: 0.6,
+        max_tokens: 800,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a professional proposal writing assistant. Return only the enhanced cover letter text, no markdown fences.',
+          },
+          { role: 'user', content: prompt },
+        ],
+      });
+
+      return fallback.choices[0]?.message?.content?.trim() || coverLetter;
+    }
+  }
 }
 
 export default new GroqService();

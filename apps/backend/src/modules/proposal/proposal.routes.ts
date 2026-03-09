@@ -1,10 +1,22 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 
 import { authenticate, requireVerifiedConsultant } from '../../middleware/authMiddleware';
 import { proposalValidation } from '../../middleware/validation';
 import * as proposalController from './proposal.controller';
 
 const router = Router();
+
+const proposalEnhanceLimiter = rateLimit({
+	windowMs: 10 * 60 * 1000,
+	max: 5,
+	standardHeaders: true,
+	legacyHeaders: false,
+	message: {
+		success: false,
+		message: 'Enhancement limit reached. Try again in a few minutes.',
+	},
+});
 
 // Create proposal - requires verified consultant
 router.post('/', authenticate, requireVerifiedConsultant, ...proposalValidation.createProposal, proposalController.createProposal);
@@ -16,6 +28,7 @@ router.get('/', authenticate, proposalController.getAllProposals);
 router.get('/job/:jobId', authenticate, ...proposalValidation.mongoId('jobId'), proposalController.getProposalsByJob);
 router.get('/consultant/:consultantId', authenticate, ...proposalValidation.mongoId('consultantId'), proposalController.getProposalsByConsultant);
 router.get('/buyer/:buyerId', authenticate, ...proposalValidation.mongoId('buyerId'), proposalController.getProposalsByBuyer);
+router.post('/enhance-cover-letter', authenticate, requireVerifiedConsultant, proposalEnhanceLimiter, proposalController.enhanceCoverLetter);
 
 router.get('/:id', authenticate, ...proposalValidation.mongoId('id'), proposalController.getProposalById);
 

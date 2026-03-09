@@ -113,14 +113,23 @@ const AdminDashboardPage = () => {
         name: c.userId?.name || 'Unknown',
         email: c.userId?.email || 'N/A',
         title: c.title || 'N/A',
+        bio: c.bio || 'N/A',
         experience: c.experience || 'N/A',
         specialization: c.specialization || [],
+        skills: c.skills || [],
         hourlyRate: c.hourlyRate || 0,
+        location: c.location || null,
+        averageRating: c.averageRating || 0,
+        totalReviews: c.totalReviews || 0,
+        totalProjects: c.totalProjects || 0,
+        totalEarnings: c.totalEarnings || 0,
         isVerified: c.isVerified || false,
         status: c.isVerified ? 'approved' : 'pending',
         idCardFront: c.idCardFront,
         idCardBack: c.idCardBack,
+        supportingDocuments: c.supportingDocuments || [],
         supportingDocs: c.supportingDocuments || [],
+        profileImage: c.userId?.profileImage || null,
         avatar: c.userId?.profileImage || null,
         joinedDate: c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'N/A',
         isBanned: c.userId?.isBanned || false,
@@ -1386,9 +1395,10 @@ const AdminDashboardPage = () => {
 
           {selectedConsultant && (
             <>
+              {/* Header with Profile Info */}
               <Box sx={{ display: 'flex', gap: 3, mb: 4, p: 3, background: 'rgba(13, 180, 188, 0.05)', borderRadius: 2 }}>
-                {selectedConsultant.avatar ? (
-                  <Avatar src={selectedConsultant.avatar} sx={{ width: 100, height: 100 }} />
+                {selectedConsultant.profileImage ? (
+                  <Avatar src={selectedConsultant.profileImage} sx={{ width: 100, height: 100 }} />
                 ) : (
                   <FaUserCircle style={{ fontSize: '100px', color: '#ccc' }} />
                 )}
@@ -1396,25 +1406,117 @@ const AdminDashboardPage = () => {
                   <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
                     {selectedConsultant.name}
                   </Typography>
-                  <Typography sx={{ color: '#0db4bc', mb: 1 }}>{selectedConsultant.title}</Typography>
-                  <Typography sx={{ color: '#666', mb: 2 }}>{selectedConsultant.email}</Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
-                    <Box>
-                      <Typography sx={{ fontSize: '12px', color: '#666' }}>Experience:</Typography>
-                      <Typography sx={{ fontWeight: 600 }}>{selectedConsultant.experience}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography sx={{ fontSize: '12px', color: '#666' }}>Rate:</Typography>
-                      <Typography sx={{ fontWeight: 600 }}>PKR {selectedConsultant.hourlyRate}/hr</Typography>
-                    </Box>
-                    <Box>
-                      <Typography sx={{ fontSize: '12px', color: '#666' }}>Status:</Typography>
-                      <Typography sx={{ fontWeight: 600 }}>{selectedConsultant.status}</Typography>
-                    </Box>
+                  <Typography sx={{ color: '#0db4bc', mb: 0.5, fontWeight: 600 }}>{selectedConsultant.title}</Typography>
+                  <Typography sx={{ color: '#666', mb: 0.5 }}>{selectedConsultant.email}</Typography>
+                  {selectedConsultant.phone && <Typography sx={{ color: '#666', fontSize: '14px' }}>{selectedConsultant.phone}</Typography>}
+                </Box>
+              </Box>
+
+              {/* Professional Details */}
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
+                  Professional Details
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                  <Box>
+                    <Typography sx={{ fontSize: '12px', color: '#666', fontWeight: 600, mb: 0.5 }}>Description</Typography>
+                    <Typography sx={{ color: '#1a1a1a' }}>{selectedConsultant.bio?.trim() || 'No bio provided'}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontSize: '12px', color: '#666', fontWeight: 600, mb: 0.5 }}>Experience</Typography>
+                    <Typography sx={{ color: '#1a1a1a' }}>{selectedConsultant.experience}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontSize: '12px', color: '#666', fontWeight: 600, mb: 0.5 }}>Hourly Rate</Typography>
+                    <Typography sx={{ color: '#0db4bc', fontWeight: 600 }}>PKR {selectedConsultant.hourlyRate}/hr</Typography>
+                  </Box>
+                  {selectedConsultant.location && (
+                    <>
+                      <Box>
+                        <Typography sx={{ fontSize: '12px', color: '#666', fontWeight: 600, mb: 0.5 }}>City</Typography>
+                        <Typography sx={{ color: '#1a1a1a' }}>{selectedConsultant.location.city || 'N/A'}</Typography>
+                      </Box>
+                      <Box>
+                        <Typography sx={{ fontSize: '12px', color: '#666', fontWeight: 600, mb: 0.5 }}>Country</Typography>
+                        <Typography sx={{ color: '#1a1a1a' }}>{selectedConsultant.location.country || 'N/A'}</Typography>
+                      </Box>
+                    </>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Specializations */}
+              {selectedConsultant.specialization && selectedConsultant.specialization.length > 0 && (
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
+                    Specializations
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {selectedConsultant.specialization.map((spec: string) => (
+                      <Chip
+                        key={spec}
+                        label={spec}
+                        sx={{
+                          background: 'rgba(13, 180, 188, 0.1)',
+                          color: '#0db4bc',
+                          fontWeight: 600,
+                          borderRadius: 1,
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
+              {/* Skills */}
+              {selectedConsultant.skills && selectedConsultant.skills.length > 0 && (
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
+                    Skills
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {selectedConsultant.skills.map((skill: string) => (
+                      <Chip
+                        key={skill}
+                        label={skill}
+                        sx={{
+                          background: 'rgba(45, 90, 95, 0.1)',
+                          color: '#2d5a5f',
+                          fontWeight: 500,
+                          borderRadius: 1,
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
+              {/* Performance Metrics */}
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
+                  Performance Metrics
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2 }}>
+                  <Box sx={{ p: 2, background: 'rgba(13, 180, 188, 0.05)', borderRadius: 1 }}>
+                    <Typography sx={{ fontSize: '12px', color: '#666', fontWeight: 600 }}>Rating</Typography>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 700, color: '#0db4bc' }}>{selectedConsultant.averageRating ? selectedConsultant.averageRating.toFixed(1) : '0'}/5</Typography>
+                  </Box>
+                  <Box sx={{ p: 2, background: 'rgba(13, 180, 188, 0.05)', borderRadius: 1 }}>
+                    <Typography sx={{ fontSize: '12px', color: '#666', fontWeight: 600 }}>Reviews</Typography>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 700, color: '#0db4bc' }}>{selectedConsultant.totalReviews || 0}</Typography>
+                  </Box>
+                  <Box sx={{ p: 2, background: 'rgba(13, 180, 188, 0.05)', borderRadius: 1 }}>
+                    <Typography sx={{ fontSize: '12px', color: '#666', fontWeight: 600 }}>Projects</Typography>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 700, color: '#0db4bc' }}>{selectedConsultant.totalProjects || 0}</Typography>
+                  </Box>
+                  <Box sx={{ p: 2, background: 'rgba(13, 180, 188, 0.05)', borderRadius: 1 }}>
+                    <Typography sx={{ fontSize: '12px', color: '#666', fontWeight: 600 }}>Earnings</Typography>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 700, color: '#0db4bc' }}>PKR {(selectedConsultant.totalEarnings || 0).toLocaleString()}</Typography>
                   </Box>
                 </Box>
               </Box>
 
+              {/* Identity Documents */}
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
                   Identity Documents
@@ -1423,31 +1525,60 @@ const AdminDashboardPage = () => {
                   {selectedConsultant.idCardFront && (
                     <Box sx={{ border: '2px solid rgba(13, 180, 188, 0.2)', borderRadius: 2, p: 2 }}>
                       <Typography sx={{ fontWeight: 600, mb: 1 }}>ID Card (Front)</Typography>
-                      {selectedConsultant.idCardFront.startsWith('data:') && (
+                      {selectedConsultant.idCardFront.startsWith('data:') || selectedConsultant.idCardFront.startsWith('http') ? (
                         <Box
                           component="img"
                           src={selectedConsultant.idCardFront}
                           alt="ID Card Front"
                           sx={{ width: '100%', borderRadius: 1 }}
                         />
+                      ) : (
+                        <Typography sx={{ color: '#666', fontSize: '14px' }}>Image URL provided</Typography>
                       )}
                     </Box>
                   )}
                   {selectedConsultant.idCardBack && (
                     <Box sx={{ border: '2px solid rgba(13, 180, 188, 0.2)', borderRadius: 2, p: 2 }}>
                       <Typography sx={{ fontWeight: 600, mb: 1 }}>ID Card (Back)</Typography>
-                      {selectedConsultant.idCardBack.startsWith('data:') && (
+                      {selectedConsultant.idCardBack.startsWith('data:') || selectedConsultant.idCardBack.startsWith('http') ? (
                         <Box
                           component="img"
                           src={selectedConsultant.idCardBack}
                           alt="ID Card Back"
                           sx={{ width: '100%', borderRadius: 1 }}
                         />
+                      ) : (
+                        <Typography sx={{ color: '#666', fontSize: '14px' }}>Image URL provided</Typography>
                       )}
                     </Box>
                   )}
                 </Box>
               </Box>
+
+              {/* Supporting Documents */}
+              {selectedConsultant.supportingDocuments && selectedConsultant.supportingDocuments.length > 0 && (
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 2 }}>
+                    Supporting Documents ({selectedConsultant.supportingDocuments.length})
+                  </Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(auto-fill, minmax(150px, 1fr))' }, gap: 2 }}>
+                    {selectedConsultant.supportingDocuments.map((doc: string, index: number) => (
+                      <Box key={index} sx={{ border: '2px solid rgba(13, 180, 188, 0.2)', borderRadius: 2, p: 2, textAlign: 'center' }}>
+                        {doc.startsWith('data:') || doc.startsWith('http') ? (
+                          <Box
+                            component="img"
+                            src={doc}
+                            alt={`Supporting Doc ${index + 1}`}
+                            sx={{ width: '100%', borderRadius: 1, maxHeight: '150px', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <Typography sx={{ color: '#666', fontSize: '14px' }}>Document {index + 1}</Typography>
+                        )}
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              )}
 
               {selectedConsultant.status === 'pending' && (
                 <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { catchAsync } from '../../utils/catchAsync';
 import * as consultantService from './consultant.service';
+import { verifyCNICWithGroq, verifyCNICBatch } from '../../services/groq-cnic-verification.service';
 
 export const createConsultant = catchAsync(async (req: Request, res: Response) => {
   const consultant = await consultantService.createConsultant(req.body);
@@ -67,4 +68,38 @@ export const createCompleteProfile = catchAsync(async (req: Request, res: Respon
   
   const consultant = await consultantService.createCompleteProfile(profileData);
   res.status(201).json({ success: true, data: consultant, message: 'Profile submitted for verification' });
+});
+
+/**
+ * Verify CNIC image using Groq AI
+ * POST /api/consultants/verify-cnic
+ * Body: { image: "base64_string" } or { front: "base64", back: "base64" }
+ */
+export const verifyCNIC = catchAsync(async (req: Request, res: Response) => {
+  const { image, front, back } = req.body;
+
+  if (!image && !front) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'CNIC image is required. Provide either "image" or "front" field.' 
+    });
+  }
+
+  // Single image verification
+  if (image) {
+    const result = await verifyCNICWithGroq(image);
+    return res.status(200).json({ 
+      success: true, 
+      data: result 
+    });
+  }
+
+  // Batch verification (front and optionally back)
+  if (front) {
+    const result = await verifyCNICBatch({ front, back });
+    return res.status(200).json({ 
+      success: true, 
+      data: result 
+    });
+  }
 });

@@ -6,6 +6,8 @@ import { Order } from '../../models/order.model';
 import { Analytics } from '../../models/analytics.model';
 import { ApiError } from '../../utils/ApiError';
 import { validateNICFromBase64, validateNICWithAI } from '../../services/nic-detection.service';
+import { verifyCNICWithGroq } from '../../services/groq-cnic-verification.service';
+import { env } from '../../config/env';
 
 /**
  * Validate NIC/ID card image file types
@@ -30,8 +32,36 @@ export const validateNICImage = (fileType: string, fileName?: string): boolean =
 /**
  * AI-based NIC validation using image classification
  * Detects if the uploaded image is actually an ID card and not a selfie/random photo
+ * Uses Groq if API key is available, otherwise falls back to Gemini
  */
 export const validateNICWithAICheck = async (base64Image: string): Promise<void> => {
+  // Try Groq first if available (more strict CNIC verification)
+  if (env.GROQ_API_KEY) {
+    try {
+      const groqResult = await verifyCNICWithGroq(base64Image);
+      
+      if (!groqResult.is_valid_cnic) {
+        throw new ApiError(
+          400,
+          `Invalid CNIC: ${groqResult.reason} (Quality: ${groqResult.image_quality}, Visibility: ${groqResult.card_visibility})`
+        );
+      }
+      
+      // Log successful verification
+      console.log(`[Groq CNIC Verification] Approved with ${groqResult.confidence_score}% confidence`);
+      return;
+    } catch (error: any) {
+      // If it's an ApiError, rethrow it (validation failed)
+      if (error.statusCode === 400) {
+        throw error;
+      }
+      
+      // Otherwise, log and fallback to Gemini
+      console.warn('[Groq CNIC Verification] Error, falling back to Gemini:', error.message);
+    }
+  }
+  
+  // Fallback to existing Gemini validation
   const result = await validateNICFromBase64(base64Image);
   
   if (!result.isValid) {
@@ -286,7 +316,22 @@ export const createCompleteProfile = async (profileData: any) => {
   // Set isVerified to false by default (admin will verify)
   profileData.isVerified = false;
 
+  // Store the photo to user's profileImage
+  const photo = profileData.photo;
+  delete profileData.photo; // Remove photo from consultant profile
+
   const consultant = await Consultant.create(profileData);
+  
+  // Update user's profileImage with the photo
+  if (photo) {
+    const User = require('../user/user.model').User;
+    await User.findByIdAndUpdate(
+      profileData.userId,
+      { profileImage: photo },
+      { new: true }
+    );
+  }
+
   return consultant.populate('userId', 'name email profileImage isBanned');
 };
 
