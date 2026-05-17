@@ -4,12 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SendIcon from '@mui/icons-material/Send';
 import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
+import MessageIcon from '@mui/icons-material/Message';
 import { useNavigate } from 'react-router-dom';
 import ChatMessage from './ChatMessage';
 import ProgressIndicator from './ProgressIndicator';
 import type { ChatMessage as ChatMessageType, ConversationState, ConversationStep } from '../../types/chatbotTypes';
 import { SKILL_KEYWORDS } from '../../types/chatbotTypes';
 import { sarahAI } from '../../services/rachelAI.service';
+import { useThemeMode } from '../../context/ThemeContext';
 
 // Valid options for location
 const VALID_LOCATIONS = ['Rawalpindi', 'Islamabad', 'Lahore', 'Karachi', 'Remote (Pakistan)'];
@@ -28,6 +30,7 @@ interface ChatbotWidgetProps {
 
 const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetProps) => {
     const navigate = useNavigate();
+    const { mode } = useThemeMode();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
@@ -455,21 +458,36 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                 {/* Header */}
                 <Box
                     sx={{
-                        p: 2,
-                        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
+                        p: 2.5,
+                        background: mode === 'dark'
+                          ? 'linear-gradient(135deg, #00BCD4 0%, #00838F 100%)'
+                          : 'linear-gradient(135deg, #00BCD4 0%, #0097A7 100%)',
                         color: 'white',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
+                        boxShadow: '0 2px 8px rgba(0,188,212,0.15)',
                     }}
                 >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <ChatIcon />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box
+                            sx={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: '50%',
+                                bgcolor: 'rgba(255,255,255,0.2)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <ChatIcon sx={{ fontSize: 24 }} />
+                        </Box>
                         <Box>
-                            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.15rem' }}>
                                 Sarah - Raah AI Assistant 🤖
                             </Typography>
-                            <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                            <Typography variant="caption" sx={{ opacity: 0.95, fontSize: '0.85rem' }}>
                                 Chat with me to post your job and find Pakistani consultants
                             </Typography>
                         </Box>
@@ -494,166 +512,325 @@ const ChatbotWidget = ({ initialOpen = false, onJobDataChange }: ChatbotWidgetPr
                                 flex: 1,
                                 overflowY: 'auto',
                                 p: 3,
-                                bgcolor: '#fafafa',
+                                background: mode === 'dark'
+                                  ? 'linear-gradient(180deg, #0d1f24 0%, #0a1719 100%)'
+                                  : 'linear-gradient(180deg, #F0FAFB 0%, #FAFAFA 100%)',
                                 minHeight: 0,
+                                '&::-webkit-scrollbar': {
+                                    width: '6px',
+                                },
+                                '&::-webkit-scrollbar-track': {
+                                    background: 'transparent',
+                                },
+                                '&::-webkit-scrollbar-thumb': {
+                                    background: mode === 'dark' ? 'rgba(0,188,212,0.3)' : 'rgba(0,188,212,0.2)',
+                                    borderRadius: '3px',
+                                    '&:hover': {
+                                        background: mode === 'dark' ? 'rgba(0,188,212,0.4)' : 'rgba(0,188,212,0.3)',
+                                    },
+                                },
                             }}
                         >
-                            {state.messages.map(message => (
-                                <ChatMessage key={message.id} message={message} />
+                            {state.messages.map((message, index) => (
+                                <motion.div
+                                    key={message.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                                >
+                                    <ChatMessage message={message} />
+                                </motion.div>
                             ))}
 
                             {/* Category Selection - Step 1 */}
                             {(state.currentStep === 'welcome' || state.currentStep === 'category') && !isTyping && (
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
-                                    {['Education', 'Business', 'Legal'].map(category => (
-                                        <Chip
-                                            key={category}
-                                            label={category}
-                                            onClick={() => handleCategorySelect(category)}
-                                            sx={{
-                                                bgcolor: '#0db4bc',
-                                                color: 'white',
-                                                '&:hover': {
-                                                    bgcolor: '#0a8b91',
-                                                },
-                                                cursor: 'pointer',
-                                                fontWeight: 600,
-                                            }}
-                                        />
-                                    ))}
-                                </Box>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.4, delay: 0.2 }}
+                                >
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 2 }}>
+                                        {['Education', 'Business', 'Legal'].map(category => (
+                                            <motion.div
+                                                key={category}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <Chip
+                                                    label={category}
+                                                    onClick={() => handleCategorySelect(category)}
+                                                    sx={{
+                                                        bgcolor: '#00BCD4',
+                                                        color: 'white',
+                                                        fontWeight: 600,
+                                                        fontSize: '0.95rem',
+                                                        py: 2.5,
+                                                        px: 1,
+                                                        '&:hover': {
+                                                            bgcolor: '#00838F',
+                                                            boxShadow: '0 4px 12px rgba(0,188,212,0.3)',
+                                                        },
+                                                        cursor: 'pointer',
+                                                        borderRadius: '20px',
+                                                        transition: 'all 0.2s ease',
+                                                    }}
+                                                />
+                                            </motion.div>
+                                        ))}
+                                    </Box>
+                                </motion.div>
                             )}
 
                             {/* Sub-Category Selection - Step 2 */}
                             {state.currentStep === 'description' && state.jobData.category && !state.jobData.subCategory && !isTyping && (
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
-                                    {SUB_CATEGORIES[state.jobData.category as keyof typeof SUB_CATEGORIES]?.map(subCat => (
-                                        <Chip
-                                            key={subCat}
-                                            label={subCat}
-                                            onClick={() => handleSubCategorySelect(subCat)}
-                                            sx={{
-                                                bgcolor: '#0db4bc',
-                                                color: 'white',
-                                                '&:hover': {
-                                                    bgcolor: '#0a8b91',
-                                                },
-                                                cursor: 'pointer',
-                                                fontWeight: 600,
-                                            }}
-                                        />
-                                    ))}
-                                </Box>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.4, delay: 0.2 }}
+                                >
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 2 }}>
+                                        {SUB_CATEGORIES[state.jobData.category as keyof typeof SUB_CATEGORIES]?.map(subCat => (
+                                            <motion.div
+                                                key={subCat}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <Chip
+                                                    label={subCat}
+                                                    onClick={() => handleSubCategorySelect(subCat)}
+                                                    sx={{
+                                                        bgcolor: '#00BCD4',
+                                                        color: 'white',
+                                                        fontWeight: 600,
+                                                        fontSize: '0.9rem',
+                                                        py: 2.5,
+                                                        px: 0.5,
+                                                        '&:hover': {
+                                                            bgcolor: '#00838F',
+                                                            boxShadow: '0 4px 12px rgba(0,188,212,0.3)',
+                                                        },
+                                                        cursor: 'pointer',
+                                                        borderRadius: '20px',
+                                                        transition: 'all 0.2s ease',
+                                                    }}
+                                                />
+                                            </motion.div>
+                                        ))}
+                                    </Box>
+                                </motion.div>
                             )}
 
                             {/* Location Selection - Step 4 */}
                             {state.currentStep === 'location' && !isTyping && (
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
-                                    {VALID_LOCATIONS.map(location => (
-                                        <Chip
-                                            key={location}
-                                            label={location}
-                                            onClick={() => handleLocationSelect(location)}
-                                            sx={{
-                                                bgcolor: '#0db4bc',
-                                                color: 'white',
-                                                '&:hover': {
-                                                    bgcolor: '#0a8b91',
-                                                },
-                                                cursor: 'pointer',
-                                                fontWeight: 600,
-                                            }}
-                                        />
-                                    ))}
-                                </Box>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.4, delay: 0.2 }}
+                                >
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 2 }}>
+                                        {VALID_LOCATIONS.map(location => (
+                                            <motion.div
+                                                key={location}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <Chip
+                                                    label={location}
+                                                    onClick={() => handleLocationSelect(location)}
+                                                    sx={{
+                                                        bgcolor: '#00BCD4',
+                                                        color: 'white',
+                                                        fontWeight: 600,
+                                                        fontSize: '0.9rem',
+                                                        py: 2.5,
+                                                        px: 0.5,
+                                                        '&:hover': {
+                                                            bgcolor: '#00838F',
+                                                            boxShadow: '0 4px 12px rgba(0,188,212,0.3)',
+                                                        },
+                                                        cursor: 'pointer',
+                                                        borderRadius: '20px',
+                                                        transition: 'all 0.2s ease',
+                                                    }}
+                                                />
+                                            </motion.div>
+                                        ))}
+                                    </Box>
+                                </motion.div>
                             )}
 
                             {/* Summary View */}
                             {state.currentStep === 'summary' && !isTyping && (
-                                <Box sx={{ mt: 2, p: 2, bgcolor: '#f0f9ff', borderRadius: 2 }}>
-                                    <Typography sx={{ fontSize: '0.875rem', color: '#0369a1', fontWeight: 500 }}>
-                                        ℹ️ Job details collected! Review the preview on the right and click "Post Job" when ready.
-                                    </Typography>
-                                </Box>
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.4 }}
+                                >
+                                    <Box sx={{ 
+                                        mt: 2, 
+                                        p: 2.5, 
+                                        background: mode === 'dark'
+                                          ? 'rgba(0,188,212,0.08)'
+                                          : '#E0F7FA',
+                                        borderRadius: 3,
+                                        border: mode === 'dark'
+                                          ? '1px solid rgba(0,188,212,0.2)'
+                                          : '1px solid rgba(0,188,212,0.2)',
+                                    }}>
+                                        <Typography sx={{ 
+                                            fontSize: '0.9rem', 
+                                            color: mode === 'dark' ? '#B2EBF2' : '#00838F',
+                                            fontWeight: 600,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 1,
+                                        }}>
+                                            ℹ️ Job details collected! Review the preview on the right and click "Post Job" when ready.
+                                        </Typography>
+                                    </Box>
+                                </motion.div>
                             )}
 
                             <div ref={messagesEndRef} />
                         </Box>
 
                         {/* Input Area */}
-                        <Box sx={{ p: 2, bgcolor: 'white', borderTop: '1px solid #e0e0e0', flexShrink: 0 }}>
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                                <TextField
-                                    fullWidth
-                                    placeholder={
-                                        state.currentStep === 'category' ? "Select a category above" :
-                                        state.currentStep === 'description' && !state.jobData.subCategory ? "Select a sub-category above" :
-                                        state.currentStep === 'location' ? "Select a location above" :
-                                        state.currentStep === 'summary' ? "Review and click Post Job" :
-                                        state.currentStep === 'budget' ? "e.g., 10000 to 50000" :
-                                        state.currentStep === 'timeline' ? "e.g., 2 weeks, 1 month" :
-                                        "Type your message here..."
-                                    }
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                                    disabled={
-                                        isTyping || 
-                                        state.currentStep === 'category' || 
-                                        (state.currentStep === 'description' && !state.jobData.subCategory) ||
-                                        state.currentStep === 'location' || 
-                                        state.currentStep === 'summary' || 
-                                        state.currentStep === 'complete'
-                                    }
-                                    size="small"
-                                    multiline={state.currentStep === 'description' && !!state.jobData.subCategory}
-                                    maxRows={4}
-                                    sx={{
-                                        '& .MuiOutlinedInput-root': {
-                                            borderRadius: 3,
-                                            bgcolor: 'white',
-                                            '& input': {
-                                                color: '#1f2937',
+                        <Box sx={{ 
+                            p: 2.5, 
+                            background: mode === 'dark' ? '#0d1f24' : 'white',
+                            borderTop: mode === 'dark' ? '1px solid rgba(0,188,212,0.1)' : '1px solid #E0E0E0',
+                            flexShrink: 0,
+                            boxShadow: mode === 'dark' 
+                              ? '0 -2px 10px rgba(0,0,0,0.3)'
+                              : '0 -2px 10px rgba(0,0,0,0.05)',
+                        }}>
+                            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-end' }}>
+                                <Box sx={{ position: 'relative', flex: 1 }}>
+                                    <MessageIcon 
+                                        sx={{ 
+                                            position: 'absolute',
+                                            left: 16,
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            color: mode === 'dark' ? 'rgba(0,188,212,0.5)' : '#9CA3AF',
+                                            fontSize: 20,
+                                            pointerEvents: 'none',
+                                        }} 
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        placeholder={
+                                            state.currentStep === 'category' ? "Select a category above" :
+                                            state.currentStep === 'description' && !state.jobData.subCategory ? "Select a sub-category above" :
+                                            state.currentStep === 'location' ? "Select a location above" :
+                                            state.currentStep === 'summary' ? "Review and click Post Job" :
+                                            state.currentStep === 'budget' ? "e.g., 10000 to 50000" :
+                                            state.currentStep === 'timeline' ? "e.g., 2 weeks, 1 month" :
+                                            "Type your message here..."
+                                        }
+                                        value={inputValue}
+                                        onChange={(e) => setInputValue(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                                        disabled={
+                                            isTyping || 
+                                            state.currentStep === 'category' || 
+                                            (state.currentStep === 'description' && !state.jobData.subCategory) ||
+                                            state.currentStep === 'location' || 
+                                            state.currentStep === 'summary' || 
+                                            state.currentStep === 'complete'
+                                        }
+                                        size="small"
+                                        multiline={state.currentStep === 'description' && !!state.jobData.subCategory}
+                                        maxRows={4}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: '24px',
+                                                bgcolor: mode === 'dark' ? 'rgba(0,188,212,0.05)' : 'white',
+                                                pl: 5,
+                                                '& input': {
+                                                    color: mode === 'dark' ? '#E0F7FA' : '#1f2937',
+                                                },
+                                                '& textarea': {
+                                                    color: mode === 'dark' ? '#E0F7FA' : '#1f2937',
+                                                },
+                                                '& input::placeholder': {
+                                                    color: mode === 'dark' ? 'rgba(178,235,242,0.5)' : '#9ca3af',
+                                                    opacity: 1,
+                                                },
+                                                '& textarea::placeholder': {
+                                                    color: mode === 'dark' ? 'rgba(178,235,242,0.5)' : '#9ca3af',
+                                                    opacity: 1,
+                                                },
+                                                '& fieldset': {
+                                                    borderColor: mode === 'dark' ? 'rgba(0,188,212,0.2)' : '#E5E7EB',
+                                                },
+                                                '&:hover fieldset': {
+                                                    borderColor: mode === 'dark' ? 'rgba(0,188,212,0.4)' : '#00BCD4',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#00BCD4',
+                                                    borderWidth: '2px',
+                                                    boxShadow: mode === 'dark'
+                                                      ? '0 0 0 3px rgba(0,188,212,0.1)'
+                                                      : '0 0 0 3px rgba(0,188,212,0.08)',
+                                                },
                                             },
-                                            '& input::placeholder': {
-                                                color: '#9ca3af',
-                                                opacity: 1,
-                                            },
-                                        },
-                                    }}
-                                />
-                                <IconButton
-                                    onClick={handleSendMessage}
-                                    disabled={
-                                        !inputValue.trim() || 
-                                        isTyping || 
-                                        state.currentStep === 'category' || 
-                                        (state.currentStep === 'description' && !state.jobData.subCategory) ||
-                                        state.currentStep === 'location' || 
-                                        state.currentStep === 'summary'
-                                    }
-                                    sx={{
-                                        bgcolor: 'primary.main',
-                                        color: 'white',
-                                        '&:hover': {
-                                            bgcolor: 'primary.dark',
-                                        },
-                                        '&.Mui-disabled': {
-                                            bgcolor: '#e0e0e0',
-                                        },
-                                    }}
+                                        }}
+                                    />
+                                </Box>
+                                <motion.div
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
                                 >
-                                    <SendIcon />
-                                </IconButton>
+                                    <IconButton
+                                        onClick={handleSendMessage}
+                                        disabled={
+                                            !inputValue.trim() || 
+                                            isTyping || 
+                                            state.currentStep === 'category' || 
+                                            (state.currentStep === 'description' && !state.jobData.subCategory) ||
+                                            state.currentStep === 'location' || 
+                                            state.currentStep === 'summary'
+                                        }
+                                        sx={{
+                                            width: 48,
+                                            height: 48,
+                                            bgcolor: '#00BCD4',
+                                            color: 'white',
+                                            '&:hover': {
+                                                bgcolor: '#00838F',
+                                                boxShadow: '0 4px 12px rgba(0,188,212,0.4)',
+                                            },
+                                            '&.Mui-disabled': {
+                                                bgcolor: mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#E0E0E0',
+                                                color: mode === 'dark' ? 'rgba(255,255,255,0.3)' : '#9CA3AF',
+                                            },
+                                            transition: 'all 0.2s ease',
+                                        }}
+                                    >
+                                        <SendIcon />
+                                    </IconButton>
+                                </motion.div>
                             </Box>
-                            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
+                            <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="caption" sx={{ 
+                                    color: mode === 'dark' ? 'rgba(178,235,242,0.6)' : '#6B7280',
+                                    fontSize: '0.75rem',
+                                }}>
+                                    {state.currentStep !== 'description' && "Raah Assistant can make mistakes. Check important info."}
+                                </Typography>
                                 {state.currentStep === 'description' && state.jobData.subCategory && (
-                                    <span style={{ color: '#0db4bc', fontWeight: 600 }}>
-                                        {countWords((state.jobData.rawDescription ? state.jobData.rawDescription + ' ' : '') + inputValue)} / {MINIMUM_WORDS} words minimum
-                                    </span>
+                                    <Typography variant="caption" sx={{ 
+                                        color: countWords((state.jobData.rawDescription ? state.jobData.rawDescription + ' ' : '') + inputValue) >= MINIMUM_WORDS
+                                          ? '#00BCD4'
+                                          : (mode === 'dark' ? 'rgba(178,235,242,0.6)' : '#9CA3AF'),
+                                        fontWeight: 600,
+                                        fontSize: '0.8rem',
+                                    }}>
+                                        {countWords((state.jobData.rawDescription ? state.jobData.rawDescription + ' ' : '') + inputValue)} / {MINIMUM_WORDS} words
+                                    </Typography>
                                 )}
-                                {state.currentStep !== 'description' && "Raah Assistant can make mistakes. Check important info."}
-                            </Typography>
+                            </Box>
                         </Box>
                     </Box>
                 </Box>

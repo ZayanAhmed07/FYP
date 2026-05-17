@@ -351,6 +351,10 @@ const BuyerDashboardPage = () => {
 
       // Transform data to match component structure
       const transformedConsultants = consultantsData.map((c: any) => {
+        const consultantCity = c.city || c.location?.city || '';
+        const consultantCountry = c.location?.country || '';
+        const consultantLocation = [consultantCity, consultantCountry].filter(Boolean).join(', ');
+
         console.log('Consultant data:', { _id: c._id, userId: c.userId?._id, name: c.userId?.name });
         return {
           id: c._id,
@@ -360,8 +364,8 @@ const BuyerDashboardPage = () => {
           category: c.specialization?.[0] || 'General',
           rating: c.averageRating || c.rating || 0,
           totalReviews: c.totalReviews || 0,
-          location: c.city || 'Pakistan',
-          city: c.city || '',
+          location: consultantLocation || 'Location not specified',
+          city: consultantCity,
           specialization: Array.isArray(c.specialization)
             ? c.specialization.join(', ')
             : c.specialization,

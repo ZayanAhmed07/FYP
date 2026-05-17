@@ -8,6 +8,7 @@ const router = Router();
 router.post('/', consultantController.createConsultant);
 router.post('/verify-profile', authenticate, consultantController.createCompleteProfile);
 router.post('/verify-cnic', consultantController.verifyCNIC);
+router.get('/suggest/:jobId', ...commonValidations.mongoId('jobId'), consultantController.suggestConsultantsForJob);
 router.get('/', consultantController.getAllConsultants);
 router.get('/user/:userId', ...commonValidations.mongoId('userId'), consultantController.getConsultantByUserId);
 router.get('/:id', ...commonValidations.mongoId('id'), consultantController.getConsultantById);

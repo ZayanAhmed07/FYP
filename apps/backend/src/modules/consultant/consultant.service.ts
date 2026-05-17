@@ -16,6 +16,23 @@ import { env } from '../../config/env';
 const ALLOWED_NIC_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
 const ALLOWED_NIC_EXTENSIONS = ['.jpg', '.jpeg', '.png'];
 
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const normalizeLocationPayload = (payload: any) => {
+  const city = payload.city ?? payload.location?.city;
+  const country = payload.country ?? payload.location?.country;
+
+  if (city || country) {
+    payload.location = {
+      country: country || payload.location?.country || 'Pakistan',
+      city: city || payload.location?.city || '',
+    };
+  }
+
+  delete payload.city;
+  delete payload.country;
+};
+
 export const validateNICImage = (fileType: string, fileName?: string): boolean => {
   if (!ALLOWED_NIC_MIME_TYPES.includes(fileType.toLowerCase())) {
     return false;
@@ -95,7 +112,9 @@ export const getAllConsultants = async (query: any) => {
   if (availability) filter.availability = availability;
   if (minRating) filter.rating = { $gte: Number(minRating) };
   if (isVerified !== undefined) filter.isVerified = isVerified === 'true';
-  if (city) filter.city = city;
+  if (city) {
+    filter['location.city'] = new RegExp(`^${escapeRegex(city)}$`, 'i');
+  }
 
   let consultants;
   let total;
@@ -149,7 +168,8 @@ export const getAllConsultants = async (query: any) => {
           hourlyRate: 1,
           experience: 1,
           skills: 1,
-          city: 1,
+          location: 1,
+          city: { $ifNull: ['$location.city', '$city'] },
           rating: 1,
           averageRating: 1,
           totalReviews: 1,
@@ -210,6 +230,7 @@ export const getConsultantByUserId = async (userId: string) => {
 };
 
 export const updateConsultant = async (id: string, updateData: any) => {
+  normalizeLocationPayload(updateData);
   const consultant = await Consultant.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
   if (!consultant) {
     throw new ApiError(404, 'Consultant not found');
@@ -315,6 +336,9 @@ export const createCompleteProfile = async (profileData: any) => {
 
   // Set isVerified to false by default (admin will verify)
   profileData.isVerified = false;
+
+  // Normalize city/country fields into schema-supported location object
+  normalizeLocationPayload(profileData);
 
   // Store the photo to user's profileImage
   const photo = profileData.photo;

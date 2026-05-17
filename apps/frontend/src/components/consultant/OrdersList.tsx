@@ -111,15 +111,20 @@ const OrdersList = ({ orders, ordersLoading, ordersError, onRequestCompletion }:
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
               <Avatar
-                src={order.buyerId?.profileImage || 'https://i.pravatar.cc/150?img=5'}
+                src={order.buyerId?.profileImage || undefined}
                 alt={order.buyerId?.name || 'Buyer'}
                 sx={{
                   width: 56,
                   height: 56,
                   border: '2px solid #0db4bc',
                   boxShadow: '0 4px 12px rgba(13, 180, 188, 0.3)',
+                  background: 'rgba(13, 180, 188, 0.12)',
+                  color: '#0db4bc',
+                  fontWeight: 700,
                 }}
-              />
+              >
+                {(order.buyerId?.name || 'B').charAt(0).toUpperCase()}
+              </Avatar>
               <Box>
                 <Typography sx={{ fontWeight: 600, color: '#1f2937', fontSize: '0.875rem' }}>
                   {order.buyerId?.name || 'Unknown Buyer'}

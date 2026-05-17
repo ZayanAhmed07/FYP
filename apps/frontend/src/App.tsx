@@ -24,7 +24,6 @@ import MessagingPage from './pages/MessagingPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import ConsultantProposalsPage from './pages/ConsultantProposalsPage';
 import ConsultantProfileViewPage from './pages/ConsultantProfileViewPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import LogoutPage from './pages/LogoutPage';
@@ -70,11 +69,6 @@ const App = () => {
         <Route path="/consultant-dashboard" element={
           <ProtectedRoute requiredRole="consultant">
             <ConsultantDashboardPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/consultant-proposals" element={
-          <ProtectedRoute requiredRole="consultant">
-            <ConsultantProposalsPage />
           </ProtectedRoute>
         } />
         <Route path="/consultant/:consultantId" element={<ConsultantProfileViewPage />} />

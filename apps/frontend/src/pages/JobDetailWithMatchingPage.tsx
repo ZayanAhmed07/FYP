@@ -1,40 +1,38 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
+  Avatar,
   Box,
-  Container,
-  Typography,
+  Button,
   Card,
   CardContent,
-  Button,
   Chip,
-  Avatar,
-  Rating,
-  Skeleton,
-  IconButton,
-  Tooltip,
-  LinearProgress,
+  Container,
   Divider,
+  IconButton,
+  LinearProgress,
+  Skeleton,
   Stack,
+  Typography,
+  useMediaQuery,
 } from '@mui/material';
 import {
   FaArrowLeft,
   FaBriefcase,
-  FaMapMarkerAlt,
+  FaCalendar,
+  FaChartBar,
+  FaCheckCircle,
   FaClock,
   FaDollarSign,
+  FaEdit,
+  FaEye,
+  FaMapMarkerAlt,
   FaRobot,
-  FaStar,
-  FaCheckCircle,
-  FaEnvelope,
-  FaUser,
-  FaAward,
-  FaChartLine,
-  FaLightbulb,
-  FaCode,
+  FaTrash,
 } from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { httpClient } from '../api/httpClient';
+import { useThemeMode } from '../context/ThemeContext';
 
 interface Job {
   _id: string;
@@ -42,10 +40,7 @@ interface Job {
   description: string;
   category: string;
   skills: string[];
-  budget: {
-    min: number;
-    max: number;
-  };
+  budget: { min: number; max: number };
   timeline: string;
   location: string;
   status: string;
@@ -55,130 +50,192 @@ interface Job {
 interface MatchedConsultant {
   consultant: {
     _id: string;
-    userId: {
-      _id: string;
-      name: string;
-      email: string;
-      profileImage?: string;
-    };
+    userId: { _id: string; name: string; profileImage?: string };
     title: string;
-    bio: string;
-    specialization: string[];
-    hourlyRate: number;
+    skills: string[];
     rating: number;
     totalReviews: number;
-    skills: string[];
+    hourlyRate: number;
     isVerified: boolean;
-    experience: string;
-    city?: string;
   };
   matchScore: number;
   matchReasons: string[];
 }
 
+const loadingTexts = [
+  'Matching skills with consultant profiles...',
+  'Analyzing experience and ratings...',
+  'Calculating compatibility scores...',
+  'Almost done, finding best matches...',
+];
+
+const Confetti = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    const pieces = Array.from({ length: 120 }).map(() => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      speed: Math.random() * 3 + 2,
+      size: Math.random() * 8 + 4,
+      rotate: Math.random() * 360,
+      wobble: Math.random() * 2 - 1,
+      color: ['#00BCD4', '#FF6B9D', '#FFD700', '#10B981', '#7C3AED'][Math.floor(Math.random() * 5)],
+    }));
+
+    let opacity = 1;
+    let animationId = 0;
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pieces.forEach((piece) => {
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.translate(piece.x, piece.y);
+        ctx.rotate((piece.rotate * Math.PI) / 180);
+        ctx.fillStyle = piece.color;
+        ctx.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size);
+        ctx.restore();
+
+        piece.y += piece.speed;
+        piece.x += piece.wobble;
+        piece.rotate += 2;
+
+        if (piece.y > canvas.height) {
+          piece.y = -16;
+          piece.x = Math.random() * canvas.width;
+        }
+      });
+
+      opacity -= 0.01;
+      if (opacity > 0) animationId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    const timeout = setTimeout(() => cancelAnimationFrame(animationId), 3000);
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      clearTimeout(timeout);
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9999 }} />;
+};
+
 const JobDetailWithMatchingPage = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
+  const { mode } = useThemeMode();
+
   const [job, setJob] = useState<Job | null>(null);
   const [matches, setMatches] = useState<MatchedConsultant[]>([]);
   const [loading, setLoading] = useState(true);
   const [matchingLoading, setMatchingLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [loadingTextIndex, setLoadingTextIndex] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(true);
 
-  // Debug: Track matches state changes
-  useEffect(() => {
-    console.log('📊 Matches state changed:', matches.length, 'consultants');
-    console.log('🔄 Loading states - Job:', loading, 'Matching:', matchingLoading);
-  }, [matches, loading, matchingLoading]);
+  const isMobile = useMediaQuery('(max-width:899px)');
 
   useEffect(() => {
-    const fetchJobAndMatches = async () => {
+    const timer = setTimeout(() => setShowConfetti(false), 3200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!matchingLoading) return;
+    const interval = setInterval(() => {
+      setLoadingTextIndex((prev) => (prev + 1) % loadingTexts.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [matchingLoading]);
+
+  useEffect(() => {
+    const run = async () => {
       if (!jobId) {
         setError('Job ID is required');
         setLoading(false);
+        setMatchingLoading(false);
         return;
       }
 
       try {
-        // Fetch job details
-        console.log('🔍 Fetching job details for:', jobId);
         const jobResponse = await httpClient.get(`/jobs/${jobId}`);
-        const jobData = jobResponse.data?.data;
-        console.log('✅ Job data received:', jobData);
-        setJob(jobData);
+        setJob(jobResponse.data?.data);
         setLoading(false);
 
-        // Fetch AI-matched consultants
-        setMatchingLoading(true);
         try {
-          console.log('🤖 Fetching AI matches for job:', jobId);
+          setMatchingLoading(true);
           const matchResponse = await httpClient.get(`/consultants/suggest/${jobId}`);
-          const matchData = matchResponse.data?.data || [];
-          console.log('✅ Matches received:', matchData.length, 'consultants');
-          console.log('Match data:', matchData);
-          
-          // Only set if we actually have data
-          if (Array.isArray(matchData)) {
-            setMatches(matchData);
-          } else {
-            console.warn('⚠️ Match data is not an array:', matchData);
-            setMatches([]);
-          }
-        } catch (matchErr: any) {
-          console.error('❌ Error fetching matches (non-fatal):', matchErr);
-          console.error('Error response:', matchErr.response?.data);
-          // Continue even if matching fails - show job details without matches
+          const data = matchResponse.data?.data;
+          setMatches(Array.isArray(data) ? data : []);
+        } catch {
           setMatches([]);
         } finally {
           setMatchingLoading(false);
         }
-      } catch (err: any) {
-        console.error('❌ Error fetching job:', err);
-        setError(err.response?.data?.message || 'Failed to load job details');
+      } catch (fetchError: any) {
+        setError(fetchError?.response?.data?.message || 'Failed to load job details');
         setLoading(false);
         setMatchingLoading(false);
       }
     };
 
-    fetchJobAndMatches();
+    run();
   }, [jobId]);
 
-  const handleContactConsultant = (consultantId: string) => {
-    // Navigate to messaging or consultant profile
-    navigate(`/consultant/${consultantId}`);
+  const formatBudget = (min: number, max: number) => (max >= 200000 ? `PKR ${min.toLocaleString()}+` : `PKR ${min.toLocaleString()} - ${max.toLocaleString()}`);
+
+  const descriptionText = useMemo(() => {
+    if (!job) return '';
+    if (showFullDescription || job.description.length <= 400) return job.description;
+    return `${job.description.slice(0, 400)}...`;
+  }, [job, showFullDescription]);
+
+  const handleEditJob = () => {
+    navigate(`/edit-job/${job._id}`);
   };
 
-  const formatBudget = (min: number, max: number) => {
-    if (max >= 200000) return `PKR ${min.toLocaleString()}+`;
-    return `PKR ${min.toLocaleString()} - ${max.toLocaleString()}`;
-  };
+  const handleDeleteJob = async () => {
+    const confirmed = window.confirm('Are you sure you want to delete this job?');
+    if (!confirmed) return;
 
-  const getMatchScoreColor = (score: number) => {
-    if (score >= 80) return '#10b981'; // green
-    if (score >= 60) return '#0db4bc'; // teal
-    if (score >= 40) return '#f59e0b'; // orange
-    return '#ef4444'; // red
-  };
-
-  const getMatchScoreLabel = (score: number) => {
-    if (score >= 80) return 'Excellent Match';
-    if (score >= 60) return 'Good Match';
-    if (score >= 40) return 'Fair Match';
-    return 'Possible Match';
+    try {
+      await httpClient.delete(`/jobs/${job._id}`);
+      navigate('/buyer-dashboard');
+    } catch (deleteError) {
+      console.error('Failed to delete job:', deleteError);
+      window.alert('Failed to delete job. Please try again.');
+    }
   };
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
-          py: 4,
-        }}
-      >
+      <Box sx={{ minHeight: '100vh', py: 4, background: mode === 'dark' ? '#0f1f24' : '#f5fbfc' }}>
         <Container maxWidth="lg">
-          <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 2, mb: 3 }} />
-          <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 2 }} />
+          <Skeleton variant="rectangular" height={260} sx={{ borderRadius: 4, mb: 3 }} />
+          <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' } }}>
+            <Skeleton variant="rectangular" height={380} sx={{ borderRadius: 4 }} />
+            <Skeleton variant="rectangular" height={380} sx={{ borderRadius: 4 }} />
+          </Box>
         </Container>
       </Box>
     );
@@ -186,700 +243,214 @@ const JobDetailWithMatchingPage = () => {
 
   if (error || !job) {
     return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Card sx={{ p: 4, maxWidth: 500, textAlign: 'center' }}>
-          <Typography variant="h5" color="error" gutterBottom>
-            {error || 'Job not found'}
-          </Typography>
-          <Button
-            variant="contained"
-            onClick={() => navigate('/buyer-dashboard')}
-            sx={{
-              mt: 2,
-              bgcolor: '#0db4bc',
-              '&:hover': { bgcolor: '#0a8b91' },
-            }}
-          >
-            Back to Dashboard
-          </Button>
+      <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: mode === 'dark' ? '#0f1f24' : '#f5fbfc' }}>
+        <Card sx={{ p: 4, maxWidth: 520, borderRadius: 4 }}>
+          <Typography variant="h5" color="error" gutterBottom>{error || 'Job not found'}</Typography>
+          <Button variant="contained" onClick={() => navigate('/buyer-dashboard')} sx={{ mt: 2, bgcolor: '#00BCD4' }}>Back to Dashboard</Button>
         </Card>
       </Box>
     );
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
-        py: 4,
-      }}
-    >
-      <Container maxWidth="lg">
-        {/* Header with Back Button */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <IconButton
-              onClick={() => navigate('/buyer-dashboard')}
-              sx={{
-                color: '#fff',
-                bgcolor: 'rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(10px)',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
-                mr: 2,
-              }}
-            >
-              <FaArrowLeft />
-            </IconButton>
-            <Typography
-              sx={{
-                color: '#fff',
-                fontSize: '2rem',
-                fontWeight: 700,
-                letterSpacing: '0.5px',
-              }}
-            >
-              Job Posted Successfully! 🎉
-            </Typography>
-          </Box>
-        </motion.div>
+    <Box sx={{ minHeight: '100vh', pb: 6, background: mode === 'dark' ? 'linear-gradient(180deg,#08343a 0%,#071a1f 100%)' : 'linear-gradient(180deg,#00BCD4 0%,#F3F8FA 34%,#F3F8FA 100%)' }}>
+      {showConfetti && <Confetti />}
 
-        {/* Job Details Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card
-            sx={{
-              mb: 4,
-              borderRadius: 3,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-              overflow: 'hidden',
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-            }}
-          >
-            <Box
-              sx={{
-                background: 'linear-gradient(135deg, #0db4bc 0%, #0a8b91 100%)',
-                p: 3,
-              }}
-            >
-              <Typography
-                variant="h4"
-                sx={{
-                  color: '#fff',
-                  fontWeight: 700,
-                  mb: 2,
-                }}
-              >
-                {job.title}
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                <Chip
-                  icon={<FaBriefcase style={{ color: '#fff' }} />}
-                  label={job.category}
-                  sx={{
-                    bgcolor: 'rgba(255,255,255,0.2)',
-                    color: '#fff',
-                    fontWeight: 600,
-                    backdropFilter: 'blur(10px)',
-                  }}
-                />
-                <Chip
-                  icon={<FaMapMarkerAlt style={{ color: '#fff' }} />}
-                  label={job.location}
-                  sx={{
-                    bgcolor: 'rgba(255,255,255,0.2)',
-                    color: '#fff',
-                    fontWeight: 600,
-                    backdropFilter: 'blur(10px)',
-                  }}
-                />
-                <Chip
-                  icon={<FaDollarSign style={{ color: '#fff' }} />}
-                  label={formatBudget(job.budget.min, job.budget.max)}
-                  sx={{
-                    bgcolor: 'rgba(255,255,255,0.2)',
-                    color: '#fff',
-                    fontWeight: 600,
-                    backdropFilter: 'blur(10px)',
-                  }}
-                />
-                <Chip
-                  icon={<FaClock style={{ color: '#fff' }} />}
-                  label={job.timeline}
-                  sx={{
-                    bgcolor: 'rgba(255,255,255,0.2)',
-                    color: '#fff',
-                    fontWeight: 600,
-                    backdropFilter: 'blur(10px)',
-                  }}
-                />
+      <Box sx={{ pt: 6, pb: 8, background: 'linear-gradient(135deg,#00BCD4 0%,#0097A7 100%)', borderBottomLeftRadius: 36, borderBottomRightRadius: 36 }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 2, md: 5 } }}>
+          <IconButton onClick={() => navigate('/buyer-dashboard')} sx={{ width: 40, height: 40, bgcolor: '#fff', boxShadow: '0 8px 18px rgba(0,0,0,0.15)', '&:hover': { bgcolor: '#fff' } }}>
+            <FaArrowLeft color="#00BCD4" />
+          </IconButton>
+          <Box sx={{ mt: 3, display: 'flex', alignItems: 'center', gap: 2.5 }}>
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 190, damping: 12 }}>
+              <Box sx={{ width: { xs: 72, md: 100 }, height: { xs: 72, md: 100 }, borderRadius: '50%', bgcolor: '#fff', display: 'grid', placeItems: 'center' }}>
+                <FaCheckCircle color="#00BCD4" size={isMobile ? 34 : 46} />
+              </Box>
+            </motion.div>
+            <Box>
+              <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: { xs: '1.8rem', md: '2.5rem' } }}>Job Posted Successfully! 🎉</Typography>
+              <Typography sx={{ color: 'rgba(255,255,255,0.92)', fontSize: { xs: '0.95rem', md: '1.1rem' } }}>AI is now matching you with the best consultants</Typography>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
+      <Container maxWidth="lg" sx={{ mt: -4, px: { xs: 2, md: 5 } }}>
+        <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', mb: 4 }}>
+          <CardContent sx={{ p: { xs: 3, md: 5 } }}>
+            <Typography sx={{ fontSize: { xs: '1.6rem', md: '2rem' }, fontWeight: 800, color: '#1A202C', mb: 2.5 }}>{job.title}</Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+              <Chip icon={<FaBriefcase />} label={job.category} sx={{ height: 36, px: 1.5, bgcolor: '#E0F7FA', color: '#00838F', fontWeight: 600 }} />
+              <Chip icon={<FaMapMarkerAlt />} label={job.location} sx={{ height: 36, px: 1.5, bgcolor: '#E3F2FD', color: '#1565C0', fontWeight: 600 }} />
+              <Chip icon={<FaDollarSign />} label={formatBudget(job.budget.min, job.budget.max)} sx={{ height: 36, px: 1.5, bgcolor: '#E8F5E9', color: '#2E7D32', fontWeight: 600 }} />
+              <Chip icon={<FaClock />} label={job.timeline} sx={{ height: 36, px: 1.5, bgcolor: '#FFF3E0', color: '#E65100', fontWeight: 600 }} />
+            </Box>
+          </CardContent>
+        </Card>
+
+        <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', lg: '65% 35%' } }}>
+          <Box>
+            <Card sx={{ borderRadius: 3, mb: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+              <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: '#00BCD4', mb: 2 }}>📝 Job Description</Typography>
+                <Typography sx={{ fontSize: '1rem', lineHeight: 1.8, color: '#4A5568', whiteSpace: 'pre-wrap' }}>{descriptionText}</Typography>
+                {job.description.length > 400 && (
+                  <Button onClick={() => setShowFullDescription((v) => !v)} sx={{ p: 0, mt: 1.5, color: '#00BCD4', textTransform: 'none', fontWeight: 700 }}>
+                    {showFullDescription ? 'Read less' : 'Read more'}
+                  </Button>
+                )}
+                <Divider sx={{ my: 3 }} />
+                <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: '#00BCD4', mb: 2 }}>⚡ Required Skills</Typography>
+                <Box sx={{ display: 'grid', gap: 1.25, gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))' }}>
+                  {job.skills.map((skill) => (
+                    <Chip
+                      key={skill}
+                      label={skill}
+                      sx={{
+                        justifyContent: 'center',
+                        py: 1,
+                        bgcolor: '#E0F7FA',
+                        border: '1px solid #00BCD4',
+                        color: '#00838F',
+                        fontWeight: 600,
+                        '&:hover': { bgcolor: '#B2EBF2', boxShadow: '0 6px 14px rgba(0,188,212,0.25)', transform: 'translateY(-2px)' },
+                      }}
+                    />
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+            <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+              <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: '#00BCD4', mb: 2 }}>ℹ️ Additional Information</Typography>
+                <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' } }}>
+                  {[
+                    { icon: <FaCalendar />, label: 'Posted', value: new Date(job.createdAt).toLocaleDateString() },
+                    { icon: <FaChartBar />, label: 'Proposals', value: '0' },
+                    { icon: <FaEye />, label: 'Views', value: '0' },
+                    { icon: <FaCheckCircle />, label: 'Status', value: job.status || 'Active' },
+                  ].map((item) => (
+                    <Box key={item.label}>
+                      <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: '#F8FAFC', display: 'flex', gap: 1.25, alignItems: 'center' }}>
+                        <Box sx={{ color: '#00BCD4' }}>{item.icon}</Box>
+                        <Box>
+                          <Typography sx={{ fontSize: '0.75rem', color: '#64748B' }}>{item.label}</Typography>
+                          <Typography sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#1F2937' }}>{item.value}</Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+          </Box>
+
+          <Box>
+            <Box sx={{ position: { lg: 'sticky' }, top: 20 }}>
+              <Card sx={{ borderRadius: 3, mb: 2.5, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography sx={{ fontSize: '1.1rem', fontWeight: 700, mb: 1.5 }}>Quick Actions</Typography>
+                  <Stack spacing={1.2}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      startIcon={<FaEdit />}
+                      onClick={handleEditJob}
+                      sx={{ bgcolor: '#00BCD4', height: 48, textTransform: 'none', borderRadius: 1.5 }}
+                    >
+                      ✏️ Edit Job
+                    </Button>
+                    <Button
+                      fullWidth
+                      startIcon={<FaTrash />}
+                      onClick={handleDeleteJob}
+                      sx={{ color: '#EF4444', height: 48, textTransform: 'none', borderRadius: 1.5 }}
+                    >
+                      🗑️ Delete Job
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </Card>
+
+              <Card sx={{ borderRadius: 2.5, mb: 2.5, bgcolor: '#E0F7FA' }}>
+                <CardContent sx={{ p: 2.5, textAlign: 'center' }}>
+                  <Chip label="🟢 Active" sx={{ mb: 1, fontWeight: 700, bgcolor: '#D1FAE5', color: '#065F46' }} />
+                  <Typography sx={{ fontSize: '0.9rem', color: '#0F172A' }}>Your job is live and visible to consultants</Typography>
+                  <Button sx={{ mt: 1, p: 0, textTransform: 'none', color: '#0EA5E9' }}>Manage visibility</Button>
+                </CardContent>
+              </Card>
+
+            </Box>
+          </Box>
+        </Box>
+
+        <Box sx={{ mt: 6 }}>
+          <Box sx={{ p: 4, borderRadius: '24px 24px 0 0', background: 'linear-gradient(135deg,#7C3AED 0%,#00BCD4 100%)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ width: 60, height: 60, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.2)', display: 'grid', placeItems: 'center' }}><FaRobot color="#fff" size={28} /></Box>
+              <Box>
+                <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: { xs: '1.25rem', md: '1.7rem' } }}>🤖 AI-Powered Consultant Recommendations</Typography>
+                <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem' }}>Smart matching based on skills, experience, and past performance</Typography>
               </Box>
             </Box>
+          </Box>
 
-            <CardContent sx={{ p: 4 }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  color: '#0db4bc',
-                  fontWeight: 700,
-                  mb: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                }}
-              >
-                <FaLightbulb /> Job Description
-              </Typography>
-              <Typography
-                sx={{
-                  color: '#555',
-                  lineHeight: 1.8,
-                  mb: 3,
-                  whiteSpace: 'pre-wrap',
-                }}
-              >
-                {job.description}
-              </Typography>
-
-              {job.skills && job.skills.length > 0 && (
-                <>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      color: '#0db4bc',
-                      fontWeight: 700,
-                      mb: 2,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                    }}
-                  >
-                    <FaCode /> Required Skills
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                    {job.skills.map((skill, index) => (
-                      <Chip
-                        key={index}
-                        label={skill}
-                        sx={{
-                          bgcolor: '#e0f7f8',
-                          color: '#0a8b91',
-                          fontWeight: 600,
-                          border: '1px solid #0db4bc',
-                        }}
-                      />
+          <Card sx={{ borderRadius: '0 0 24px 24px', boxShadow: '0 8px 26px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ p: { xs: 3, md: 5 } }}>
+              {matchingLoading ? (
+                <Box textAlign="center">
+                  <motion.div animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 1.6, repeat: Infinity }}>
+                    <Typography sx={{ fontSize: 110, lineHeight: 1 }}>🤖</Typography>
+                  </motion.div>
+                  <Typography sx={{ fontSize: '1.4rem', fontWeight: 700, mb: 2 }}>🔍 Analyzing consultant database...</Typography>
+                  <Box sx={{ width: '60%', mx: 'auto', mb: 2.2 }}><LinearProgress sx={{ height: 8, borderRadius: 4, '& .MuiLinearProgress-bar': { bgcolor: '#00BCD4' } }} /></Box>
+                  <AnimatePresence mode="wait">
+                    <motion.div key={loadingTextIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      <Typography sx={{ color: '#0284C7', mb: 1.2 }}>{loadingTexts[loadingTextIndex]}</Typography>
+                    </motion.div>
+                  </AnimatePresence>
+                  <Typography sx={{ color: '#64748B', fontSize: '0.875rem', mb: 3 }}>Usually takes 10-15 seconds</Typography>
+                  <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}>
+                    {[1, 2, 3].map((x) => (
+                      <Skeleton key={x} variant="rectangular" height={250} sx={{ borderRadius: 2.5 }} />
                     ))}
                   </Box>
-                </>
+                </Box>
+              ) : matches.length === 0 ? (
+                <Box textAlign="center">
+                  <Typography sx={{ fontSize: '1.5rem', fontWeight: 700 }}>No matching consultants</Typography>
+                </Box>
+              ) : (
+                <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' } }}>
+                  {matches.slice(0, 6).map((match, index) => (
+                    <Box key={match.consultant._id}>
+                      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: index * 0.1 }}>
+                        <Card sx={{ height: '100%', borderRadius: 2.5, p: 1.5, position: 'relative', border: '1px solid #E2E8F0', transition: 'all 0.25s', '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 28px rgba(0,188,212,0.22)', borderColor: '#67E8F9' } }}>
+                          <Chip label={`${match.matchScore}% Match`} sx={{ position: 'absolute', right: 14, top: 14, bgcolor: '#00BCD4', color: '#fff', fontWeight: 700 }} />
+                          <CardContent>
+                            <Box sx={{ display: 'grid', placeItems: 'center' }}>
+                              <Avatar src={match.consultant.userId.profileImage} sx={{ width: 100, height: 100, border: '3px solid #00BCD4' }}>{match.consultant.userId.name?.charAt(0)}</Avatar>
+                            </Box>
+                            <Typography sx={{ mt: 2, fontSize: '1.25rem', fontWeight: 800, textAlign: 'center' }}>{match.consultant.userId.name}</Typography>
+                            <Typography sx={{ fontSize: '0.95rem', color: '#64748B', textAlign: 'center', mb: 0.8 }}>{match.consultant.title}</Typography>
+                            <Typography sx={{ fontSize: '0.86rem', textAlign: 'center', mb: 1 }}>⭐ {match.consultant.rating.toFixed(1)} | {match.consultant.totalReviews} completed jobs</Typography>
+                            <Divider sx={{ my: 1.2 }} />
+                            <Typography sx={{ color: '#00BCD4', fontWeight: 700, fontSize: '0.875rem' }}>✨ Why matched:</Typography>
+                            <Typography sx={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{match.matchReasons.join('. ')}</Typography>
+                            <Box sx={{ mt: 1.2, display: 'flex', flexWrap: 'wrap', gap: 0.6 }}>{match.consultant.skills.slice(0, 3).map((skill) => <Chip key={skill} label={skill} size="small" sx={{ bgcolor: '#E0F7FA', color: '#00838F' }} />)}</Box>
+                            <Box sx={{ mt: 2 }}>
+                              <Button fullWidth variant="contained" onClick={() => navigate(`/consultant/${match.consultant._id}`)} sx={{ bgcolor: '#00BCD4', textTransform: 'none' }}>View Profile</Button>
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    </Box>
+                  ))}
+                </Box>
               )}
             </CardContent>
           </Card>
-        </motion.div>
-
-        {/* AI Matching Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Box
-            sx={{
-              mb: 3,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-            }}
-          >
-            <Box
-              sx={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                p: 2,
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <FaRobot style={{ fontSize: '2rem', color: '#fff' }} />
-            </Box>
-            <Box>
-              <Typography
-                variant="h5"
-                sx={{
-                  color: '#fff',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                }}
-              >
-                AI-Powered Consultant Recommendations
-              </Typography>
-              <Typography
-                sx={{
-                  color: 'rgba(255,255,255,0.9)',
-                  fontSize: '0.95rem',
-                }}
-              >
-                Smart matching based on skills, experience, and past performance
-              </Typography>
-            </Box>
-          </Box>
-
-          {matchingLoading ? (
-            <Box>
-              <Typography sx={{ color: '#fff', mb: 2, textAlign: 'center' }}>
-                🤖 AI is analyzing and matching consultants...
-              </Typography>
-              {[1, 2, 3].map((i) => (
-                <Skeleton
-                  key={i}
-                  variant="rectangular"
-                  height={200}
-                  sx={{ borderRadius: 2, mb: 2 }}
-                />
-              ))}
-            </Box>
-          ) : matches.length === 0 ? (
-            <Card
-              sx={{
-                p: 4,
-                textAlign: 'center',
-                borderRadius: 3,
-                background: 'rgba(255,255,255,0.95)',
-              }}
-            >
-              <FaRobot style={{ fontSize: '4rem', color: '#0db4bc', marginBottom: '1rem' }} />
-              <Typography variant="h6" sx={{ color: '#555', mb: 1 }}>
-                No matching consultants found
-              </Typography>
-              <Typography sx={{ color: '#888' }}>
-                We'll notify you when consultants matching your requirements become available.
-              </Typography>
-            </Card>
-          ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {matches.map((match, index) => {
-                console.log('🎨 Rendering consultant:', match.consultant.userId?.name, 'Score:', match.matchScore);
-                return (
-                  <Box key={`${match.consultant._id}-${index}`}>
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: index * 0.1 }}
-                    >
-                      <Card
-                        sx={{
-                          borderRadius: 3,
-                          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                          overflow: 'hidden',
-                          transition: 'all 0.3s ease',
-                          border: '2px solid transparent',
-                          '&:hover': {
-                            transform: 'translateY(-4px)',
-                            boxShadow: '0 12px 32px rgba(13,180,188,0.2)',
-                            borderColor: '#0db4bc',
-                          },
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            background: `linear-gradient(135deg, ${getMatchScoreColor(match.matchScore)} 0%, ${getMatchScoreColor(match.matchScore)}dd 100%)`,
-                            p: 2,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <FaChartLine style={{ color: '#fff', fontSize: '1.2rem' }} />
-                            <Typography
-                              sx={{
-                                color: '#fff',
-                                fontWeight: 700,
-                                fontSize: '1.1rem',
-                              }}
-                            >
-                              {match.matchScore}% {getMatchScoreLabel(match.matchScore)}
-                            </Typography>
-                          </Box>
-                          <Chip
-                            icon={<FaStar style={{ color: '#ffd700' }} />}
-                            label={`#${index + 1} Ranked`}
-                            sx={{
-                              bgcolor: 'rgba(255,255,255,0.25)',
-                              color: '#fff',
-                              fontWeight: 700,
-                              backdropFilter: 'blur(10px)',
-                            }}
-                          />
-                        </Box>
-
-                        <CardContent sx={{ p: 3 }}>
-                          <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
-                            <Avatar
-                              src={match.consultant.userId.profileImage}
-                              alt={match.consultant.userId.name}
-                              sx={{
-                                width: 80,
-                                height: 80,
-                                border: '3px solid #0db4bc',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                              }}
-                            >
-                              <FaUser />
-                            </Avatar>
-
-                            <Box sx={{ flex: 1 }}>
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 1,
-                                  mb: 1,
-                                }}
-                              >
-                                <Typography
-                                  variant="h5"
-                                  sx={{
-                                    fontWeight: 700,
-                                    color: '#1a1a1a',
-                                  }}
-                                >
-                                  {match.consultant.userId.name}
-                                </Typography>
-                                {match.consultant.isVerified && (
-                                  <Tooltip title="Verified Consultant">
-                                    <FaCheckCircle
-                                      style={{
-                                        color: '#10b981',
-                                        fontSize: '1.2rem',
-                                      }}
-                                    />
-                                  </Tooltip>
-                                )}
-                              </Box>
-
-                              <Typography
-                                sx={{
-                                  color: '#0db4bc',
-                                  fontWeight: 600,
-                                  fontSize: '1rem',
-                                  mb: 1,
-                                }}
-                              >
-                                {match.consultant.title}
-                              </Typography>
-
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 2,
-                                  mb: 1,
-                                }}
-                              >
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                  <Rating
-                                    value={match.consultant.rating}
-                                    precision={0.1}
-                                    readOnly
-                                    size="small"
-                                  />
-                                  <Typography
-                                    sx={{
-                                      fontSize: '0.9rem',
-                                      fontWeight: 600,
-                                      color: '#555',
-                                    }}
-                                  >
-                                    {match.consultant.rating.toFixed(1)} ({match.consultant.totalReviews} reviews)
-                                  </Typography>
-                                </Box>
-
-                                <Chip
-                                  label={`Rs ${match.consultant.hourlyRate}/hr`}
-                                  size="small"
-                                  sx={{
-                                    bgcolor: '#10b981',
-                                    color: '#fff',
-                                    fontWeight: 700,
-                                  }}
-                                />
-                              </Box>
-
-                              {match.consultant.city && (
-                                <Typography
-                                  sx={{
-                                    fontSize: '0.9rem',
-                                    color: '#666',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 0.5,
-                                  }}
-                                >
-                                  <FaMapMarkerAlt /> {match.consultant.city}, Pakistan
-                                </Typography>
-                              )}
-                            </Box>
-                          </Box>
-
-                          <Divider sx={{ my: 2 }} />
-
-                          <Typography
-                            sx={{
-                              color: '#555',
-                              lineHeight: 1.6,
-                              mb: 2,
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            {match.consultant.bio}
-                          </Typography>
-
-                          {/* Skills */}
-                          <Box sx={{ mb: 2 }}>
-                            <Typography
-                              sx={{
-                                fontSize: '0.9rem',
-                                fontWeight: 700,
-                                color: '#0db4bc',
-                                mb: 1,
-                              }}
-                            >
-                              Skills
-                            </Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                              {match.consultant.skills.slice(0, 6).map((skill, idx) => (
-                                <Chip
-                                  key={idx}
-                                  label={skill}
-                                  size="small"
-                                  sx={{
-                                    bgcolor: '#e0f7f8',
-                                    color: '#0a8b91',
-                                    fontWeight: 600,
-                                    fontSize: '0.75rem',
-                                  }}
-                                />
-                              ))}
-                              {match.consultant.skills.length > 6 && (
-                                <Chip
-                                  label={`+${match.consultant.skills.length - 6} more`}
-                                  size="small"
-                                  sx={{
-                                    bgcolor: '#f3f4f6',
-                                    color: '#666',
-                                    fontSize: '0.75rem',
-                                  }}
-                                />
-                              )}
-                            </Box>
-                          </Box>
-
-                          {/* Match Reasons */}
-                          <Box
-                            sx={{
-                              bgcolor: '#f8f9fa',
-                              borderRadius: 2,
-                              p: 2,
-                              mb: 2,
-                              border: '1px solid #e9ecef',
-                            }}
-                          >
-                            <Typography
-                              sx={{
-                                fontSize: '0.9rem',
-                                fontWeight: 700,
-                                color: '#0db4bc',
-                                mb: 1,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 0.5,
-                              }}
-                            >
-                              <FaAward /> Why This Match?
-                            </Typography>
-                            <Stack spacing={0.5}>
-                              {match.matchReasons.map((reason, idx) => (
-                                <Typography
-                                  key={idx}
-                                  sx={{
-                                    fontSize: '0.85rem',
-                                    color: '#555',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 0.5,
-                                  }}
-                                >
-                                  <Box
-                                    component="span"
-                                    sx={{
-                                      width: 6,
-                                      height: 6,
-                                      borderRadius: '50%',
-                                      bgcolor: '#0db4bc',
-                                    }}
-                                  />
-                                  {reason}
-                                </Typography>
-                              ))}
-                            </Stack>
-                          </Box>
-
-                          {/* Match Score Progress */}
-                          <Box sx={{ mb: 2 }}>
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                mb: 0.5,
-                              }}
-                            >
-                              <Typography sx={{ fontSize: '0.85rem', color: '#666' }}>
-                                Match Confidence
-                              </Typography>
-                              <Typography
-                                sx={{
-                                  fontSize: '0.85rem',
-                                  fontWeight: 700,
-                                  color: getMatchScoreColor(match.matchScore),
-                                }}
-                              >
-                                {match.matchScore}%
-                              </Typography>
-                            </Box>
-                            <LinearProgress
-                              variant="determinate"
-                              value={match.matchScore}
-                              sx={{
-                                height: 8,
-                                borderRadius: 4,
-                                bgcolor: '#e9ecef',
-                                '& .MuiLinearProgress-bar': {
-                                  bgcolor: getMatchScoreColor(match.matchScore),
-                                  borderRadius: 4,
-                                },
-                              }}
-                            />
-                          </Box>
-
-                          {/* Action Buttons */}
-                          <Box sx={{ display: 'flex', gap: 2 }}>
-                            <Button
-                              variant="contained"
-                              fullWidth
-                              startIcon={<FaEnvelope />}
-                              onClick={() => handleContactConsultant(match.consultant._id)}
-                              sx={{
-                                bgcolor: '#0db4bc',
-                                color: '#fff',
-                                fontWeight: 700,
-                                py: 1.5,
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                fontSize: '1rem',
-                                '&:hover': {
-                                  bgcolor: '#0a8b91',
-                                  transform: 'translateY(-2px)',
-                                  boxShadow: '0 6px 20px rgba(13,180,188,0.3)',
-                                },
-                                transition: 'all 0.3s ease',
-                              }}
-                            >
-                              Contact Consultant
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              onClick={() => {
-                                console.log('🔍 Navigating to consultant profile');
-                                console.log('Full match object:', match);
-                                console.log('Consultant ID:', match.consultant._id);
-                                console.log('Consultant userId:', match.consultant.userId);
-                                navigate(`/consultant/${match.consultant._id}`);
-                              }}
-                              sx={{
-                                borderColor: '#0db4bc',
-                                color: '#0db4bc',
-                                fontWeight: 700,
-                                py: 1.5,
-                                px: 3,
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                fontSize: '1rem',
-                                '&:hover': {
-                                  borderColor: '#0a8b91',
-                                  bgcolor: '#e0f7f8',
-                                },
-                              }}
-                            >
-                              View Profile
-                            </Button>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  </Box>
-                );
-              })}
-            </Box>
-          )}
-        </motion.div>
-
-        {/* Footer Actions */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <Box
-            sx={{
-              mt: 4,
-              display: 'flex',
-              gap: 2,
-              justifyContent: 'center',
-            }}
-          >
-            <Button
-              variant="outlined"
-              onClick={() => navigate('/buyer-dashboard')}
-              sx={{
-                borderColor: '#fff',
-                color: '#fff',
-                fontWeight: 700,
-                px: 4,
-                py: 1.5,
-                borderRadius: 2,
-                textTransform: 'none',
-                fontSize: '1rem',
-                '&:hover': {
-                  borderColor: '#fff',
-                  bgcolor: 'rgba(255,255,255,0.1)',
-                },
-              }}
-            >
-              Back to Dashboard
-            </Button>
-          </Box>
-        </motion.div>
+        </Box>
       </Container>
     </Box>
   );

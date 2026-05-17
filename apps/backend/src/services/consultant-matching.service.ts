@@ -261,7 +261,7 @@ export class ConsultantMatchingService {
         );
 
         // Combine semantic similarity (70%) + bonus factors (30%)
-        const finalScore = semanticSimilarity * 0.7 + bonusScore;
+        const finalScore = Math.min(semanticSimilarity * 0.7 + bonusScore, 1.0); // Cap at 100%
 
         return {
           consultant,
