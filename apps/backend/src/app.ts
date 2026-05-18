@@ -41,6 +41,7 @@ const allowedOrigins = [
   env.frontendUrl,
   'http://localhost:3000',
   'http://localhost:5173',
+  'https://expertraah.netlify.app',
 ];
 
 app.use(
