@@ -7,14 +7,13 @@
   for = "/*"
   [headers.values]
     X-Content-Type-Options = "nosniff"
-    Content-Type = "application/javascript"
 
 [[headers]]
-  for = "/*.js"
+  for = "/assets/*.js"
   [headers.values]
     Content-Type = "application/javascript; charset=utf-8"
 
 [[headers]]
-  for = "/*.mjs"
+  for = "/assets/*.mjs"
   [headers.values]
     Content-Type = "application/javascript; charset=utf-8"
