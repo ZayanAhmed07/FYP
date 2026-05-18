@@ -182,7 +182,7 @@ export const suggestConsultantsForJob = catchAsync(async (req: Request, res: Res
 
       // Location match
       if (job.location && consultant.location?.city) {
-        const jobCity = job.location.split(',')[0].trim();
+        const jobCity = (job.location as string).split(',')[0].trim();
         if (consultant.location.city.toLowerCase() === jobCity.toLowerCase()) {
           matchScore += 15;
           matchReasons.push(`Located in ${consultant.location.city}`);
