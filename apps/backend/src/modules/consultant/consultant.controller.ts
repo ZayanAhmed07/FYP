@@ -132,7 +132,7 @@ export const suggestConsultantsForJob = catchAsync(async (req: Request, res: Res
     console.error('AI matching failed, using fallback:', error.message);
     
     // Fallback to simple keyword matching if AI fails
-    const { Job } = await import('../models/job.model');
+    const { Job } = await import('../../models/job.model');
     const { Consultant } = await import('../../models/consultant.model');
     
     const job = await Job.findById(jobId).lean();
