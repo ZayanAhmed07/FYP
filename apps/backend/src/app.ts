@@ -16,6 +16,9 @@ import { env } from './config/env';
 
 const app = express();
 
+// Trust proxy for Railway
+app.set('trust proxy', 1);
+
 // Cookie parser for HttpOnly cookies
 app.use(cookieParser());
 
@@ -89,7 +92,7 @@ app.use(session({
   cookie: {
     secure: env.nodeEnv === 'production', // Only HTTPS in production
     httpOnly: true, // Prevent XSS access to cookies
-    sameSite: 'strict', // CSRF protection
+    sameSite: 'none', // Allow cross-site requests
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     domain: undefined, // Let browser determine
   }
