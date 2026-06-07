@@ -90,11 +90,10 @@ app.use(session({
   saveUninitialized: false,
   name: 'sessionId', // Don't use default 'connect.sid'
   cookie: {
-    secure: env.nodeEnv === 'production', // Only HTTPS in production
-    httpOnly: true, // Prevent XSS access to cookies
-    sameSite: 'none', // Allow cross-site requests
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    domain: undefined, // Let browser determine
+    secure: env.nodeEnv === 'production',
+    httpOnly: true,
+    sameSite: env.nodeEnv === 'production' ? 'none' : 'lax',
+    maxAge: 24 * 60 * 60 * 1000,
   }
 }));
 
