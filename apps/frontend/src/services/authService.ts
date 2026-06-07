@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios';
 
 import { httpClient } from '../api/httpClient';
+import { env } from '../config/env';
 
 const USER_KEY = 'expert_raah_user';
 
@@ -36,7 +37,7 @@ const login = async (payload: { email: string; password: string }): Promise<Auth
 
 const loginWithGoogle = () => {
   // Redirect to backend Google auth endpoint
-  window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/google`;
+  window.location.href = `${env.apiBaseUrl.replace('/api', '')}/api/auth/google`;
 };
 
 const register = async (payload: { 

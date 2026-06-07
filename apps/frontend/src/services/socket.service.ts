@@ -17,43 +17,34 @@ class SocketService {
    * Creates it if it doesn't exist, otherwise returns existing
    */
   getInstance(token?: string): Socket | null {
-    // If socket exists and is connected, return it
     if (this.socket && this.socket.connected) {
       return this.socket;
     }
 
-    // If socket exists but disconnected, try to reconnect
     if (this.socket && !this.socket.connected) {
       console.log('[SocketService] Socket exists but disconnected, reconnecting...');
       this.socket.connect();
       return this.socket;
     }
 
-    // If no token provided, can't create new socket
-    if (!token) {
-      console.warn('[SocketService] No token provided, cannot create socket');
-      return null;
-    }
-
-    // Prevent multiple simultaneous connection attempts
     if (this.isConnecting) {
       console.log('[SocketService] Connection already in progress...');
       return this.socket;
     }
 
-    // Create new socket instance
     return this.createSocket(token);
   }
 
   /**
    * Create a new socket instance (private method)
    */
-  private createSocket(token: string): Socket {
+  private createSocket(token?: string): Socket {
     console.log('[SocketService] Creating new socket instance');
     this.isConnecting = true;
 
     this.socket = io(env.apiBaseUrl.replace('/api', ''), {
-      auth: { token },
+      auth: token ? { token } : {},
+      withCredentials: true, // send auth cookie automatically
       transports: ['websocket', 'polling'],
       autoConnect: false, // Manual control over connection
       reconnection: true,
@@ -101,26 +92,18 @@ class SocketService {
    * Connect socket (idempotent - safe to call multiple times)
    */
   connect(token?: string): Socket | null {
-    // Already connected
     if (this.socket?.connected) {
       console.log('[SocketService] Already connected');
       return this.socket;
     }
 
-    // Socket exists but not connected, reconnect
     if (this.socket && !this.socket.connected) {
       console.log('[SocketService] Reconnecting existing socket...');
       this.socket.connect();
       return this.socket;
     }
 
-    // No socket exists, create new one
-    if (token) {
-      return this.getInstance(token);
-    }
-
-    console.warn('[SocketService] Cannot connect without token');
-    return null;
+    return this.getInstance(token);
   }
 
   /**

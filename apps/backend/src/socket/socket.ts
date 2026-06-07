@@ -26,7 +26,20 @@ const userSockets = new Map<string, Socket>();
  */
 const socketAuthMiddleware = (socket: Socket, next: (err?: Error) => void) => {
   try {
-    const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
+    let token: string | undefined =
+      socket.handshake.auth.token ||
+      socket.handshake.headers.authorization?.replace('Bearer ', '');
+
+    if (!token) {
+      const cookieStr = socket.handshake.headers.cookie || '';
+      cookieStr.split(';').forEach(part => {
+        const idx = part.indexOf('=');
+        if (idx === -1) return;
+        const key = part.slice(0, idx).trim();
+        const val = part.slice(idx + 1).trim();
+        if (key === 'authToken') token = decodeURIComponent(val);
+      });
+    }
 
     if (!token) {
       logger.warn('[Socket.IO] Connection attempted without token');

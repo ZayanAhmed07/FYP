@@ -8,7 +8,7 @@ const getEnv = (key: string, fallback?: string) => {
 };
 
 export const env = {
-  apiBaseUrl: getEnv('VITE_API_BASE_URL', 'http://localhost:3001/api'),
+  apiBaseUrl: getEnv('VITE_API_BASE_URL', 'http://localhost:5000/api'),
 };
 
 

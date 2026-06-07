@@ -32,7 +32,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   res.cookie('authToken', result.token, {
     httpOnly: true,
     secure: env.nodeEnv === 'production',
-    sameSite: 'none',
+    sameSite: env.nodeEnv === 'production' ? 'none' : 'lax',
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
   
@@ -59,7 +59,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   res.cookie('authToken', result.token, {
     httpOnly: true,
     secure: env.nodeEnv === 'production',
-    sameSite: 'none',
+    sameSite: env.nodeEnv === 'production' ? 'none' : 'lax',
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
   
@@ -141,7 +141,7 @@ export const googleAuthCallback = (req: Request, res: Response) => {
   res.cookie('authToken', token, {
     httpOnly: true,
     secure: env.nodeEnv === 'production',
-    sameSite: 'none',
+    sameSite: env.nodeEnv === 'production' ? 'none' : 'lax',
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
   

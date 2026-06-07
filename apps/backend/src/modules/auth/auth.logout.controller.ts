@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { catchAsync } from '../../utils/catchAsync';
 import { ApiResponse } from '../../utils/ApiResponse';
+import { env } from '../../config/env';
 
 /**
  * Logout endpoint - clears authentication cookie
@@ -11,8 +12,8 @@ export const logout = catchAsync(async (req: Request, res: Response) => {
   // Clear the authentication cookie
   res.clearCookie('authToken', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: env.nodeEnv === 'production',
+    sameSite: env.nodeEnv === 'production' ? 'none' : 'lax',
   });
   
   res.status(200).json(ApiResponse.success(200, 'Logout successful', null));

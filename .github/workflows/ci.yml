@@ -37,7 +37,7 @@ jobs:
         working-directory: apps/frontend
         continue-on-error: true
         env:
-          VITE_API_BASE_URL: http://localhost:5000/api
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'http://localhost:5000/api' }}
         run: npm run build || echo "Build failed but continuing..."
 
       - name: Install backend dependencies

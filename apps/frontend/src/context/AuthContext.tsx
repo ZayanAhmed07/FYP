@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { authService } from '../services/authService';
-import { storage } from '../utils/storage';
 
 type AuthUser = {
   id: string;
@@ -25,8 +24,6 @@ type AuthContextType = {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_KEY = 'expert_raah_token';
-
 type AuthProviderProps = {
   children: React.ReactNode;
 };
@@ -40,68 +37,42 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const bootstrap = async () => {
       try {
-        const token = storage.getToken(TOKEN_KEY);
-        if (!token) {
-          return;
-        }
-        try {
-          const profile = await authService.getProfile();
-          setUser(profile);
+        // Token lives in an HttpOnly cookie — browser sends it automatically.
+        // Just call getProfile(); a 401 means the session is gone.
+        const profile = await authService.getProfile();
+        setUser(profile);
+        localStorage.setItem('expert_raah_user', JSON.stringify(profile));
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : String(error);
+        const isAuthError =
+          msg.includes('401') || msg.includes('403') ||
+          msg.includes('Unauthorized') || msg.includes('Forbidden');
 
-          // Update localStorage with fresh data
-          localStorage.setItem('expert_raah_user', JSON.stringify(profile));
-        } catch (profileError) {
-          // Only use cached data as last resort for network errors, not for auth errors
-          if (!(profileError instanceof Error) ||
-            (!profileError.message.includes('401') && !profileError.message.includes('403') &&
-              !profileError.message.includes('Unauthorized') && !profileError.message.includes('Forbidden'))) {
-            const cachedUser = localStorage.getItem('expert_raah_user');
-            if (cachedUser) {
-              try {
-                const parsedUser = JSON.parse(cachedUser);
-                setUser(parsedUser);
-                console.warn('Using cached user data due to network error', profileError);
-              } catch (parseError) {
-                localStorage.removeItem('expert_raah_user');
-              }
-            }
-          }
-          throw profileError;
-        }
-      } catch (error) {
-        // Only clear token for authentication errors (401/403), not for network errors
-        if (error instanceof Error &&
-          (error.message.includes('401') || error.message.includes('403') ||
-            error.message.includes('Unauthorized') || error.message.includes('Forbidden'))) {
-          storage.clearToken(TOKEN_KEY);
+        if (isAuthError) {
           localStorage.removeItem('expert_raah_user');
           setUser(null);
+        } else {
+          // Network / server error — fall back to cached user so the UI
+          // doesn't force a logout on a temporary outage.
+          const cached = localStorage.getItem('expert_raah_user');
+          if (cached) {
+            try {
+              setUser(JSON.parse(cached));
+            } catch {
+              localStorage.removeItem('expert_raah_user');
+            }
+          }
         }
-        console.error('Failed to bootstrap auth state', error);
       } finally {
-        // Always ensure user is null if no valid token
-        const token = storage.getToken(TOKEN_KEY);
-        if (!token) {
-          setUser(null);
-        }
         setIsLoading(false);
       }
     };
 
     bootstrap();
 
-    // Listen for storage changes (for OAuth callbacks and logout) - always bootstrap on token change
+    // Listen for storage changes (for OAuth callbacks and cross-tab logout)
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === TOKEN_KEY) {
-        if (e.newValue) {
-          // Token added - bootstrap to get user
-          bootstrap();
-        } else {
-          // Token removed - clear user state
-          setUser(null);
-        }
-      } else if (e.key === 'expert_raah_user' && !e.newValue) {
-        // User data cleared - ensure state is cleared
+      if (e.key === 'expert_raah_user' && !e.newValue) {
         setUser(null);
       }
     };
@@ -182,8 +153,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(null);
       localStorage.removeItem('expert_raah_user');
 
-      const { token, user: profile } = await authService.login(credentials);
-      storage.setToken(TOKEN_KEY, token);
+      const { user: profile } = await authService.login(credentials);
       localStorage.setItem('expert_raah_user', JSON.stringify(profile));
 
       // Get fresh profile data from backend to ensure consistency
@@ -234,27 +204,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = () => {
-    // Clear all authentication data
-    storage.clearToken(TOKEN_KEY);
     localStorage.removeItem('expert_raah_user');
     localStorage.removeItem('expert_raah_user_last_update');
-
-    // Clear user state first
     setUser(null);
-
-    // Clear React Query cache
     queryClient.clear();
-
-    // Trigger storage event to notify other components
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: TOKEN_KEY,
-      oldValue: 'cleared',
-      newValue: null,
-      storageArea: localStorage,
-      url: window.location.href
-    }));
-
-    // Navigate to home page
     navigate('/', { replace: true });
   };
 
