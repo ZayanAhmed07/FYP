@@ -36,12 +36,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
   
-  // Return user data (include token in test environment for E2E tests)
-  const responseData = env.nodeEnv === 'test' 
-    ? { user: result.user, token: result.token }
-    : { user: result.user };
-    
-  res.status(200).json(ApiResponse.success(200, 'Login successful', responseData));
+  res.status(200).json(ApiResponse.success(200, 'Login successful', { user: result.user, token: result.token }));
 });
 
 /**
@@ -63,12 +58,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
   
-  // Return user data (include token in test environment for E2E tests)
-  const responseData = env.nodeEnv === 'test' 
-    ? { user: result.user, token: result.token }
-    : { user: result.user };
-    
-  res.status(201).json(ApiResponse.success(201, 'Registration successful', responseData));
+  res.status(201).json(ApiResponse.success(201, 'Registration successful', { user: result.user, token: result.token }));
 });
 
 export const forgotPassword = catchAsync(async (req: Request, res: Response) => {

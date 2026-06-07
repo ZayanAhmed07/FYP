@@ -12,7 +12,10 @@ export const httpClient = axios.create({
 });
 
 httpClient.interceptors.request.use((config) => {
-  // Token is now in HttpOnly cookie, automatically sent by browser
+  const token = sessionStorage.getItem('expert_raah_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
@@ -26,8 +29,8 @@ httpClient.interceptors.response.use(
       const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
       
       if (!isPublicPath) {
-        // Clear local user data
         localStorage.removeItem('expert_raah_user');
+        sessionStorage.removeItem('expert_raah_token');
         window.location.assign('/login');
       }
     }

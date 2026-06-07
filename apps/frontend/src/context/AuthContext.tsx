@@ -204,6 +204,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = () => {
+    authService.logout().catch(() => {});
     localStorage.removeItem('expert_raah_user');
     localStorage.removeItem('expert_raah_user_last_update');
     setUser(null);

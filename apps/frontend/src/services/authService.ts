@@ -4,6 +4,7 @@ import { httpClient } from '../api/httpClient';
 import { env } from '../config/env';
 
 const USER_KEY = 'expert_raah_user';
+const TOKEN_KEY = 'expert_raah_token';
 
 type ApiResponse<T> = {
   success: boolean;
@@ -25,33 +26,34 @@ type AuthResponse = {
   token?: string;
 };
 
+const saveToken = (token: string | undefined) => {
+  if (token) sessionStorage.setItem(TOKEN_KEY, token);
+};
+
+const clearToken = () => sessionStorage.removeItem(TOKEN_KEY);
+
+const getToken = (): string | null => sessionStorage.getItem(TOKEN_KEY);
+
 const login = async (payload: { email: string; password: string }): Promise<AuthResponse> => {
-  // Token is now set in HttpOnly cookie by backend
   const { data } = await httpClient.post<ApiResponse<AuthResponse>>('/auth/login', payload);
-  
-  // Store only user data (token is in HttpOnly cookie)
+  saveToken(data.data.token);
   localStorage.setItem(USER_KEY, JSON.stringify(data.data.user));
-  
   return data.data;
 };
 
 const loginWithGoogle = () => {
-  // Redirect to backend Google auth endpoint
   window.location.href = `${env.apiBaseUrl.replace('/api', '')}/api/auth/google`;
 };
 
-const register = async (payload: { 
-  name: string; 
-  email: string; 
+const register = async (payload: {
+  name: string;
+  email: string;
   password: string;
   accountType: 'buyer' | 'consultant';
 }): Promise<AuthResponse> => {
-  // Token is now set in HttpOnly cookie by backend
   const { data } = await httpClient.post<ApiResponse<AuthResponse>>('/auth/register', payload);
-  
-  // Store only user data (token is in HttpOnly cookie)
+  saveToken(data.data.token);
   localStorage.setItem(USER_KEY, JSON.stringify(data.data.user));
-  
   return data.data;
 };
 
@@ -61,15 +63,12 @@ const getProfile = async (): Promise<AuthResponse['user']> => {
 };
 
 const logout = async () => {
-  // Call backend to clear HttpOnly cookie
   try {
     await httpClient.post('/auth/logout');
   } catch (error) {
-    // Continue with local cleanup even if backend call fails
     console.error('Logout error:', error);
   }
-  
-  // Clear local storage
+  clearToken();
   localStorage.removeItem(USER_KEY);
 };
 
@@ -82,16 +81,7 @@ const getCurrentUser = (): AuthResponse['user'] | null => {
   }
 };
 
-const getToken = (): string | null => {
-  // Token is now in HttpOnly cookie, not accessible from JS
-  return null;
-};
-
-const isAuthenticated = (): boolean => {
-  // Check if user data exists (token is in HttpOnly cookie)
-  const user = getCurrentUser();
-  return !!user;
-};
+const isAuthenticated = (): boolean => !!getCurrentUser();
 
 const parseError = (error: unknown) => {
   if (error instanceof AxiosError) {
@@ -126,4 +116,3 @@ export const authService = {
   forgotPassword,
   resetPassword,
 };
-
