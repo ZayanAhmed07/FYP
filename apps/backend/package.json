@@ -17,8 +17,7 @@
     "remove:consultants": "ts-node src/scripts/remove-seeded-consultants.ts",
     "fix:locations": "ts-node src/scripts/fix-consultant-locations.ts",
     "test:matching": "ts-node src/scripts/test-matching-system.ts",
-    "generate:embeddings": "ts-node src/scripts/generate-embeddings.ts",
-    "promote:admin": "ts-node src/scripts/promote-admin.ts"
+    "generate:embeddings": "ts-node src/scripts/generate-embeddings.ts"
   },
   "keywords": [],
   "author": "",

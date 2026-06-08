@@ -23,6 +23,8 @@ class EmailService {
           user: env.smtpUser,
           pass: env.smtpPass,
         },
+        connectionTimeout: 5000,
+        socketTimeout: 5000,
       });
     } else {
       console.warn('SMTP credentials not configured. Email sending will be disabled.');

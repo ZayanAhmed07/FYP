@@ -104,9 +104,9 @@ export const verifyConsultantAdmin = async (consultantId: string) => {
   // Update user verification status
   await User.findByIdAndUpdate(consultant.userId, { isVerified: true });
 
-  // Send approval email notification
+  // Send approval email notification (fire-and-forget — do not await)
   if (consultant.userId && (consultant.userId as any).email && (consultant.userId as any).name) {
-    await emailService.sendConsultantVerificationApproved(
+    emailService.sendConsultantVerificationApproved(
       (consultant.userId as any).email,
       (consultant.userId as any).name
     ).catch(err => console.error('Failed to send approval email:', err));
@@ -132,11 +132,11 @@ export const declineConsultant = async (consultantId: string, reason?: string) =
 
   // Send rejection email notification
   if (consultant.userId && (consultant.userId as any).email && (consultant.userId as any).name) {
-    await emailService.sendConsultantVerificationRejected(
+    emailService.sendConsultantVerificationRejected(
       (consultant.userId as any).email,
       (consultant.userId as any).name,
       reason
-    );
+    ).catch(err => console.error('Failed to send rejection email:', err));
   }
 
   return consultant;
